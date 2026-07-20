@@ -89,26 +89,6 @@
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-    /* Expanded Full-Width Landscape Container for Signature Mode */
-    body.signature-mode-active .terminal-viewport-wrapper {
-        max-width: 96vw;
-        width: 96vw;
-        margin-top: max(10px, env(safe-area-inset-top));
-        margin-bottom: max(10px, env(safe-area-inset-bottom));
-        padding: 0.2rem;
-    }
-
-    body.signature-mode-active .terminal-glass-card {
-        padding: 1rem 1.5rem;
-        max-width: 100%;
-        border-radius: 28px;
-    }
-
-    body.signature-mode-active #signatureCanvas {
-        height: min(220px, calc(100vh - 170px));
-        min-height: 160px;
-    }
-
     /* Pulsing Glowing Aura around NFC Icon */
     .card-icon-halo-wrapper {
         position: relative;
@@ -375,8 +355,8 @@
         opacity: 0.3;
     }
 
-    /* Orientation Warning for Terminal (Must be Portrait for normal, Landscape for signature) */
-    .portrait-warning-overlay, .signature-rotate-overlay {
+    /* Orientation Warning for Terminal (Must be Portrait) */
+    .portrait-warning-overlay {
         display: none;
         position: fixed;
         top: 0;
@@ -397,21 +377,8 @@
         50% { transform: rotate(-90deg); }
     }
 
-    @keyframes rotatePhoneToLandscape {
-        0%, 100% { transform: rotate(0deg); }
-        50% { transform: rotate(90deg); }
-    }
-
-    /* Normal mode: require Portrait */
     @media screen and (orientation: landscape) and (max-height: 600px) {
-        body:not(.signature-mode-active) .portrait-warning-overlay {
-            display: flex;
-        }
-    }
-
-    /* Signature mode: require Landscape */
-    @media screen and (orientation: portrait) {
-        body.signature-mode-active .signature-rotate-overlay {
+        .portrait-warning-overlay {
             display: flex;
         }
     }
@@ -500,7 +467,7 @@
             <div class="terminal-subtitle">Bitte unten mit dem Finger unterschreiben:</div>
 
             <div class="signature-canvas-container" style="margin: 1rem 0; width: 100%; position: relative;">
-                <canvas id="signatureCanvas" width="320" height="180" style="background: white; border: 3px dashed #38ef7d; border-radius: 16px; width: 100%; height: 180px; touch-action: none; cursor: crosshair; box-shadow: 0 8px 20px rgba(0,0,0,0.15);"></canvas>
+                <canvas id="signatureCanvas" width="320" height="220" style="background: white; border: 3px dashed #38ef7d; border-radius: 16px; width: 100%; height: 220px; touch-action: none; cursor: crosshair; box-shadow: 0 8px 20px rgba(0,0,0,0.15);"></canvas>
                 <div style="position: absolute; bottom: 8px; right: 12px; font-size: 0.85rem; color: #94a3b8; pointer-events: none;">❌ X Unterschrift</div>
             </div>
 
@@ -549,13 +516,6 @@
     <div style="font-size: 5rem; animation: rotatePhone 2s infinite ease-in-out;">📱</div>
     <h2 style="font-size: 2rem; margin-top: 1rem; color: #38ef7d;">Bitte Smartphone hochkant halten!</h2>
     <p style="font-size: 1.2rem; opacity: 0.85; margin-top: 0.5rem;">Das Terminal ist für Hochformat optimiert.</p>
-</div>
-
-<!-- Landscape Warning Overlay for Signature Mode -->
-<div class="signature-rotate-overlay">
-    <div style="font-size: 5rem; animation: rotatePhoneToLandscape 2s infinite ease-in-out;">📱</div>
-    <h2 style="font-size: 2rem; margin-top: 1rem; color: #ffda79;">Zum Unterschreiben quer drehen! 🔄</h2>
-    <p style="font-size: 1.2rem; opacity: 0.85; margin-top: 0.5rem;">Halte das Smartphone im Querformat für mehr Platz.</p>
 </div>
 {% endblock %}
 
@@ -849,11 +809,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const successGreeting = document.getElementById("successGreeting");
     const errorMessageDisplay = document.getElementById("errorMessageDisplay");
 
-    function lockTerminalOrientation(mode) {
+    function lockTerminalOrientation() {
         if ('orientation' in screen && screen.orientation.lock) {
-            const targetMode = mode === 'portrait' ? 'portrait-primary' : 'landscape-primary';
-            screen.orientation.lock(targetMode)
-                .catch(() => screen.orientation.lock(mode))
+            screen.orientation.lock('portrait-primary')
+                .catch(() => screen.orientation.lock('portrait'))
                 .catch(err => console.warn("Terminal orientation lock:", err));
         }
     }
@@ -864,15 +823,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (s) s.classList.add("hidden");
         });
         if (el) el.classList.remove("hidden");
-
-        if (el === stateSignature) {
-            document.body.classList.add("signature-mode-active");
-            lockTerminalOrientation('landscape');
-        } else {
-            document.body.classList.remove("signature-mode-active");
-            lockTerminalOrientation('portrait');
-        }
-
+        lockTerminalOrientation();
         resetIdleTimer();
     }
 
@@ -891,8 +842,8 @@ document.addEventListener("DOMContentLoaded", () => {
             sigCanvas.width = Math.round(r.width);
             sigCanvas.height = Math.round(r.height);
         } else {
-            sigCanvas.width = 600;
-            sigCanvas.height = 180;
+            sigCanvas.width = 320;
+            sigCanvas.height = 210;
         }
 
         sigCtx.lineWidth = 4;
@@ -959,12 +910,6 @@ document.addEventListener("DOMContentLoaded", () => {
         sigCanvas.ontouchend = stopDraw;
     };
 
-    window.addEventListener("resize", () => {
-        if (document.body.classList.contains("signature-mode-active")) {
-            setTimeout(window.resizeSignatureCanvas, 100);
-        }
-    });
-
     window.clearSignatureCanvas = function() {
         if (!sigCanvas || !sigCtx) return;
         sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
@@ -989,11 +934,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("pointerdown", () => {
         wakeUp();
         requestScreenWakeLock();
-        if (document.body.classList.contains("signature-mode-active")) {
-            lockTerminalOrientation('landscape');
-        } else {
-            lockTerminalOrientation('portrait');
-        }
+        lockTerminalOrientation();
         if (!webNfcScanning && 'NDEFReader' in window) {
             initWebNFC(true);
         }
@@ -1002,9 +943,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") {
             requestScreenWakeLock();
-            if (!document.body.classList.contains("signature-mode-active")) {
-                lockTerminalOrientation('portrait');
-            }
+            lockTerminalOrientation();
         }
     });
 
@@ -1012,7 +951,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("Terminal connected to server!");
         resetIdleTimer();
         requestScreenWakeLock();
-        lockTerminalOrientation('portrait');
+        lockTerminalOrientation();
         initWebNFC();
     });
 
