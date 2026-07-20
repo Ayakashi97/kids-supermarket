@@ -7,14 +7,18 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
+    * {
+        box-sizing: border-box;
+    }
+
     body {
         margin: 0;
         padding: 0;
-        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        background: radial-gradient(circle at 50% 20%, #1e3c72 0%, #0f2027 80%, #080f14 100%);
         color: white;
-        font-family: 'Outfit', sans-serif;
-        height: 100vh;
-        height: 100dvh;
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+        min-height: 100vh;
+        min-height: 100dvh;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -25,14 +29,12 @@
         -webkit-tap-highlight-color: transparent;
     }
 
-    /* Top Bar */
+    /* Fixed Glass Header */
     .terminal-header {
         position: fixed;
         top: 15px;
-        left: 20px;
-        right: 20px;
-        font-size: 1.3rem;
-        font-weight: 800;
+        left: 15px;
+        right: 15px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -42,73 +44,100 @@
     .terminal-brand {
         display: flex;
         align-items: center;
-        gap: 10px;
-        background: rgba(255, 255, 255, 0.12);
-        backdrop-filter: blur(10px);
-        padding: 0.4rem 1.1rem;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        padding: 0.5rem 1.2rem;
         border-radius: 50px;
         border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .terminal-actions {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .nfc-status-pill {
-        font-size: 0.95rem;
-        font-weight: 700;
-        padding: 0.4rem 1rem;
-        border-radius: 50px;
-        background: rgba(255, 255, 255, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        transition: all 0.3s ease;
-    }
-
-    .nfc-status-pill.active {
-        background: rgba(46, 204, 113, 0.3);
-        border-color: #2ecc71;
-        color: #2ecc71;
-        box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+        font-size: 1.15rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
     }
 
     .btn-fullscreen {
-        background: rgba(255, 255, 255, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
         color: white;
-        padding: 0.4rem 0.9rem;
+        padding: 0.5rem 1.1rem;
         border-radius: 50px;
-        font-size: 1rem;
-        font-weight: 700;
+        font-size: 0.95rem;
+        font-weight: 800;
         cursor: pointer;
-        backdrop-filter: blur(10px);
         transition: transform 0.15s ease, background 0.15s ease;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
     }
 
     .btn-fullscreen:active {
         transform: scale(0.92);
-        background: rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.25);
     }
 
-    /* Main Container */
-    .terminal-container {
+    /* Outer Wrapper for 100% Mobile Center */
+    .terminal-viewport-wrapper {
+        width: 100%;
+        max-width: 480px;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        margin-top: 50px;
+    }
+
+    /* Modern Glassmorphic Main Card */
+    .terminal-glass-card {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 36px;
+        padding: 2.2rem 1.8rem;
+        width: 100%;
         text-align: center;
-        max-width: 750px;
-        padding: 1.5rem;
-        width: 90%;
-        margin-top: 40px;
+        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-    /* Card Reader Pulsing Animation */
-    .terminal-card-icon {
-        font-size: 7.5rem;
-        margin-bottom: 0.5rem;
+    /* Pulsing Glowing Aura around NFC Icon */
+    .card-icon-halo-wrapper {
+        position: relative;
         display: inline-block;
-        filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+        margin-bottom: 1rem;
+    }
+
+    .terminal-card-icon {
+        font-size: 7rem;
+        display: block;
+        position: relative;
+        z-index: 2;
+        filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.4));
+    }
+
+    .card-halo-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(56, 239, 125, 0.4) 0%, rgba(17, 153, 142, 0.1) 60%, transparent 100%);
+        z-index: 1;
+        animation: auraGlow 2s infinite ease-in-out;
+    }
+
+    @keyframes auraGlow {
+        0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.4; }
+        50% { transform: translate(-50%, -50%) scale(1.35); opacity: 0.95; filter: blur(8px); }
+        100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.4; }
     }
 
     .pulse-animation {
@@ -116,89 +145,98 @@
     }
 
     @keyframes cardPulse {
-        0% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(255,230,109,0)); }
-        50% { transform: scale(1.18); filter: drop-shadow(0 0 40px rgba(255,230,109,0.9)); }
-        100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(255,230,109,0)); }
+        0% { transform: scale(1); }
+        50% { transform: scale(1.15); filter: drop-shadow(0 0 30px rgba(56,239,125,0.8)); }
+        100% { transform: scale(1); }
     }
 
+    /* Headings */
     .terminal-title {
-        font-size: 2.3rem;
+        font-size: 2.2rem;
         font-weight: 900;
         margin-bottom: 0.4rem;
         line-height: 1.2;
+        background: linear-gradient(135deg, #ffffff 0%, #dcdde1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
 
     .terminal-subtitle {
-        font-size: 1.35rem;
-        opacity: 0.9;
-        margin-bottom: 1rem;
+        font-size: 1.25rem;
+        opacity: 0.85;
+        margin-bottom: 1.2rem;
+        line-height: 1.4;
     }
 
+    /* Neon Price Badge */
     .amount-badge {
         display: inline-block;
-        background: #00b894;
-        color: white;
-        font-size: 2.6rem;
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: #080f14;
+        font-size: 2.8rem;
         font-weight: 900;
         padding: 0.5rem 2.2rem;
         border-radius: 50px;
-        box-shadow: 0 10px 25px rgba(0,184,148,0.4);
-        margin-top: 0.5rem;
+        box-shadow: 0 12px 35px rgba(56, 239, 125, 0.45);
+        margin-top: 0.6rem;
+        letter-spacing: 1px;
     }
 
-    /* Prominent NFC Activation Button */
+    /* Prominent 3D Glass NFC Activation Button */
     .btn-nfc-activate {
-        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-        color: white;
+        background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+        color: #091a24;
         border: none;
-        padding: 1rem 2rem;
-        font-size: 1.3rem;
+        padding: 1.1rem 2.2rem;
+        font-size: 1.25rem;
         font-weight: 900;
         border-radius: 50px;
         cursor: pointer;
-        box-shadow: 0 10px 30px rgba(56, 239, 125, 0.4);
-        margin-top: 1.2rem;
+        box-shadow: 0 12px 35px rgba(0, 206, 201, 0.45);
+        margin-top: 1.5rem;
         transition: transform 0.15s ease, box-shadow 0.15s ease;
         display: inline-flex;
         align-items: center;
         gap: 10px;
+        width: 100%;
+        justify-content: center;
     }
 
     .btn-nfc-activate:active {
-        transform: scale(0.95);
+        transform: scale(0.96);
     }
 
-    /* Live NFC Feedback Toast */
+    /* Toast Notification Banner */
     .nfc-feedback-toast {
-        background: #2ecc71;
-        color: #0f2027;
+        background: linear-gradient(135deg, #2ecc71, #1abc9c);
+        color: #080f14;
         font-weight: 900;
-        font-size: 1.2rem;
-        padding: 0.8rem 1.6rem;
+        font-size: 1.15rem;
+        padding: 0.8rem 1.5rem;
         border-radius: 50px;
-        margin: 1rem auto;
+        margin-bottom: 1.2rem;
         display: inline-flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         box-shadow: 0 10px 30px rgba(46, 204, 113, 0.5);
-        animation: toastPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        animation: toastPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     @keyframes toastPop {
-        0% { transform: scale(0); }
-        80% { transform: scale(1.05); }
-        100% { transform: scale(1); }
+        0% { transform: scale(0); opacity: 0; }
+        80% { transform: scale(1.06); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
     }
 
     /* Customer Photo Display */
     .customer-photo-box {
-        width: 170px;
-        height: 170px;
+        width: 160px;
+        height: 160px;
         border-radius: 50%;
         overflow: hidden;
-        border: 8px solid #00b894;
-        margin: 0 auto 1rem auto;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        border: 6px solid #38ef7d;
+        margin: 0 auto 1.2rem auto;
+        box-shadow: 0 15px 40px rgba(56, 239, 125, 0.4);
         animation: photoPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
@@ -214,30 +252,72 @@
         object-fit: cover;
     }
 
-    /* Touchscreen Terminal Card Selector Grid */
+    /* PIN-Pad Grid */
+    .terminal-pin-display {
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        border-radius: 20px;
+        padding: 0.6rem;
+        font-size: 2.6rem;
+        letter-spacing: 1.2rem;
+        margin: 0.8rem auto 1.2rem auto;
+        max-width: 260px;
+        text-align: center;
+        color: #f1c40f;
+    }
+
+    .terminal-pin-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    .t-pin-btn {
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 20px;
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: white;
+        padding: 0.8rem;
+        cursor: pointer;
+        transition: all 0.12s ease;
+    }
+
+    .t-pin-btn:active {
+        transform: scale(0.92);
+        background: #f1c40f;
+        color: #091a24;
+    }
+
+    .t-pin-btn.btn-clear { background: rgba(231, 76, 60, 0.5); }
+    .t-pin-btn.btn-submit { background: rgba(46, 204, 113, 0.8); }
+
+    /* Touchscreen Selector (Fallback) */
     .touchscreen-card-grid {
         display: flex;
         flex-wrap: wrap;
-        gap: 1rem;
+        gap: 0.8rem;
         justify-content: center;
-        margin-top: 1.2rem;
-        max-height: 260px;
+        margin-top: 1rem;
+        max-height: 240px;
         overflow-y: auto;
-        padding: 5px;
     }
 
     .t-card-select-btn {
-        background: rgba(255, 255, 255, 0.18);
-        border: 3px solid rgba(255, 255, 255, 0.4);
+        background: rgba(255, 255, 255, 0.12);
+        border: 2px solid rgba(255, 255, 255, 0.3);
         border-radius: 20px;
-        padding: 0.9rem 1.3rem;
+        padding: 0.8rem;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         cursor: pointer;
-        transition: transform 0.15s ease, background 0.15s ease;
-        min-width: 130px;
+        min-width: 120px;
         color: white;
     }
 
@@ -247,8 +327,8 @@
     }
 
     .t-card-avatar {
-        width: 65px;
-        height: 65px;
+        width: 60px;
+        height: 60px;
         border-radius: 50%;
         object-fit: cover;
         border: 3px solid white;
@@ -256,59 +336,15 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2rem;
+        font-size: 1.8rem;
     }
 
     .t-card-name {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
         font-weight: 800;
     }
 
-    /* Touchscreen Terminal PIN-Pad */
-    .terminal-pin-display {
-        background: rgba(255,255,255,0.15);
-        border: 3px solid rgba(255,255,255,0.4);
-        border-radius: 20px;
-        padding: 0.5rem;
-        font-size: 2.6rem;
-        letter-spacing: 1.2rem;
-        margin: 0.6rem auto;
-        max-width: 280px;
-        text-align: center;
-        color: #f1c40f;
-    }
-
-    .terminal-pin-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.7rem;
-        max-width: 320px;
-        margin: 0 auto;
-    }
-
-    .t-pin-btn {
-        background: rgba(255, 255, 255, 0.2);
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 18px;
-        font-size: 1.7rem;
-        font-weight: 800;
-        color: white;
-        padding: 0.75rem;
-        cursor: pointer;
-        transition: all 0.1s ease;
-        user-select: none;
-    }
-
-    .t-pin-btn:active {
-        transform: scale(0.92);
-        background: #f1c40f;
-        color: #2c3e50;
-    }
-
-    .t-pin-btn.btn-clear { background: rgba(231, 76, 60, 0.6); }
-    .t-pin-btn.btn-submit { background: rgba(46, 204, 113, 0.8); }
-
-    /* Screen Standby / Sleep Overlay */
+    /* Screen Standby Overlay */
     .sleep-overlay {
         position: fixed;
         top: 0;
@@ -321,14 +357,16 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        color: #444;
+        color: #555;
         cursor: pointer;
     }
+
     .sleep-overlay .sleep-icon {
-        font-size: 5rem;
+        font-size: 5.5rem;
         margin-bottom: 1rem;
         opacity: 0.3;
     }
+
     .sleep-overlay p {
         font-size: 1.4rem;
         opacity: 0.3;
@@ -341,9 +379,10 @@
 {% endblock %}
 
 {% block content %}
+<!-- Header Bar -->
 <div class="terminal-header">
     <div class="terminal-brand">
-        <span>💳 Kinder-Terminal</span>
+        <span>🛒 Kinder-Terminal</span>
     </div>
     <div class="terminal-actions">
         <button type="button" class="btn-fullscreen" onclick="toggleFullscreen()" title="Vollbild umschalten">
@@ -352,88 +391,98 @@
     </div>
 </div>
 
-<div class="terminal-container">
-    <!-- Live NFC Scan Toast Banner -->
-    <div id="liveNfcFeedback" class="nfc-feedback-toast hidden"></div>
+<!-- Perfectly Mobile-Centered Viewport Container -->
+<div class="terminal-viewport-wrapper">
+    <!-- Glassmorphic Main Card -->
+    <div class="terminal-glass-card">
 
-    <!-- State 1: IDLE -->
-    <div id="stateIdle">
-        <div class="terminal-card-icon">🛒</div>
-        <div class="terminal-title">Kinder-Supermarkt</div>
-        <div class="terminal-subtitle">Bereit für die nächste Bestellung!</div>
+        <!-- Live Scan Toast Banner -->
+        <div id="liveNfcFeedback" class="nfc-feedback-toast hidden"></div>
 
-        <!-- NFC Activation Button (Required for Chrome User Gesture Rule) -->
-        <button type="button" id="btnNfcActivate" class="btn-nfc-activate" onclick="initWebNFC(true)">
-            <span>📱</span> <span>NFC-Leser auf Handy aktivieren</span>
-        </button>
-    </div>
+        <!-- State 1: IDLE -->
+        <div id="stateIdle">
+            <div class="card-icon-halo-wrapper">
+                <div class="card-halo-ring"></div>
+                <div class="terminal-card-icon">🛒</div>
+            </div>
+            <div class="terminal-title">Kinder-Supermarkt</div>
+            <div class="terminal-subtitle">Bereit für die nächste Bestellung!</div>
 
-    <!-- State 2: WAITING FOR PAYMENT -->
-    <div id="stateWaiting" class="hidden">
-        <!-- Hardware / Web NFC Reader View -->
-        <div id="hwWaitingView">
-            <div class="terminal-card-icon pulse-animation">💳</div>
-            <div class="terminal-title">Karte jetzt anhalten!</div>
-            <div class="terminal-subtitle" id="waitingSubtitle">Halte deine physische Supermarkt-Karte an die Rückseite des Handys</div>
+            <button type="button" id="btnNfcActivate" class="btn-nfc-activate" onclick="initWebNFC(true)">
+                <span>📱</span> <span>NFC-Leser auf Handy aktivieren</span>
+            </button>
         </div>
 
-        <!-- Touchscreen Simulation Card Selector View (Fallback for iOS or when enabled) -->
-        <div id="simWaitingView" class="hidden">
-            <div class="terminal-title">Wähle deine Kundenkarte! 💳</div>
-            <div class="terminal-subtitle">Tippe auf deine Karte zum Bezahlen:</div>
-            <div class="touchscreen-card-grid" id="touchCardGrid">
-                <!-- Dynamically rendered card buttons -->
+        <!-- State 2: WAITING FOR PAYMENT -->
+        <div id="stateWaiting" class="hidden">
+            <div id="hwWaitingView">
+                <div class="card-icon-halo-wrapper">
+                    <div class="card-halo-ring"></div>
+                    <div class="terminal-card-icon pulse-animation">💳</div>
+                </div>
+                <div class="terminal-title">Karte jetzt anhalten!</div>
+                <div class="terminal-subtitle" id="waitingSubtitle">Halte deine physische Supermarkt-Karte an die Rückseite des Handys</div>
+            </div>
+
+            <!-- Touchscreen Simulation Card Selector View (Fallback for iOS or when enabled) -->
+            <div id="simWaitingView" class="hidden">
+                <div class="terminal-title">Wähle deine Kundenkarte! 💳</div>
+                <div class="terminal-subtitle">Tippe auf deine Karte zum Bezahlen:</div>
+                <div class="touchscreen-card-grid" id="touchCardGrid">
+                    <!-- Dynamically rendered card buttons -->
+                </div>
+            </div>
+
+            <div class="amount-badge" id="payAmountDisplay">0,00 €</div>
+        </div>
+
+        <!-- State 3: PIN PROMPT -->
+        <div id="statePin" class="hidden">
+            <div class="terminal-title" id="pinCardGreeting">Hallo! 💳</div>
+            <div class="terminal-subtitle" id="pinSubtitle">Bitte PIN eingeben</div>
+
+            <div class="terminal-pin-display" id="tPinDisplay">••••</div>
+
+            <div class="terminal-pin-grid">
+                <button type="button" class="t-pin-btn" onclick="tPressNum('1')">1</button>
+                <button type="button" class="t-pin-btn" onclick="tPressNum('2')">2</button>
+                <button type="button" class="t-pin-btn" onclick="tPressNum('3')">3</button>
+
+                <button type="button" class="t-pin-btn" onclick="tPressNum('4')">4</button>
+                <button type="button" class="t-pin-btn" onclick="tPressNum('5')">5</button>
+                <button type="button" class="t-pin-btn" onclick="tPressNum('6')">6</button>
+
+                <button type="button" class="t-pin-btn" onclick="tPressNum('7')">7</button>
+                <button type="button" class="t-pin-btn" onclick="tPressNum('8')">8</button>
+                <button type="button" class="t-pin-btn" onclick="tPressNum('9')">9</button>
+
+                <button type="button" class="t-pin-btn btn-clear" onclick="tClearPin()">C</button>
+                <button type="button" class="t-pin-btn" onclick="tPressNum('0')">0</button>
+                <button type="button" class="t-pin-btn btn-submit" onclick="tSubmitPin()">✓</button>
             </div>
         </div>
 
-        <div class="amount-badge" id="payAmountDisplay">0,00 €</div>
-    </div>
-
-    <!-- State 3: PIN PROMPT -->
-    <div id="statePin" class="hidden">
-        <div class="terminal-title" id="pinCardGreeting">Hallo! 💳</div>
-        <div class="terminal-subtitle" id="pinSubtitle">Bitte PIN eingeben</div>
-
-        <div class="terminal-pin-display" id="tPinDisplay">••••</div>
-
-        <div class="terminal-pin-grid">
-            <button type="button" class="t-pin-btn" onclick="tPressNum('1')">1</button>
-            <button type="button" class="t-pin-btn" onclick="tPressNum('2')">2</button>
-            <button type="button" class="t-pin-btn" onclick="tPressNum('3')">3</button>
-
-            <button type="button" class="t-pin-btn" onclick="tPressNum('4')">4</button>
-            <button type="button" class="t-pin-btn" onclick="tPressNum('5')">5</button>
-            <button type="button" class="t-pin-btn" onclick="tPressNum('6')">6</button>
-
-            <button type="button" class="t-pin-btn" onclick="tPressNum('7')">7</button>
-            <button type="button" class="t-pin-btn" onclick="tPressNum('8')">8</button>
-            <button type="button" class="t-pin-btn" onclick="tPressNum('9')">9</button>
-
-            <button type="button" class="t-pin-btn btn-clear" onclick="tClearPin()">C</button>
-            <button type="button" class="t-pin-btn" onclick="tPressNum('0')">0</button>
-            <button type="button" class="t-pin-btn btn-submit" onclick="tSubmitPin()">✓</button>
+        <!-- State 4: PAYMENT SUCCESS -->
+        <div id="stateSuccess" class="hidden">
+            <div class="customer-photo-box" id="photoBox" style="display: none;">
+                <img id="terminalPhoto" src="" alt="Kundenfoto">
+            </div>
+            <div class="terminal-card-icon" id="successIcon" style="display: none;">🎉</div>
+            <div class="terminal-title" id="successGreeting">Hallo! 🎉</div>
+            <div class="terminal-subtitle">Zahlung erfolgreich! Vielen Dank!</div>
         </div>
-    </div>
 
-    <!-- State 4: PAYMENT SUCCESS -->
-    <div id="stateSuccess" class="hidden">
-        <div class="customer-photo-box" id="photoBox" style="display: none;">
-            <img id="terminalPhoto" src="" alt="Kundenfoto">
+        <!-- State 5: PAYMENT ERROR -->
+        <div id="stateError" class="hidden">
+            <div class="terminal-card-icon">😕</div>
+            <div class="terminal-title">Hoppla!</div>
+            <div class="terminal-subtitle" id="errorMessageDisplay">Unbekannte Karte</div>
         </div>
-        <div class="terminal-card-icon" id="successIcon" style="display: none;">🎉</div>
-        <div class="terminal-title" id="successGreeting">Hallo! 🎉</div>
-        <div class="terminal-subtitle">Zahlung erfolgreich! Vielen Dank!</div>
-    </div>
 
-    <!-- State 5: PAYMENT ERROR -->
-    <div id="stateError" class="hidden">
-        <div class="terminal-card-icon">😕</div>
-        <div class="terminal-title">Hoppla!</div>
-        <div class="terminal-subtitle" id="errorMessageDisplay">Unbekannte Karte</div>
     </div>
 </div>
 
-<!-- State 6: STANDBY / SLEEP OVERLAY -->
+<!-- State 6: STANDBY OVERLAY -->
 <div id="stateSleep" class="sleep-overlay hidden">
     <div class="sleep-icon">😴</div>
     <p>Standby — Tippen zum Aufwecken</p>
@@ -589,17 +638,6 @@ function toggleFullscreen() {
     }
 }
 
-function updateNfcStatus(status, icon, text) {
-    const pill = document.getElementById("nfcStatusPill");
-    const iconEl = document.getElementById("nfcStatusIcon");
-    const textEl = document.getElementById("nfcStatusText");
-    if (!pill) return;
-
-    pill.className = "nfc-status-pill " + status;
-    iconEl.textContent = icon;
-    textEl.textContent = text;
-}
-
 // Smartphone Web NFC API scanner with User-Gesture Activation Support
 async function initWebNFC(isUserClick = false) {
     const btnActivate = document.getElementById("btnNfcActivate");
@@ -612,7 +650,6 @@ async function initWebNFC(isUserClick = false) {
             await ndefReaderInstance.scan();
             webNfcScanning = true;
             console.log("Web NFC reader scanner active!");
-            updateNfcStatus("active", "⚡", "NFC Scanner Aktiv");
 
             if (btnActivate) {
                 btnActivate.style.display = "none";
@@ -634,7 +671,6 @@ async function initWebNFC(isUserClick = false) {
 
                 let rawUid = event.serialNumber || "";
 
-                // Inspect NDEF Records if serialNumber is empty or for NDEF text tags
                 if (event.message && event.message.records && event.message.records.length > 0) {
                     const decoder = new TextDecoder();
                     for (const record of event.message.records) {
@@ -653,7 +689,7 @@ async function initWebNFC(isUserClick = false) {
                 }
 
                 if (rawUid) {
-                    showNfcFeedbackToast(`✅ NFC Karte erkannt! (ID: ${rawUid})`);
+                    showNfcFeedbackToast(`✅ NFC Karte erfasst! (ID: ${rawUid})`);
                     if (window.termSocket) {
                         window.termSocket.emit("card_tapped", { uid: rawUid });
                     }
@@ -663,22 +699,13 @@ async function initWebNFC(isUserClick = false) {
             console.warn("Web NFC activation failed/denied:", error);
             webNfcScanning = false;
 
-            if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-                updateNfcStatus("touch", "⚠️", "NFC benötigt Chrome Flag");
-                if (btnActivate) {
-                    btnActivate.innerHTML = `<span>⚠️</span> <span>Chrome Flag 'unsafely-treat-insecure-origin-as-secure' aktivieren</span>`;
-                }
-            } else {
-                updateNfcStatus("touch", "📱", "Tippen zum NFC Aktivieren");
-                if (btnActivate) {
-                    btnActivate.style.display = "inline-flex";
-                }
+            if (btnActivate) {
+                btnActivate.style.display = "inline-flex";
             }
         }
     } else {
         console.log("Web NFC not supported in this browser.");
         webNfcScanning = false;
-        updateNfcStatus("touch", "💳", "NFC Terminal");
         if (btnActivate) {
             btnActivate.style.display = "none";
         }
@@ -745,10 +772,8 @@ document.addEventListener("DOMContentLoaded", () => {
             payAmountDisplay.textContent = data.total_formatted;
         }
 
-        // Try activating Web NFC scanner when payment starts
         initWebNFC();
 
-        // Render card choice buttons for touchscreen / fallback
         touchCardGrid.innerHTML = "";
         const cards = data.cards || [];
 
@@ -776,7 +801,6 @@ document.addEventListener("DOMContentLoaded", () => {
             hwWaitingView.classList.add("hidden");
             simWaitingView.classList.remove("hidden");
         } else {
-            // Web NFC or Hardware Mode: ALWAYS show NFC card pulsing graphic!
             hwWaitingView.classList.remove("hidden");
             simWaitingView.classList.add("hidden");
         }
