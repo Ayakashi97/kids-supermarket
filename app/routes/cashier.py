@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, redirect, url_for
 from app.models import Product
 
 cashier_bp = Blueprint("cashier", __name__)
