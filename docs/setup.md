@@ -1,6 +1,6 @@
 # 🛠️ Raspberry Pi Hardware & OS Setup Guide
 
-Complete step-by-step setup guide for both Raspberry Pi units in the **Kinder-Supermarkt** system, including display troubleshooting, enclosure constraints, and NFC reader hardware options.
+Complete step-by-step setup guide for both Raspberry Pi units in the **Kinder-Supermarkt** system, including display drivers, enclosure constraints, and NFC reader hardware options.
 
 ---
 
@@ -76,184 +76,142 @@ docker compose up -d
 
 ---
 
-## 💳 Raspberry Pi #2 — NFC Reader & Touchscreen Terminal Setup
+## 💳 Raspberry Pi #2 — Touchscreen Terminal & NFC Reader Setup
 
-### 1. Flash OS
-1. Open **Raspberry Pi Imager**.
-2. Select OS: **Raspberry Pi OS with Desktop (64-bit)** (desktop environment required for touchscreen kiosk display).
-3. Click gear icon ⚙️ (OS Customization):
-   - Set Hostname: `supermarket-terminal`
-   - Enable SSH
-   - Set username & password
-   - Configure Wi-Fi / LAN settings
-4. Flash SD card & insert into Pi #2.
+To prevent first-time setup popups on the small 3.5" LCD screen, follow this **exact 4-step sequence**:
 
 ---
 
-## 🔌 Enclosure & Case Options: Connecting NFC when a 3.5" Screen Occupies the 40-Pin Header
-
-When using an enclosure/case where a 3.5" Touchscreen Display plugs flush onto all 40 GPIO pins, Dupont jumper wires cannot fit on top of the header pins inside the case. Here are the 4 best hardware options:
+### Step 1: Flash OS & Complete First-Time Setup on HDMI Monitor
+1. Flash **Raspberry Pi OS Desktop (64-bit)** using Raspberry Pi Imager.
+2. Connect Pi #2 to a standard **HDMI Monitor**, keyboard, and mouse.
+3. Power on Pi #2 and complete the on-screen **Raspberry Pi First-Time Setup Wizard** (Language, Wi-Fi, Timezone, User/Password -> Click Finish).
+4. Alternatively, disable the setup wizard immediately via terminal:
+   ```bash
+   sudo systemctl disable --now rpi-initial-setup
+   ```
 
 ---
 
-### Option 1: Use a USB-to-TTL Adapter with your existing PN532 Module (Recommended)
-You can connect your existing PN532 module into one of Pi #2's **external USB ports** using a $2 USB-to-TTL Serial Adapter (AZDelivery / CP2102 / PL2303 / FT232):
+### Step 2: Configure Chromium Kiosk Autostart (Auto-Boot into Supermarket Terminal)
+
+Create an autostart script that waits for network connection before launching Chromium in kiosk mode:
+
+1. **Create Kiosk Script**:
+   ```bash
+   nano /home/pi/start_kiosk.sh
+   ```
+   Paste the following:
+   ```bash
+   #!/bin/bash
+   # Wait 8 seconds for Wi-Fi and display initialization
+   sleep 8
+
+   # Launch Chromium in full-screen kiosk mode
+   export DISPLAY=:0
+   chromium-browser --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://10.9.3.172:5050/terminal &
+   ```
+   Save (`Ctrl + O`, `Enter`) and exit (`Ctrl + X`).
+
+2. **Make Executable & Add to Crontab**:
+   ```bash
+   chmod +x /home/pi/start_kiosk.sh
+   (crontab -l 2>/dev/null; echo "@reboot /home/pi/start_kiosk.sh") | crontab -
+   ```
+
+3. **Add Universal XDG Autostart File**:
+   ```bash
+   mkdir -p ~/.config/autostart
+   nano ~/.config/autostart/kiosk.desktop
+   ```
+   Paste:
+   ```ini
+   [Desktop Entry]
+   Type=Application
+   Name=Supermarkt Kiosk
+   Exec=/home/pi/start_kiosk.sh
+   X-GNOME-Autostart-enabled=true
+   ```
+
+---
+
+### Step 3: Hardware Connection (3.5" Touchscreen + PN532 NFC Reader)
 
 ![Connecting AZDelivery USB-C to TTL Serial Adapter to Raspberry Pi 4 and PN532 NFC Module](images/azdelivery_usb_connection.jpg)
 
-1. Set PN532 DIP Switches to **HSU Mode**: `SEL0 = 0 (LOW / OFF)`, `SEL1 = 0 (LOW / OFF)`.
-2. Connect PN532 pins to the USB Serial Adapter:
+When using an enclosure/case where a 3.5" Touchscreen Display plugs flush onto all 40 GPIO pins, connect the PN532 module via USB:
+
+1. **PN532 DIP Switches**: Set to **HSU/UART Mode**: `SEL0 = 0 (LOW / OFF)`, `SEL1 = 0 (LOW / OFF)`.
+2. **Connect to USB-to-TTL Adapter (AZDelivery / CP2102 / FT232)**:
    - `VCC` ➡️ `5V` (Set jumper on AZDelivery adapter to **5V**)
    - `GND` ➡️ `GND`
    - `TX`  ➡️ `RX`
    - `RX`  ➡️ `TX`
-3. Plug a standard USB-C to USB-A cable from the AZDelivery adapter into **any USB port on Raspberry Pi #2**! The 40-pin GPIO header remains 100% free inside the case for the 3.5" touchscreen.
+3. Plug the USB-C adapter cable into any USB port on Pi #2!
 
 ---
 
-### Option 2: Use a Plug-and-Play USB NFC Reader Stick
-Instead of a raw GPIO board, use a USB NFC reader stick:
-1. **USB HID / Keyboard Emulation NFC Reader**:
-   - *Examples*: R80UF, JustID, or NeosID 13.56MHz USB NFC Dongle.
-   - **Advantage**: Plugs into USB port. When a card is scanned, it automatically types the UID into the terminal view. No GPIO wiring or special libraries needed.
-2. **ACR122U USB Smart Card Reader**:
-   - Industry-standard USB NFC smart card reader (plugs into USB port).
+### Step 4: Install 3.5" Touchscreen Driver (`LCD35-show`) & Switch Display Output
 
----
-
-### Option 3: Low-Profile GPIO Ribbon Extension Cable
-If you want to keep GPIO communication:
-- Use a flat 40-pin GPIO ribbon cable with a 90-degree low-profile female header.
-- The ribbon cable fits between the Pi PCB and the 3.5" screen header, extending the 40 pins outside the case to a breakout board.
-
----
-
-### Option 4: Solder 4 Wires to the Underside of the Raspberry Pi PCB
-If mounting the PN532 inside or flush against the enclosure:
-- Solder 4 thin enamel wires directly to the bottom pads of GPIO **Pin 3 (SDA)**, **Pin 5 (SCL)**, **Pin 2 (5V)**, and **Pin 9 (GND)** on the underside of the Raspberry Pi PCB board.
-
----
-
-### 🖥️ Touchscreen Setup & White Screen Fix (3.5" XPT2046 Display)
-
-If your 3.5" touchscreen displays a **solid white screen** on boot:
+Now attach the 3.5" SPI Touchscreen Display to the 40-pin GPIO header and switch graphics output from HDMI to the 3.5" LCD screen:
 
 ```bash
-# SSH into Pi #2
-ssh pi@supermarket-terminal.local
-
-# Clone official LCD-show driver repo
+# Clone official LCD-show driver repository
 git clone https://github.com/goodtft/LCD-show.git
 chmod -R 755 LCD-show
 cd LCD-show/
 
-# Run installer script for 3.5" XPT2046 SPI display (auto-configures SPI, overlays & reboots)
+# Run installer script for 3.5" XPT2046 SPI display
 sudo ./LCD35-show
 ```
 
----
-
-### 3. Enable I2C & SPI Interfaces on Pi #2
-SSH into Pi #2:
-
-```bash
-sudo raspi-config
-```
-- Go to `Interface Options` → `I2C` → Enable `Yes`.
-- Go to `Interface Options` → `SPI` → Enable `Yes`.
-- Reboot: `sudo reboot`.
-
-Verify I2C detection:
-```bash
-sudo apt install -y i2c-tools
-sudo i2cdetect -y 1
-```
-*(You should see `0x24` listed for the PN532 chip)*.
+> ⚙️ **What happens next**:
+> - The installer configures the SPI display overlays.
+> - The Raspberry Pi reboots automatically.
+> - Graphics output switches from HDMI to the **3.5" Touchscreen LCD**.
+> - Pi #2 boots straight into the full-screen animated **Kinder-Supermarkt Terminal** (`http://10.9.3.172:5050/terminal`)!
 
 ---
 
-### 4. Setup NFC Reader Python Service
-SSH into Pi #2:
+## 🛠️ Handy Display Output Commands
+
+To switch display output between HDMI and the 3.5" Touchscreen display at any time:
+
+- **Switch back to HDMI Monitor**:
+  ```bash
+  cd LCD-show/ && sudo ./LCD-hdmi
+  ```
+- **Switch back to 3.5" Touchscreen LCD**:
+  ```bash
+  cd LCD-show/ && sudo ./LCD35-show
+  ```
+
+---
+
+## 💳 Optional: Setup Hardware NFC Reader Python Service
+
+If using hardware NFC cards (PN532 via USB `/dev/ttyUSB0` or I2C):
 
 ```bash
-# Install git and python dependencies
-sudo apt update && sudo apt install -y git python3-pip python3-venv
+# Enable I2C & SPI
+sudo raspi-config nonint do_i2c 0
+sudo raspi-config nonint do_spi 0
 
-# Clone project
+# Clone repo and setup python service
 git clone https://github.com/Ayakashi97/kids-supermarket.git
 cd kids-supermarket/nfc_reader
 
-# Create Python virtual environment
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-```
 
-#### Create Systemd Auto-Start Service on Pi #2
-Create service file `/etc/systemd/system/supermarkt-nfc.service`:
-
-```ini
-[Unit]
-Description=Kinder-Supermarkt NFC Reader Service
-After=network.target
-
-[Service]
-Type=simple
-User=pi
-WorkingDirectory=/home/pi/kids-supermarket/nfc_reader
-ExecStart=/home/pi/kids-supermarket/nfc_reader/venv/bin/python reader.py --server http://supermarket-server.local:5050
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Enable & start the service:
-```bash
+# Create systemd auto-start service
+sudo cp supermarkt-nfc.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now supermarkt-nfc
 ```
 
----
-
-### 5. Universal Touchscreen Chromium Kiosk Mode (Auto-Launch Terminal on Boot)
-
-If the Raspberry Pi keeps showing the "Welcome Desktop" setup popup or desktop screen on reboot, follow these 3 steps:
-
-#### Step 1: Disable First-Boot Setup Wizard
-```bash
-sudo systemctl disable rpi-initial-setup
-```
-
-#### Step 2: Create Universal XDG Autostart File
-Create a `.desktop` autostart file (works on **ALL** Raspberry Pi OS versions: Wayland, Wayfire, Labwc, X11):
-
-```bash
-mkdir -p ~/.config/autostart
-nano ~/.config/autostart/kiosk.desktop
-```
-
-Paste the following content (replace IP with your Pi #1 IP):
-```ini
-[Desktop Entry]
-Type=Application
-Name=Supermarkt Kiosk
-Exec=chromium-browser --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://10.9.3.172:5050/terminal
-X-GNOME-Autostart-enabled=true
-```
-
-#### Step 3: Enable Desktop Auto-Login
-```bash
-sudo raspi-config nonint do_boot_behaviour B4
-```
-
-Reboot Pi #2:
-```bash
-sudo reboot
-```
-
-The Raspberry Pi will now skip the setup screen and boot directly into the **Kinder-Supermarkt Terminal**!
+*(Note: If no physical NFC reader is connected, set **NFC-Lesegerät Modus** to **"Touchscreen-Kartenwahl"** in Admin Settings at `/admin/settings` so children can tap their card photos directly on the touchscreen!).*
 
 ---
 
