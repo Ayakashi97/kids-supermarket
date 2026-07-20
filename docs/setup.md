@@ -1,6 +1,6 @@
 # 🛠️ Raspberry Pi Hardware & OS Setup Guide
 
-Complete step-by-step setup guide for both Raspberry Pi units in the **Kinder-Supermarkt** system, including display troubleshooting and hardware configuration.
+Complete step-by-step setup guide for both Raspberry Pi units in the **Kinder-Supermarkt** system, including dual-hardware wiring (3.5" Touchscreen Display + PN532 NFC Reader on the SAME Raspberry Pi #2).
 
 ---
 
@@ -90,71 +90,70 @@ docker compose up -d
 
 ---
 
-### 🖥️ Touchscreen Setup & White Screen Troubleshooting
+## 🔌 Dual Hardware Wiring Guide: Connecting BOTH 3.5" Touchscreen Display AND PN532 NFC Reader to Pi #2
 
-If your Raspberry Pi touchscreen turns on but stays **solid white** or shows **no display signal**:
+A 3.5" SPI display plugs directly onto the 40-pin GPIO header. Here is how to connect the PN532 NFC Module to the **SAME Raspberry Pi #2** without hardware pin conflicts.
 
-#### A. Official Raspberry Pi 7" Touchscreen (DSI Ribbon Cable)
-1. **Ribbon Cable Orientation**:
-   - Ensure the DSI ribbon cable is connected to the `DISPLAY` port (not the `CAMERA` port!).
-   - Black locking latch pulled up, blue tab on ribbon cable facing the USB/Ethernet ports, metal contacts facing PCB board.
-2. **Display Drivers in `/boot/firmware/config.txt`**:
-   SSH into Pi #2 (`ssh pi@supermarket-terminal.local`) and edit `/boot/firmware/config.txt` (or `/boot/config.txt` on older OS):
-   ```bash
-   sudo nano /boot/firmware/config.txt
-   ```
-   Ensure the DRM graphics driver overlay is enabled under `[all]`:
-   ```ini
-   # Enable DRM VC4 V3D driver
-   dtoverlay=vc4-kms-v3d
-   
-   # For Official Raspberry Pi 7" Touchscreen DSI:
-   dtoverlay=vc4-kms-dsi-7inch
-   gpu_mem=128
-   ```
+### Why there is NO GPIO pin conflict:
+- **3.5" SPI Display** uses: SPI bus (Pins 19, 21, 23, 24, 26) + Touch IRQ/CS (Pins 11, 18, 22).
+- **PN532 NFC Module** uses: **I2C bus (Pins 3 & 5)**.
+- Pins 3 (SDA) and 5 (SCL) are **completely unused** by 3.5" SPI touchscreen displays!
 
-#### B. Waveshare / Elecrow HDMI Touchscreen Displays
-If using a 5-inch or 7-inch HDMI touchscreen connected via HDMI adapter:
-1. Open `/boot/firmware/config.txt`:
-   ```ini
-   hdmi_force_hotplug=1
-   config_hdmi_boost=10
-   hdmi_group=2
-   hdmi_mode=87
-   hdmi_cvt 1024 600 60 6 0 0 0
-   hdmi_drive=1
-   ```
-2. Reboot: `sudo reboot`.
+---
 
-#### C. 3.5-inch SPI GPIO Touchscreen Displays (XPT2046 Touch Controller / ILI9486)
-If using a 3.5" display plugged directly into the 40-pin GPIO header (SPI bus instead of HDMI/DSI):
+### Method A: I2C Mode Wiring (Shared GPIO Header)
 
-**1-Click Installation Driver**:
-SSH into Pi #2 (`ssh pi@supermarket-terminal.local`) and run:
+Set PN532 DIP Switches to **I2C Mode**: `SEL0 = 1 (HIGH)`, `SEL1 = 0 (LOW)`.
+
+| PN532 Pin | Raspberry Pi #2 GPIO Pin | Function | Notes |
+|---|---|---|---|
+| `VCC` | **Pin 2** (5V) or **Pin 4** (5V) or **Pin 17** (3.3V) | Power | Power pin |
+| `GND` | **Pin 9** or **Pin 14** or **Pin 20** or **Pin 30** or **Pin 34** | Ground | Ground pin |
+| `SDA` | **Pin 3** (GPIO 2 - SDA) | I2C Data | **Not used by 3.5" LCD** |
+| `SCL` | **Pin 5** (GPIO 3 - SCL) | I2C Clock | **Not used by 3.5" LCD** |
+
+#### How to physically attach wires when 3.5" LCD is plugged in:
+1. **Option 1 (Pass-through / Stacking Header - Easiest)**: Use female-to-male Dupont jumper wires inserted into the top of the 3.5" display header socket at Pins 3, 5, 2, 9.
+2. **Option 2 (GPIO Stacking / Breakout Board)**: Place a 40-pin GPIO Stacking Header or GPIO Extension Ribbon Cable between the Raspberry Pi and the 3.5" screen.
+3. **Option 3 (Under-PCB Soldering)**: Solder 4 thin wires to the underside of GPIO Pins 3, 5, 5V, GND on the Raspberry Pi PCB.
+
+---
+
+### Method B: USB Serial Mode (Easiest — Zero Header Pin Sharing!)
+
+If you do not want to share GPIO pins, connect the PN532 module to a USB port using a cheap **USB-to-TTL Adapter** (PL2303 / CP2102 / FT232):
+
+Set PN532 DIP Switches to **HSU/UART Mode**: `SEL0 = 0 (LOW)`, `SEL1 = 0 (LOW)`.
+
+| PN532 Pin | USB-to-TTL Serial Adapter Pin |
+|---|---|
+| `VCC` | `5V` / `3.3V` |
+| `GND` | `GND` |
+| `TX` | `RX` |
+| `RX` | `TX` |
+
+Plug the USB adapter into any USB port on Pi #2! The 40-pin GPIO header remains 100% dedicated to the 3.5" touchscreen.
+
+---
+
+### 🖥️ Touchscreen Setup & White Screen Fix (3.5" XPT2046 Display)
+
+If your 3.5" touchscreen displays a **solid white screen** on boot:
 
 ```bash
-# Clone official LCD-show driver repository
+# SSH into Pi #2
+ssh pi@supermarket-terminal.local
+
+# Clone official LCD-show driver repo
 git clone https://github.com/goodtft/LCD-show.git
 chmod -R 755 LCD-show
 cd LCD-show/
 
-# Run setup script for 3.5" XPT2046 SPI display (auto-configures SPI, overlays & reboots)
+# Run installer script for 3.5" XPT2046 SPI display (auto-configures SPI, overlays & reboots)
 sudo ./LCD35-show
 ```
 
 ---
-
-### 2. PN532 NFC Module Wiring
-Set DIP switches on PN532 board to **I2C Mode** (`SEL0 = HIGH (1)`, `SEL1 = LOW (0)`).
-
-Connect PN532 to Raspberry Pi #2 GPIO pins:
-
-| PN532 Pin | Raspberry Pi #2 Pin | Function |
-|---|---|---|
-| `VCC` | Pin 1 (3.3V) or Pin 2 (5V) | Power |
-| `GND` | Pin 6 (GND) | Ground |
-| `SDA` | Pin 3 (GPIO 2 - SDA) | I2C Data |
-| `SCL` | Pin 5 (GPIO 3 - SCL) | I2C Clock |
 
 ### 3. Enable I2C & SPI Interfaces on Pi #2
 SSH into Pi #2:
@@ -222,16 +221,16 @@ sudo systemctl enable --now supermarkt-nfc
 
 ### 5. Setup Touchscreen Chromium Kiosk Mode (Auto-Launch Terminal on Boot)
 
-Now that the desktop is working, configure Chromium to launch full-screen in Kiosk mode on boot:
+Configure Chromium to launch full-screen in Kiosk mode on boot:
 
-#### Method A: Raspberry Pi OS Bookworm (Labwc / Wayland - Default on Pi 4 / Pi 5)
+#### Method A: Raspberry Pi OS Bookworm (Labwc / Wayland — Default)
 Create autostart config file:
 ```bash
 mkdir -p ~/.config/labwc
 nano ~/.config/labwc/autostart
 ```
 
-Paste the following line (replace IP with your Pi #1 IP if needed):
+Paste (replace IP with your Pi #1 IP if needed):
 ```bash
 chromium-browser --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://supermarket-server.local:5050/terminal &
 ```
@@ -251,12 +250,7 @@ Paste:
 @chromium-browser --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://supermarket-server.local:5050/terminal
 ```
 
-#### Test Immediately from Command Line:
-```bash
-chromium-browser --kiosk http://supermarket-server.local:5050/terminal
-```
-
-Reboot Pi #2 (`sudo reboot`). It will now boot straight into the full-screen animated **Kinder-Supermarkt Terminal** view!
+Reboot Pi #2 (`sudo reboot`). It will now boot directly into the animated **Kinder-Supermarkt Terminal**!
 
 ---
 
