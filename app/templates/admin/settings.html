@@ -121,11 +121,11 @@
         </div>
     </div>
 
-    <!-- Visueller Drag & Drop Bon-Template Builder (Replaces legacy text fields) -->
+    <!-- Visueller Drag & Drop Bon-Template Builder -->
     <div class="admin-card">
         <h3>🧾 Visueller Kassenbon Template-Builder</h3>
         <p style="color: var(--admin-muted); margin-bottom: 1.4rem; font-weight: 600;">
-            Stelle hier per Drag & Drop oder Pfeiltasten deinen Kassenbon zusammen. Kopftext, Fußtext, Kundenname, Datum & Trennlinien werden direkt hier konfiguriert und in Echtzeit simuliert!
+            Stelle hier per Drag & Drop oder Pfeiltasten deinen Kassenbon zusammen. Alle Änderungen werden in Echtzeit simuliert!
         </p>
 
         <input type="hidden" id="receipt_layout_json_input" name="receipt_layout_json" value='{{ settings.receipt_layout_json }}'>
@@ -135,7 +135,7 @@
             <div class="builder-controls-col">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                     <h4 style="margin: 0; font-size: 1.1rem; color: #0f172a;">🧱 Bausteine & Reihenfolge</h4>
-                    <button type="button" class="btn btn-sm btn-primary" id="btnAddReceiptBlock">➕ Baustein hinzufügen</button>
+                    <button type="button" class="btn btn-icon btn-primary" id="btnAddReceiptBlock" title="Baustein hinzufügen">➕</button>
                 </div>
 
                 <div id="receiptBlocksContainer" class="builder-blocks-list">
@@ -144,7 +144,7 @@
 
                 <div style="margin-top: 1.4rem; display: flex; gap: 0.8rem;">
                     <button type="button" class="btn btn-sm btn-secondary" id="btnResetReceiptLayout">
-                        🔄 Auf Standard-Layout zurücksetzen
+                        🔄 Auf Standard zurücksetzen
                     </button>
                 </div>
             </div>
@@ -159,13 +159,18 @@
         </div>
     </div>
 
-    <button type="submit" class="btn btn-success" style="font-size: 1.1rem; padding: 0.9rem 2.2rem; margin-top: 1.2rem;">Einstellungen speichern 💾</button>
+    <div style="display: flex; justify-content: flex-end; margin-top: 1.5rem;">
+        <button type="submit" class="btn btn-icon btn-success" style="width: 60px; height: 60px; font-size: 1.6rem;" title="Einstellungen speichern">💾</button>
+    </div>
 </form>
 
 <!-- Modal for Adding Receipt Blocks -->
 <div class="overlay hidden" id="addBlockModal">
-    <div class="admin-card" style="max-width: 480px; width: 100%; margin: auto; position: relative; z-index: 10000; box-shadow: var(--shadow-lg);">
-        <h3 style="margin-bottom: 0.8rem; font-size: 1.4rem;">➕ Baustein hinzufügen</h3>
+    <div class="admin-card overlay-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
+            <h3 style="margin: 0; font-size: 1.4rem;">Baustein hinzufügen ➕</h3>
+            <button type="button" class="btn-icon btn-danger" id="closeAddBlockModalBtn" title="Schließen">❌</button>
+        </div>
         <p style="color: var(--admin-muted); margin-bottom: 1.4rem; font-size: 0.95rem;">Wähle den Typ des neuen Kassenbon-Bausteins:</p>
 
         <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.5rem;">
@@ -201,9 +206,6 @@
                 </div>
             </button>
         </div>
-
-        <button type="button" class="btn btn-danger btn-sm" id="closeAddBlockModalBtn" style="width: 100%;">Abbrechen ❌</button>
     </div>
 </div>
 {% endblock %}
-

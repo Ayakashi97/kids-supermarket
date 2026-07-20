@@ -39,9 +39,9 @@
             <input type="file" id="photo_file" name="photo_file" accept="image/*">
         </div>
 
-        <div style="display: flex; gap: 0.8rem; margin-top: 1.5rem; flex-wrap: wrap;">
-            <button type="submit" class="btn btn-success">💾 Speichern</button>
-            <a href="{{ url_for('admin.cards') }}" class="btn btn-secondary">❌ Abbrechen</a>
+        <div style="display: flex; justify-content: flex-end; gap: 0.8rem; margin-top: 1.5rem;">
+            <a href="{{ url_for('admin.cards') }}" class="btn btn-icon btn-danger" title="Abbrechen">❌</a>
+            <button type="submit" class="btn btn-icon btn-success" title="Speichern">💾</button>
         </div>
     </form>
 </div>

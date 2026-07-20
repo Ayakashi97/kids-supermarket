@@ -6,11 +6,14 @@
 {% block admin_content %}
 <div class="page-title-row">
     <h2>Produkte verwalten 🍎</h2>
-    <button type="button" class="btn btn-primary btn-sm" onclick="openModal('addProductModal')">➕ Neues Produkt</button>
 </div>
 
 <div class="admin-card">
-    <h3>Produktliste</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
+        <h3 style="margin: 0;">Produktliste</h3>
+        <button type="button" class="btn btn-icon btn-primary" onclick="openModal('addProductModal')" title="Neues Produkt hinzufügen">➕</button>
+    </div>
+
     <div class="table-responsive">
         <table class="admin-table">
             <thead>
@@ -68,7 +71,7 @@
     <div class="admin-card overlay-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
             <h3 style="margin: 0;">Neues Produkt ➕</h3>
-            <button type="button" class="btn-icon" onclick="closeModal('addProductModal')" style="background: transparent; border: none; font-size: 1.3rem; cursor: pointer;">❌</button>
+            <button type="button" class="btn-icon btn-danger" onclick="closeModal('addProductModal')" title="Schließen">❌</button>
         </div>
         <form method="POST" action="{{ url_for('admin.products') }}" enctype="multipart/form-data">
             <div class="form-group">
@@ -109,9 +112,9 @@
                 <input type="file" id="add_p_img" name="image_file" accept="image/*">
             </div>
 
-            <div style="display: flex; gap: 0.8rem; margin-top: 1.5rem;">
-                <button type="submit" class="btn btn-success" style="flex: 1;">Speichern ➕</button>
-                <button type="button" class="btn btn-secondary" onclick="closeModal('addProductModal')">Abbrechen</button>
+            <div style="display: flex; justify-content: flex-end; gap: 0.8rem; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-icon btn-danger" onclick="closeModal('addProductModal')" title="Abbrechen">❌</button>
+                <button type="submit" class="btn btn-icon btn-success" title="Speichern">💾</button>
             </div>
         </form>
     </div>
@@ -122,7 +125,7 @@
     <div class="admin-card overlay-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
             <h3 style="margin: 0;">Produkt bearbeiten ✏️</h3>
-            <button type="button" class="btn-icon" onclick="closeModal('editProductModal')" style="background: transparent; border: none; font-size: 1.3rem; cursor: pointer;">❌</button>
+            <button type="button" class="btn-icon btn-danger" onclick="closeModal('editProductModal')" title="Schließen">❌</button>
         </div>
         <form method="POST" id="editProductForm" enctype="multipart/form-data">
             <div class="form-group">
@@ -154,9 +157,9 @@
                 <input type="file" id="edit_p_img" name="image_file" accept="image/*">
             </div>
 
-            <div style="display: flex; gap: 0.8rem; margin-top: 1.5rem;">
-                <button type="submit" class="btn btn-success" style="flex: 1;">Speichern 💾</button>
-                <button type="button" class="btn btn-secondary" onclick="closeModal('editProductModal')">Abbrechen</button>
+            <div style="display: flex; justify-content: flex-end; gap: 0.8rem; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-icon btn-danger" onclick="closeModal('editProductModal')" title="Abbrechen">❌</button>
+                <button type="submit" class="btn btn-icon btn-success" title="Speichern">💾</button>
             </div>
         </form>
     </div>
