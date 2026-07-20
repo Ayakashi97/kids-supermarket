@@ -21,12 +21,12 @@
 - [x] "Warenkorb leeren 🗑️" button — clears cart with confirmation
 
 ## Phase 3 — Payment Flow (WebSocket)
-- [ ] Implement Flask-SocketIO event handlers (`start_payment`, `card_tapped`, `payment_success`, `payment_error`, `card_registered`)
-- [ ] Server maintains state machine: `idle` / `waiting_for_payment` / `waiting_for_registration`
-- [ ] NFC card lookup in `Card` table (known card → greeting + photo; unknown card → error)
-- [ ] Fullscreen overlay "Karte hinhalten! 💳" with pulsing animation
-- [ ] Success overlay with card holder photo + "Hallo [Name]! 🎉"
-- [ ] Save transaction to DB (Transaction + TransactionItems linked to Card)
+- [x] Implement Flask-SocketIO event handlers (`start_payment`, `card_tapped`, `payment_success`, `payment_error`, `card_registered`)
+- [x] Server maintains state machine: `idle` / `waiting_for_payment` / `waiting_for_registration`
+- [x] NFC card lookup in `Card` table (known card → greeting + photo; unknown card → error)
+- [x] Fullscreen overlay "Karte hinhalten! 💳" with pulsing animation
+- [x] Success overlay with card holder photo + "Hallo [Name]! 🎉"
+- [x] Save transaction to DB (Transaction + TransactionItems linked to Card)
 
 ## Phase 4 — Receipt Printing
 - [ ] ESC/POS USB thermal printer service implementation (`python-escpos`)
