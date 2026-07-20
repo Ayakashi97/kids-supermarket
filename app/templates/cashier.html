@@ -14,25 +14,47 @@
 </header>
 
 <div class="cashier-layout">
-    <!-- Left Section: Products & Category Tabs -->
-    <section class="products-section">
-        <!-- Category Filter Tabs (Dynamic from DB) -->
-        <nav class="category-tabs" id="categoryTabs">
-            <button class="tab-btn active" data-category="all">Alle 🌟</button>
+    <!-- Left Column: Category Sidebar -->
+    <aside class="category-sidebar">
+        <div class="category-list" id="categorySidebar">
+            <button type="button" class="cat-sidebar-btn active" data-category="all">
+                <span class="cat-emoji">🌟</span>
+                <span class="cat-name">Alle</span>
+            </button>
             {% if categories %}
                 {% for cat in categories %}
-                <button class="tab-btn" data-category="{{ cat.name }}">{{ cat.name }} {{ cat.emoji or '' }}</button>
+                <button type="button" class="cat-sidebar-btn" data-category="{{ cat.name }}">
+                    <span class="cat-emoji">{{ cat.emoji or '📦' }}</span>
+                    <span class="cat-name">{{ cat.name }}</span>
+                </button>
                 {% endfor %}
             {% else %}
-                <button class="tab-btn" data-category="Obst & Gemüse">Obst & Gemüse 🍎</button>
-                <button class="tab-btn" data-category="Backwaren">Backwaren 🥨</button>
-                <button class="tab-btn" data-category="Milchprodukte">Milchprodukte 🥛</button>
-                <button class="tab-btn" data-category="Getränke">Getränke 🧃</button>
-                <button class="tab-btn" data-category="Süßes">Süßes 🍫</button>
+                <button type="button" class="cat-sidebar-btn" data-category="Obst & Gemüse">
+                    <span class="cat-emoji">🍎</span>
+                    <span class="cat-name">Obst</span>
+                </button>
+                <button type="button" class="cat-sidebar-btn" data-category="Backwaren">
+                    <span class="cat-emoji">🥨</span>
+                    <span class="cat-name">Backwaren</span>
+                </button>
+                <button type="button" class="cat-sidebar-btn" data-category="Milchprodukte">
+                    <span class="cat-emoji">🥛</span>
+                    <span class="cat-name">Milch</span>
+                </button>
+                <button type="button" class="cat-sidebar-btn" data-category="Getränke">
+                    <span class="cat-emoji">🧃</span>
+                    <span class="cat-name">Getränke</span>
+                </button>
+                <button type="button" class="cat-sidebar-btn" data-category="Süßes">
+                    <span class="cat-emoji">🍫</span>
+                    <span class="cat-name">Süßes</span>
+                </button>
             {% endif %}
-        </nav>
+        </div>
+    </aside>
 
-        <!-- Product Grid Area with Pagination -->
+    <!-- Middle Column: Products & Pagination -->
+    <section class="products-section">
         <div class="product-grid-wrapper">
             <div class="product-grid" id="productGrid">
                 {% for product in products %}

@@ -64,7 +64,7 @@ document.addEventListener("visibilitychange", () => {
 
 // Prevent rubberband dragging & page scrolling when kids tap/swipe on cashier UI
 document.addEventListener("touchmove", (e) => {
-    if (!e.target.closest("#cartItemsContainer") && !e.target.closest(".category-tabs")) {
+    if (!e.target.closest("#cartItemsContainer") && !e.target.closest("#categorySidebar")) {
         e.preventDefault();
     }
 }, { passive: false });
@@ -448,14 +448,16 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // --- Category Filter Tabs ---
-    tabBtns.forEach(btn => {
+    // --- Category Sidebar Navigation ---
+    const catSidebarBtns = document.querySelectorAll(".cat-sidebar-btn");
+    catSidebarBtns.forEach(btn => {
         btn.addEventListener("click", () => {
-            tabBtns.forEach(b => b.classList.remove("active"));
+            catSidebarBtns.forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
             currentCategory = btn.getAttribute("data-category");
             currentPage = 0;
             renderPage();
+            playBeepSound();
         });
     });
 
