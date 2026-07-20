@@ -29,10 +29,11 @@
 - [x] Save transaction to DB (Transaction + TransactionItems linked to Card)
 
 ## Phase 4 — Receipt Printing
-- [ ] ESC/POS USB thermal printer service implementation (`python-escpos`)
-- [ ] Format receipt in German (Shop name, date, time, card holder name, items, total, thank you message)
-- [ ] Device passthrough via Docker (`/dev/usb/lp0`)
-- [ ] Fallback logging if printer disconnected
+- [x] ESC/POS USB thermal printer service implementation (`python-escpos`)
+- [x] Format receipt in German (Shop name, date, time, card holder name, items, total, thank-you message)
+- [x] Dynamic admin settings support (`printer_enabled`, `printer_device`, `shop_name`, `receipt_header`, `receipt_footer`)
+- [x] Device passthrough via Docker (`/dev/usb/lp0`)
+- [x] Fallback logging if printer disconnected
 
 ## Phase 5 — NFC Reader Service & Touchscreen Terminal (Pi #2)
 - [ ] Dedicated terminal route `/terminal` for Pi #2 touchscreen (browser kiosk mode)
