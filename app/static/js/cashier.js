@@ -398,8 +398,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- Product Click & Kid-Friendly Touch Handlers ---
     productCards.forEach(card => {
         let isTouching = false;
-        let startX = 0;
-        let startY = 0;
         let lastSelectedTime = 0;
 
         function handleSelectProduct() {
@@ -417,38 +415,32 @@ document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => card.classList.remove("card-pop"), 300);
         }
 
-        card.addEventListener("pointerdown", (e) => {
+        card.addEventListener("pointerdown", () => {
             isTouching = true;
-            startX = e.clientX;
-            startY = e.clientY;
             card.classList.add("pressed");
         });
 
-        card.addEventListener("pointermove", (e) => {
-            if (!isTouching) return;
-            const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
-            if (dist > 100) {
-                card.classList.remove("pressed");
-            } else {
+        card.addEventListener("pointermove", () => {
+            if (isTouching) {
                 card.classList.add("pressed");
             }
         });
 
-        card.addEventListener("pointerup", (e) => {
-            if (!isTouching) return;
-            isTouching = false;
-            card.classList.remove("pressed");
-
-            const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
-            // Allow up to 100px finger movement while pressing down (kid press & drag release)
-            if (dist <= 100) {
+        // Whenever finger is lifted anywhere on screen, select the initial touched product!
+        window.addEventListener("pointerup", () => {
+            if (isTouching) {
+                isTouching = false;
+                card.classList.remove("pressed");
                 handleSelectProduct();
             }
         });
 
         card.addEventListener("pointercancel", () => {
-            isTouching = false;
-            card.classList.remove("pressed");
+            if (isTouching) {
+                isTouching = false;
+                card.classList.remove("pressed");
+                handleSelectProduct();
+            }
         });
 
         card.addEventListener("click", () => {
