@@ -29,15 +29,15 @@
         -webkit-tap-highlight-color: transparent;
     }
 
-    /* Fixed Glass Header */
+    /* Fixed Header Shifted Down Below Notch */
     .terminal-header {
         position: fixed;
-        top: 15px;
-        left: 15px;
-        right: 15px;
+        top: max(36px, env(safe-area-inset-top));
+        left: 20px;
+        right: 20px;
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-start;
         z-index: 1000;
     }
 
@@ -45,36 +45,16 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        padding: 0.5rem 1.2rem;
-        border-radius: 50px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        font-size: 1.15rem;
-        font-weight: 800;
-        letter-spacing: 0.5px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-    }
-
-    .btn-fullscreen {
         background: rgba(255, 255, 255, 0.12);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        color: white;
-        padding: 0.5rem 1.1rem;
+        padding: 0.5rem 1.3rem;
         border-radius: 50px;
-        font-size: 0.95rem;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        font-size: 1.15rem;
         font-weight: 800;
-        cursor: pointer;
-        transition: transform 0.15s ease, background 0.15s ease;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-    }
-
-    .btn-fullscreen:active {
-        transform: scale(0.92);
-        background: rgba(255, 255, 255, 0.25);
+        letter-spacing: 0.5px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
     }
 
     /* Outer Wrapper for 100% Mobile Center */
@@ -87,7 +67,7 @@
         align-items: center;
         justify-content: center;
         box-sizing: border-box;
-        margin-top: 50px;
+        margin-top: 60px;
     }
 
     /* Modern Glassmorphic Main Card */
@@ -379,19 +359,14 @@
 {% endblock %}
 
 {% block content %}
-<!-- Header Bar -->
+<!-- Header Bar Shifted Below Notch -->
 <div class="terminal-header">
     <div class="terminal-brand">
         <span>🛒 Kinder-Terminal</span>
     </div>
-    <div class="terminal-actions">
-        <button type="button" class="btn-fullscreen" onclick="toggleFullscreen()" title="Vollbild umschalten">
-            ⛶ Vollbild
-        </button>
-    </div>
 </div>
 
-<!-- Perfectly Mobile-Centered Viewport Container -->
+<!-- Mobile-Centered Viewport Container -->
 <div class="terminal-viewport-wrapper">
     <!-- Glassmorphic Main Card -->
     <div class="terminal-glass-card">
@@ -624,23 +599,22 @@ function wakeUp() {
     resetIdleTimer();
 }
 
-function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-        if (document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen().catch(err => console.warn(err));
-        } else if (document.documentElement.webkitRequestFullscreen) {
-            document.documentElement.webkitRequestFullscreen();
-        }
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen().catch(err => console.warn(err));
-        }
+// Check if NFC permission was previously granted and hide button right away
+function syncNfcButtonState() {
+    const btnActivate = document.getElementById("btnNfcActivate");
+    if (localStorage.getItem("nfc_permission_granted") === "true" || webNfcScanning) {
+        if (btnActivate) btnActivate.style.display = "none";
     }
 }
 
-// Smartphone Web NFC API scanner with User-Gesture Activation Support
+// Smartphone Web NFC API scanner with User-Gesture Activation Support & Persistence
 async function initWebNFC(isUserClick = false) {
     const btnActivate = document.getElementById("btnNfcActivate");
+
+    // Immediately hide button if previously granted
+    if (localStorage.getItem("nfc_permission_granted") === "true") {
+        if (btnActivate) btnActivate.style.display = "none";
+    }
 
     if ('NDEFReader' in window) {
         try {
@@ -649,6 +623,7 @@ async function initWebNFC(isUserClick = false) {
             }
             await ndefReaderInstance.scan();
             webNfcScanning = true;
+            localStorage.setItem("nfc_permission_granted", "true");
             console.log("Web NFC reader scanner active!");
 
             if (btnActivate) {
@@ -699,8 +674,11 @@ async function initWebNFC(isUserClick = false) {
             console.warn("Web NFC activation failed/denied:", error);
             webNfcScanning = false;
 
-            if (btnActivate) {
+            // Only show button if user has NEVER granted permission before
+            if (localStorage.getItem("nfc_permission_granted") !== "true" && btnActivate) {
                 btnActivate.style.display = "inline-flex";
+            } else if (btnActivate) {
+                btnActivate.style.display = "none";
             }
         }
     } else {
@@ -715,6 +693,8 @@ async function initWebNFC(isUserClick = false) {
 document.addEventListener("DOMContentLoaded", () => {
     window.termSocket = io();
     const socket = window.termSocket;
+
+    syncNfcButtonState();
 
     const stateIdle = document.getElementById("stateIdle");
     const stateWaiting = document.getElementById("stateWaiting");
@@ -743,19 +723,8 @@ document.addEventListener("DOMContentLoaded", () => {
         resetIdleTimer();
     }
 
-    function requestAutoFullscreen() {
-        if (!document.fullscreenElement) {
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen().catch(() => {});
-            } else if (document.documentElement.webkitRequestFullscreen) {
-                document.documentElement.webkitRequestFullscreen();
-            }
-        }
-    }
-
     document.addEventListener("pointerdown", () => {
         wakeUp();
-        requestAutoFullscreen();
         if (!webNfcScanning && 'NDEFReader' in window) {
             initWebNFC(true);
         }
