@@ -755,3 +755,31 @@ body {
     text-align: center;
     margin: 1rem 0;
 }
+
+/* Modal Overlay & Dialog */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: overlayFadeIn 0.2s ease;
+}
+
+.overlay.hidden {
+    display: none !important;
+}
+
+@keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+

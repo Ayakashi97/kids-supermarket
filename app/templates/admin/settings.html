@@ -161,4 +161,49 @@
 
     <button type="submit" class="btn btn-success" style="font-size: 1.1rem; padding: 0.9rem 2.2rem; margin-top: 1.2rem;">Einstellungen speichern 💾</button>
 </form>
+
+<!-- Modal for Adding Receipt Blocks -->
+<div class="overlay hidden" id="addBlockModal">
+    <div class="admin-card" style="max-width: 480px; width: 100%; margin: auto; position: relative; z-index: 10000; box-shadow: var(--shadow-lg);">
+        <h3 style="margin-bottom: 0.8rem; font-size: 1.4rem;">➕ Baustein hinzufügen</h3>
+        <p style="color: var(--admin-muted); margin-bottom: 1.4rem; font-size: 0.95rem;">Wähle den Typ des neuen Kassenbon-Bausteins:</p>
+
+        <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.5rem;">
+            <button type="button" class="btn btn-secondary" onclick="addReceiptBlockType('text')" style="justify-content: flex-start; text-align: left; padding: 0.9rem 1.2rem; background: #f8fafc; color: #0f172a; border: 1.5px solid var(--admin-border);">
+                <span style="font-size: 1.5rem;">📝</span>
+                <div>
+                    <strong style="display: block; font-size: 1rem;">Freitext / Hinweis</strong>
+                    <span style="font-size: 0.85rem; color: var(--admin-muted);">Benutzerdefinierter Text mit Ausrichtung (z.B. Dankeschön)</span>
+                </div>
+            </button>
+
+            <button type="button" class="btn btn-secondary" onclick="addReceiptBlockType('separator')" style="justify-content: flex-start; text-align: left; padding: 0.9rem 1.2rem; background: #f8fafc; color: #0f172a; border: 1.5px solid var(--admin-border);">
+                <span style="font-size: 1.5rem;">➖</span>
+                <div>
+                    <strong style="display: block; font-size: 1rem;">Trennlinie / Leerzeile</strong>
+                    <span style="font-size: 0.85rem; color: var(--admin-muted);">Gestrichelte Linie, durchgezogene Linie oder Abstand</span>
+                </div>
+            </button>
+
+            <button type="button" class="btn btn-secondary" onclick="addReceiptBlockType('qrcode')" style="justify-content: flex-start; text-align: left; padding: 0.9rem 1.2rem; background: #f8fafc; color: #0f172a; border: 1.5px solid var(--admin-border);">
+                <span style="font-size: 1.5rem;">📱</span>
+                <div>
+                    <strong style="display: block; font-size: 1rem;">QR-Code / Barcode</strong>
+                    <span style="font-size: 0.85rem; color: var(--admin-muted);">Scannbarer QR-Code für den digitalen Bon</span>
+                </div>
+            </button>
+
+            <button type="button" class="btn btn-secondary" onclick="addReceiptBlockType('signature')" style="justify-content: flex-start; text-align: left; padding: 0.9rem 1.2rem; background: #f8fafc; color: #0f172a; border: 1.5px solid var(--admin-border);">
+                <span style="font-size: 1.5rem;">🖋️</span>
+                <div>
+                    <strong style="display: block; font-size: 1rem;">Unterschriftenfeld</strong>
+                    <span style="font-size: 0.85rem; color: var(--admin-muted);">Feld für die Kundenunterschrift</span>
+                </div>
+            </button>
+        </div>
+
+        <button type="button" class="btn btn-danger btn-sm" id="closeAddBlockModalBtn" style="width: 100%;">Abbrechen ❌</button>
+    </div>
+</div>
 {% endblock %}
+

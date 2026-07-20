@@ -308,19 +308,36 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    window.addReceiptBlockType = function(type) {
+        if (type === "text") {
+            layoutBlocks.push({ id: "text_" + Date.now(), type: "text", name: "Freitext", enabled: true, align: "center", content: "Vielen Dank!" });
+        } else if (type === "separator") {
+            layoutBlocks.push({ id: "sep_" + Date.now(), type: "separator", name: "Trennlinie", enabled: true, style: "dashed" });
+        } else if (type === "qrcode") {
+            layoutBlocks.push({ id: "qr_" + Date.now(), type: "qrcode", name: "QR-Code", enabled: true, content: "tx_id" });
+        } else if (type === "signature") {
+            layoutBlocks.push({ id: "sig_" + Date.now(), type: "signature", name: "Unterschrift", enabled: true, title: "UNTERSCHRIFT KUNDE" });
+        }
+        const modal = document.getElementById("addBlockModal");
+        if (modal) modal.classList.add("hidden");
+        saveAndRender();
+    };
+
     if (btnAddBlock) {
         btnAddBlock.addEventListener("click", () => {
-            const blockType = prompt("Welchen Baustein möchtest du hinzufügen?\n\n1: Freitext\n2: Trennlinie\n3: QR-Code\n\nGib 1, 2 oder 3 ein:");
-            if (blockType === "1") {
-                layoutBlocks.push({ id: "text_" + Date.now(), type: "text", name: "Freitext", enabled: true, align: "center", content: "Vielen Dank!" });
-            } else if (blockType === "2") {
-                layoutBlocks.push({ id: "sep_" + Date.now(), type: "separator", name: "Trennlinie", enabled: true, style: "dashed" });
-            } else if (blockType === "3") {
-                layoutBlocks.push({ id: "qr_" + Date.now(), type: "qrcode", name: "QR-Code", enabled: true, content: "tx_id" });
-            }
-            saveAndRender();
+            const modal = document.getElementById("addBlockModal");
+            if (modal) modal.classList.remove("hidden");
         });
     }
+
+    const closeAddBlockModalBtn = document.getElementById("closeAddBlockModalBtn");
+    if (closeAddBlockModalBtn) {
+        closeAddBlockModalBtn.addEventListener("click", () => {
+            const modal = document.getElementById("addBlockModal");
+            if (modal) modal.classList.add("hidden");
+        });
+    }
+
 
     if (btnResetLayout) {
         btnResetLayout.addEventListener("click", () => {
