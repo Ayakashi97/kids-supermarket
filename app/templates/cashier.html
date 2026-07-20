@@ -50,6 +50,10 @@
                     <span class="cat-name">Süßes</span>
                 </button>
             {% endif %}
+            <button type="button" class="cat-sidebar-btn cat-more-btn" id="btnCategoryMore" style="display: none;">
+                <span class="cat-emoji">➕</span>
+                <span class="cat-name">Mehr...</span>
+            </button>
         </div>
     </aside>
 
@@ -154,6 +158,49 @@
         </div>
 
         <button class="cancel-payment-btn" id="cancelPayBtn" style="margin-top: 1.2rem;">Abbrechen ❌</button>
+    </div>
+</div>
+
+<!-- Category More Modal Overlay -->
+<div class="overlay hidden" id="categoryMoreOverlay">
+    <div class="overlay-content category-more-modal">
+        <h2 style="font-size: 2rem; color: #1e293b; margin-bottom: 0.5rem;">Kategorie wählen 🏷️</h2>
+        <div class="category-modal-grid" id="categoryModalGrid">
+            <button type="button" class="cat-modal-btn active" data-category="all">
+                <span class="cat-emoji">🌟</span>
+                <span class="cat-name">Alle</span>
+            </button>
+            {% if categories %}
+                {% for cat in categories %}
+                <button type="button" class="cat-modal-btn" data-category="{{ cat.name }}">
+                    <span class="cat-emoji">{{ cat.emoji or '📦' }}</span>
+                    <span class="cat-name">{{ cat.name }}</span>
+                </button>
+                {% endfor %}
+            {% else %}
+                <button type="button" class="cat-modal-btn" data-category="Obst & Gemüse">
+                    <span class="cat-emoji">🍎</span>
+                    <span class="cat-name">Obst & Gemüse</span>
+                </button>
+                <button type="button" class="cat-modal-btn" data-category="Backwaren">
+                    <span class="cat-emoji">🥨</span>
+                    <span class="cat-name">Backwaren</span>
+                </button>
+                <button type="button" class="cat-modal-btn" data-category="Milchprodukte">
+                    <span class="cat-emoji">🥛</span>
+                    <span class="cat-name">Milchprodukte</span>
+                </button>
+                <button type="button" class="cat-modal-btn" data-category="Getränke">
+                    <span class="cat-emoji">🧃</span>
+                    <span class="cat-name">Getränke</span>
+                </button>
+                <button type="button" class="cat-modal-btn" data-category="Süßes">
+                    <span class="cat-emoji">🍫</span>
+                    <span class="cat-name">Süßes</span>
+                </button>
+            {% endif %}
+        </div>
+        <button type="button" class="cancel-payment-btn" id="closeCategoryModalBtn" style="margin-top: 1.5rem;">Fertig / Schließen ❌</button>
     </div>
 </div>
 
