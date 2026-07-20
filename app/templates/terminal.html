@@ -70,15 +70,10 @@
     }
 
     .nfc-status-pill.active {
-        background: rgba(46, 204, 113, 0.25);
+        background: rgba(46, 204, 113, 0.3);
         border-color: #2ecc71;
         color: #2ecc71;
-    }
-
-    .nfc-status-pill.touch {
-        background: rgba(241, 196, 15, 0.25);
-        border-color: #f1c40f;
-        color: #f1c40f;
+        box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
     }
 
     .btn-fullscreen {
@@ -149,6 +144,50 @@
         border-radius: 50px;
         box-shadow: 0 10px 25px rgba(0,184,148,0.4);
         margin-top: 0.5rem;
+    }
+
+    /* Prominent NFC Activation Button */
+    .btn-nfc-activate {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        font-size: 1.3rem;
+        font-weight: 900;
+        border-radius: 50px;
+        cursor: pointer;
+        box-shadow: 0 10px 30px rgba(56, 239, 125, 0.4);
+        margin-top: 1.2rem;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-nfc-activate:active {
+        transform: scale(0.95);
+    }
+
+    /* Live NFC Feedback Toast */
+    .nfc-feedback-toast {
+        background: #2ecc71;
+        color: #0f2027;
+        font-weight: 900;
+        font-size: 1.2rem;
+        padding: 0.8rem 1.6rem;
+        border-radius: 50px;
+        margin: 1rem auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 10px 30px rgba(46, 204, 113, 0.5);
+        animation: toastPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes toastPop {
+        0% { transform: scale(0); }
+        80% { transform: scale(1.05); }
+        100% { transform: scale(1); }
     }
 
     /* Customer Photo Display */
@@ -308,8 +347,8 @@
     </div>
     <div class="terminal-actions">
         <div class="nfc-status-pill" id="nfcStatusPill">
-            <span id="nfcStatusIcon">📲</span>
-            <span id="nfcStatusText">Prüfe NFC...</span>
+            <span id="nfcStatusIcon">💳</span>
+            <span id="nfcStatusText">NFC Lesegerät</span>
         </div>
         <button type="button" class="btn-fullscreen" onclick="toggleFullscreen()" title="Vollbild umschalten">
             ⛶ Vollbild
@@ -318,11 +357,19 @@
 </div>
 
 <div class="terminal-container">
+    <!-- Live NFC Scan Toast Banner -->
+    <div id="liveNfcFeedback" class="nfc-feedback-toast hidden"></div>
+
     <!-- State 1: IDLE -->
     <div id="stateIdle">
         <div class="terminal-card-icon">🛒</div>
         <div class="terminal-title">Kinder-Supermarkt</div>
         <div class="terminal-subtitle">Bereit für die nächste Bestellung!</div>
+
+        <!-- NFC Activation Button (Required for Chrome User Gesture Rule) -->
+        <button type="button" id="btnNfcActivate" class="btn-nfc-activate" onclick="initWebNFC(true)">
+            <span>📱</span> <span>NFC-Leser auf Handy aktivieren</span>
+        </button>
     </div>
 
     <!-- State 2: WAITING FOR PAYMENT -->
@@ -331,7 +378,7 @@
         <div id="hwWaitingView">
             <div class="terminal-card-icon pulse-animation">💳</div>
             <div class="terminal-title">Karte jetzt anhalten!</div>
-            <div class="terminal-subtitle" id="waitingSubtitle">Halte deine Supermarkt-Karte an die Rückseite des Handys</div>
+            <div class="terminal-subtitle" id="waitingSubtitle">Halte deine physische Supermarkt-Karte an die Rückseite des Handys</div>
         </div>
 
         <!-- Touchscreen Simulation Card Selector View (Fallback for iOS or when enabled) -->
@@ -455,6 +502,16 @@ function playSound(type) {
     }
 }
 
+function showNfcFeedbackToast(message) {
+    const toast = document.getElementById("liveNfcFeedback");
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.remove("hidden");
+    setTimeout(() => {
+        toast.classList.add("hidden");
+    }, 3000);
+}
+
 function updateTPinDisplay() {
     const display = document.getElementById("tPinDisplay");
     if (!display) return;
@@ -547,8 +604,10 @@ function updateNfcStatus(status, icon, text) {
     textEl.textContent = text;
 }
 
-// Smartphone Web NFC API scanner
-async function initWebNFC() {
+// Smartphone Web NFC API scanner with User-Gesture Activation Support
+async function initWebNFC(isUserClick = false) {
+    const btnActivate = document.getElementById("btnNfcActivate");
+
     if ('NDEFReader' in window) {
         try {
             if (!ndefReaderInstance) {
@@ -557,15 +616,19 @@ async function initWebNFC() {
             await ndefReaderInstance.scan();
             webNfcScanning = true;
             console.log("Web NFC reader scanner active!");
-            updateNfcStatus("active", "📱", "Web NFC aktiv (Physische Karten)");
+            updateNfcStatus("active", "⚡", "NFC Scanner Aktiv");
+
+            if (btnActivate) {
+                btnActivate.style.display = "none";
+            }
 
             const waitingSubtitle = document.getElementById("waitingSubtitle");
             if (waitingSubtitle) {
                 waitingSubtitle.textContent = "Halte deine physische Supermarkt-Karte an die Rückseite des Handys";
             }
 
-            ndefReaderInstance.onreadingerror = () => {
-                console.warn("Web NFC reading error.");
+            ndefReaderInstance.onreadingerror = (err) => {
+                console.warn("Web NFC reading error:", err);
             };
 
             ndefReaderInstance.onreading = (event) => {
@@ -574,33 +637,55 @@ async function initWebNFC() {
                 playSound('beep');
 
                 let rawUid = event.serialNumber || "";
-                if (!rawUid && event.message && event.message.records.length > 0) {
+
+                // Inspect NDEF Records if serialNumber is empty or for NDEF text tags
+                if (event.message && event.message.records && event.message.records.length > 0) {
                     const decoder = new TextDecoder();
                     for (const record of event.message.records) {
                         if (record.data) {
-                            rawUid = decoder.decode(record.data).trim();
-                            break;
+                            try {
+                                const textContent = decoder.decode(record.data).trim();
+                                if (textContent) {
+                                    if (!rawUid) rawUid = textContent;
+                                    console.log("Decoded NDEF Record Content:", textContent);
+                                }
+                            } catch (e) {
+                                console.warn("Failed decoding record data:", e);
+                            }
                         }
                     }
                 }
 
-                if (rawUid && window.termSocket) {
-                    window.termSocket.emit("card_tapped", { uid: rawUid });
+                if (rawUid) {
+                    showNfcFeedbackToast(`✅ NFC Karte erkannt! (ID: ${rawUid})`);
+                    if (window.termSocket) {
+                        window.termSocket.emit("card_tapped", { uid: rawUid });
+                    }
                 }
             };
         } catch (error) {
             console.warn("Web NFC activation failed/denied:", error);
             webNfcScanning = false;
+
             if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
                 updateNfcStatus("touch", "⚠️", "NFC benötigt Chrome Flag");
+                if (btnActivate) {
+                    btnActivate.innerHTML = `<span>⚠️</span> <span>Chrome Flag 'unsafely-treat-insecure-origin-as-secure' aktivieren</span>`;
+                }
             } else {
-                updateNfcStatus("active", "💳", "NFC Lesegerät");
+                updateNfcStatus("touch", "📱", "Tippen zum NFC Aktivieren");
+                if (btnActivate) {
+                    btnActivate.style.display = "inline-flex";
+                }
             }
         }
     } else {
         console.log("Web NFC not supported in this browser.");
         webNfcScanning = false;
-        updateNfcStatus("active", "💳", "NFC Terminal");
+        updateNfcStatus("touch", "💳", "NFC Terminal");
+        if (btnActivate) {
+            btnActivate.style.display = "none";
+        }
     }
 }
 
@@ -637,9 +722,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.addEventListener("pointerdown", () => {
         wakeUp();
-        // Try activating Web NFC on user tap if not already scanning
         if (!webNfcScanning && 'NDEFReader' in window) {
-            initWebNFC();
+            initWebNFC(true);
         }
     });
 
@@ -680,18 +764,6 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
             touchCardGrid.appendChild(btn);
         });
-
-        // Add unknown card button for testing
-        const errBtn = document.createElement("button");
-        errBtn.className = "t-card-select-btn";
-        errBtn.style.borderColor = "rgba(231, 76, 60, 0.6)";
-        errBtn.type = "button";
-        errBtn.onclick = () => tSimTapCard("UNKNOWN_TEST_CARD_123");
-        errBtn.innerHTML = `
-            <div class="t-card-avatar" style="background: rgba(231, 76, 60, 0.3);">❓</div>
-            <div class="t-card-name">Fremde Karte</div>
-        `;
-        touchCardGrid.appendChild(errBtn);
 
         if (data && data.nfc_mode === "touchscreen_simulation") {
             hwWaitingView.classList.add("hidden");
