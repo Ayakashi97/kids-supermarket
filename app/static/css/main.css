@@ -44,7 +44,7 @@ body {
 /* Header Bar */
 .cashier-header {
     background: white;
-    padding: 1rem 2rem;
+    padding: max(0.8rem, env(safe-area-inset-top)) 2rem 0.8rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -73,10 +73,10 @@ body {
     display: grid;
     grid-template-columns: 1fr clamp(360px, 32vw, 480px);
     gap: 1.5rem;
-    padding: 1.2rem;
+    padding: 1.2rem 1.5rem max(1.8rem, env(safe-area-inset-bottom)) 1.5rem;
     max-width: 1750px;
     margin: 0 auto;
-    height: calc(100dvh - 85px);
+    height: calc(100dvh - 90px);
     box-sizing: border-box;
     min-height: 0;
 }
@@ -85,7 +85,7 @@ body {
     .cashier-layout {
         grid-template-columns: 1fr;
         height: auto;
-        padding: 1rem;
+        padding: 1rem 1rem max(2rem, env(safe-area-inset-bottom)) 1rem;
         min-height: 0;
     }
 }
