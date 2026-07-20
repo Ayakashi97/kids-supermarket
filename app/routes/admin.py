@@ -188,6 +188,39 @@ def toggle_card(card_id):
     return redirect(url_for("admin.cards"))
 
 
+@admin_bp.route("/cards/edit/<int:card_id>", methods=["GET", "POST"])
+def edit_card(card_id):
+    if not is_logged_in():
+        return redirect(url_for("admin.login"))
+
+    card = Card.query.get_or_404(card_id)
+
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        pin = request.form.get("pin", "").strip() or None
+
+        if not name:
+            flash("Bitte Name angeben!", "danger")
+            return redirect(url_for("admin.edit_card", card_id=card.id))
+
+        if "photo_file" in request.files:
+            file = request.files["photo_file"]
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                save_dir = os.path.join(current_app.root_path, "static", "images", "cards")
+                os.makedirs(save_dir, exist_ok=True)
+                file.save(os.path.join(save_dir, filename))
+                card.image_path = f"images/cards/{filename}"
+
+        card.name = name
+        card.pin = pin
+        db.session.commit()
+        flash(f"Kundenkarte '{card.name}' erfolgreich aktualisiert! 🎉", "success")
+        return redirect(url_for("admin.cards"))
+
+    return render_template("admin/edit_card.html", card=card)
+
+
 @admin_bp.route("/cards/delete/<int:card_id>")
 def delete_card(card_id):
     if not is_logged_in():

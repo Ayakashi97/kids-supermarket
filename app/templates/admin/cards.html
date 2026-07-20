@@ -24,6 +24,11 @@
         <h2>Kundenkarten (NFC Stickers) verwalten</h2>
     </div>
 
+    <div style="background: #e17055; color: white; padding: 0.8rem 1.2rem; border-radius: 12px; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <span>🔢 <strong>Terminal PIN-Abfrage:</strong> Der PIN-Modus (Deaktiviert, Spielgeld-PIN, oder Exakte Karten-PIN) wird in den <strong>Einstellungen</strong> konfiguriert!</span>
+        <a href="{{ url_for('admin.settings') }}" class="btn btn-sm" style="background: white; color: #d63031; font-weight: bold; text-decoration: none;">Zu den Einstellungen ⚙️</a>
+    </div>
+
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
@@ -105,6 +110,7 @@
                         {% endif %}
                     </td>
                     <td>
+                        <a href="{{ url_for('admin.edit_card', card_id=c.id) }}" class="btn btn-sm btn-secondary" style="background: #e67e22; color: white;">Bearbeiten ✏️</a>
                         <a href="{{ url_for('admin.toggle_card', card_id=c.id) }}" class="btn btn-sm btn-primary">
                             {% if c.is_active %}Deaktivieren{% else %}Aktivieren{% endif %}
                         </a>
