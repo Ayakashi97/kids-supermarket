@@ -51,6 +51,7 @@ def view_receipt(tx_id):
 
     return render_template(
         "receipt.html",
+        tx=tx,
         tx_id=tx.id,
         shop_name=shop_name,
         receipt_header=receipt_header,
@@ -63,6 +64,7 @@ def view_receipt(tx_id):
         card_name=card_name,
         items=items,
         total_formatted=total_formatted,
+        signature_data=tx.signature_data,
     )
 
 

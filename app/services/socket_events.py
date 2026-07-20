@@ -50,7 +50,7 @@ def find_card_by_uid(uid: str) -> Card:
 
 
 
-def process_completed_payment(card: Card, cart: list, socket_io: SocketIO):
+def process_completed_payment(card: Card, cart: list, socket_io: SocketIO, signature_data: str = None):
     """Saves completed transaction to DB, prints thermal receipt, and broadcasts payment_success."""
     total_cents = sum(item.get("price_cents", 0) * item.get("quantity", 1) for item in cart)
 
@@ -59,6 +59,7 @@ def process_completed_payment(card: Card, cart: list, socket_io: SocketIO):
             total_cents=total_cents,
             card_id=card.id,
             nfc_uid=card.nfc_uid,
+            signature_data=signature_data,
             status="completed",
             created_at=datetime.now(timezone.utc),
         )
@@ -90,6 +91,7 @@ def process_completed_payment(card: Card, cart: list, socket_io: SocketIO):
             "total_formatted": f"{total_cents / 100:.2f}".replace(".", ",") + " €",
             "card_name": card.name,
             "card_image_url": card_image_url,
+            "signature_data": signature_data,
         }
 
         # Check print mode setting (ask_cashier default, always, or never)
@@ -228,6 +230,20 @@ def register_socket_events(socket_io: SocketIO):
             total_cents = sum(item.get("price_cents", 0) * item.get("quantity", 1) for item in cart)
             total_formatted = f"{total_cents / 100:.2f}".replace(".", ",") + " €"
 
+            if pin_mode == "signature":
+                server_state["mode"] = "waiting_for_signature"
+                server_state["pending_card_id"] = card.id
+                server_state["pending_uid"] = uid
+
+                logger.info("Card %s (%s) requires signature. Prompting terminal...", card.name, uid)
+
+                socket_io.emit("prompt_signature", {
+                    "card_name": card.name,
+                    "total_cents": total_cents,
+                    "total_formatted": total_formatted,
+                })
+                return
+
             if pin_mode in ("any_4_digits", "exact_match"):
                 server_state["mode"] = "waiting_for_pin"
                 server_state["pending_card_id"] = card.id
@@ -293,6 +309,26 @@ def register_socket_events(socket_io: SocketIO):
 
         # PIN verified! Process payment
         process_completed_payment(card, server_state["pending_cart"], socket_io)
+
+    @socket_io.on("submit_signature")
+    def handle_submit_signature(data):
+        signature = data.get("signature")
+        current_mode = server_state["mode"]
+
+        if current_mode != "waiting_for_signature":
+            logger.warning("Received submit_signature event while not in waiting_for_signature mode")
+            return
+
+        card_id = server_state.get("pending_card_id")
+        card = Card.query.get(card_id) if card_id else None
+
+        if not card:
+            server_state["mode"] = "idle"
+            socket_io.emit("payment_error", {"message": "Kartenfehler! Bitte erneut versuchen."})
+            return
+
+        logger.info("Signature submitted for card %s", card.name)
+        process_completed_payment(card, server_state["pending_cart"], socket_io, signature_data=signature)
 
     @socket_io.on("start_registration")
     def handle_start_registration():

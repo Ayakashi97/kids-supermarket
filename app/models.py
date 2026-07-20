@@ -84,6 +84,7 @@ class Transaction(db.Model):
     total_cents = db.Column(db.Integer, nullable=False)
     card_id = db.Column(db.Integer, db.ForeignKey("cards.id"), nullable=True)
     nfc_uid = db.Column(db.String(50), nullable=True)
+    signature_data = db.Column(db.Text, nullable=True)  # Base64 PNG image of drawn signature
     status = db.Column(db.String(20), default="completed", nullable=False)
 
     items = db.relationship(
@@ -99,6 +100,7 @@ class Transaction(db.Model):
             "card_id": self.card_id,
             "card_name": self.card.name if self.card else None,
             "nfc_uid": self.nfc_uid,
+            "signature_data": self.signature_data,
             "status": self.status,
             "items": [item.to_dict() for item in self.items],
         }

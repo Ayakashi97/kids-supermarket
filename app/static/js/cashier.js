@@ -772,6 +772,15 @@ document.addEventListener("DOMContentLoaded", () => {
             overlayIcon.style.display = "block";
         }
 
+        const signatureContainer = document.getElementById("signatureContainer");
+        const cardSignature = document.getElementById("cardSignature");
+        if (data.signature_data && signatureContainer && cardSignature) {
+            cardSignature.src = data.signature_data;
+            signatureContainer.style.display = "block";
+        } else if (signatureContainer) {
+            signatureContainer.style.display = "none";
+        }
+
         if (receiptActions && data.transaction_id) {
             receiptActions.style.display = "flex";
             if (btnPrintReceiptBtn) {
@@ -797,6 +806,8 @@ document.addEventListener("DOMContentLoaded", () => {
         overlayIcon.textContent = "⚠️";
         overlayIcon.style.display = "block";
         photoContainer.style.display = "none";
+        const signatureContainer = document.getElementById("signatureContainer");
+        if (signatureContainer) signatureContainer.style.display = "none";
         if (receiptActions) receiptActions.style.display = "none";
         cancelPayBtn.textContent = "Schließen ❌";
         cancelPayBtn.style.display = "block";
@@ -810,6 +821,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const barContainer = document.getElementById("successCountdownBarContainer");
         if (barContainer) barContainer.style.display = "none";
+
+        const signatureContainer = document.getElementById("signatureContainer");
+        if (signatureContainer) signatureContainer.style.display = "none";
 
         paymentOverlay.classList.add("hidden");
         if (receiptActions) receiptActions.style.display = "none";

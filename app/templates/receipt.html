@@ -144,6 +144,14 @@
 
     <div class="divider"></div>
 
+    {% if (tx and tx.signature_data) or signature_data %}
+    <div style="text-align: center; margin: 0.8rem 0;">
+        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.2rem;">Unterschrift Kunde</div>
+        <img src="{{ tx.signature_data if tx else signature_data }}" alt="Unterschrift" style="max-width: 180px; max-height: 70px; border-bottom: 1px dashed #000; padding-bottom: 4px;">
+    </div>
+    <div class="divider"></div>
+    {% endif %}
+
     <div class="footer">
         {% if show_card_name == 'true' %}
         <p>Vielen Dank, {{ card_name }}! 😊</p>

@@ -64,10 +64,11 @@
                     <label for="pin_mode">Terminal PIN-Abfrage (Zahlungsschutz / Spiel-PIN):</label>
                     <select id="pin_mode" name="pin_mode">
                         <option value="disabled" {% if settings.pin_mode == 'disabled' %}selected{% endif %}>Deaktiviert (Sofort bezahlen bei Auflegen)</option>
+                        <option value="signature" {% if settings.pin_mode == 'signature' %}selected{% endif %}>🖋️ Unterschrift auf Terminal (Signature Pad mit Finger zeichen)</option>
                         <option value="any_4_digits" {% if settings.pin_mode == 'any_4_digits' %}selected{% endif %}>Beliebige 4 Zahlen akzeptieren (Spielgeld-Erlebnis)</option>
                         <option value="exact_match" {% if settings.pin_mode == 'exact_match' %}selected{% endif %}>Exakte PIN prüfen (Sicherheits-Modus)</option>
                     </select>
-                    <small>Bestimmt, ob das Touchscreen-Terminal nach dem Auflegen der Karte eine 4-stellige PIN abfragt.</small>
+                    <small>Bestimmt, ob das Touchscreen-Terminal nach dem Auflegen eine PIN abfragt oder ein Unterschriftenfeld zeigt.</small>
                 </div>
 
                 <div class="form-group">

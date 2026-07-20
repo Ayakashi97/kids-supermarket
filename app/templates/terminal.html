@@ -466,6 +466,26 @@
             </div>
         </div>
 
+        <!-- State 3.5: SIGNATURE PAD -->
+        <div id="stateSignature" class="hidden">
+            <div class="terminal-title">Unterschrift 🖋️</div>
+            <div class="terminal-subtitle">Bitte unten mit dem Finger unterschreiben:</div>
+
+            <div class="signature-canvas-container" style="margin: 1rem 0; width: 100%; position: relative;">
+                <canvas id="signatureCanvas" width="320" height="180" style="background: white; border: 3px dashed #38ef7d; border-radius: 16px; width: 100%; height: 180px; touch-action: none; cursor: crosshair; box-shadow: 0 8px 20px rgba(0,0,0,0.15);"></canvas>
+                <div style="position: absolute; bottom: 8px; right: 12px; font-size: 0.85rem; color: #94a3b8; pointer-events: none;">❌ X Unterschrift</div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: center; width: 100%;">
+                <button type="button" class="btn" onclick="clearSignatureCanvas()" style="background: #e2e8f0; color: #475569; padding: 0.8rem 1.2rem; border-radius: 12px; font-weight: 800; border: none; font-size: 1.1rem; cursor: pointer;">
+                    Neu 🗑️
+                </button>
+                <button type="button" class="btn" onclick="submitSignature()" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 0.8rem 1.5rem; border-radius: 12px; font-weight: 800; border: none; font-size: 1.1rem; cursor: pointer; box-shadow: 0 6px 18px rgba(56, 239, 125, 0.4);">
+                    Fertig ✓
+                </button>
+            </div>
+        </div>
+
         <!-- State 4: PAYMENT SUCCESS -->
         <div id="stateSuccess" class="hidden" style="cursor: pointer;" onclick="resetTerminalToIdle()">
             <div class="customer-photo-box" id="photoBox" style="display: none;">
@@ -780,6 +800,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const touchCardGrid = document.getElementById("touchCardGrid");
 
     const statePin = document.getElementById("statePin");
+    const stateSignature = document.getElementById("stateSignature");
     const stateSuccess = document.getElementById("stateSuccess");
     const stateError = document.getElementById("stateError");
     const stateSleep = document.getElementById("stateSleep");
@@ -795,10 +816,88 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function showState(el) {
         wakeUp();
-        [stateIdle, stateWaiting, statePin, stateSuccess, stateError, stateSleep].forEach(s => s.classList.add("hidden"));
-        el.classList.remove("hidden");
+        [stateIdle, stateWaiting, statePin, stateSignature, stateSuccess, stateError, stateSleep].forEach(s => {
+            if (s) s.classList.add("hidden");
+        });
+        if (el) el.classList.remove("hidden");
         resetIdleTimer();
     }
+
+    // --- Signature Canvas Drawing Engine ---
+    let sigCanvas = null;
+    let sigCtx = null;
+    let isDrawingSig = false;
+
+    window.initSignatureCanvas = function() {
+        sigCanvas = document.getElementById("signatureCanvas");
+        if (!sigCanvas) return;
+        sigCtx = sigCanvas.getContext("2d");
+
+        const container = sigCanvas.parentElement;
+        if (container && container.clientWidth > 0) {
+            sigCanvas.width = container.clientWidth;
+        }
+
+        sigCtx.lineWidth = 4;
+        sigCtx.lineCap = "round";
+        sigCtx.strokeStyle = "#1e293b";
+
+        function getPos(e) {
+            const r = sigCanvas.getBoundingClientRect();
+            const clientX = (e.touches && e.touches.length > 0) ? e.touches[0].clientX : e.clientX;
+            const clientY = (e.touches && e.touches.length > 0) ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - r.left,
+                y: clientY - r.top
+            };
+        }
+
+        function startDraw(e) {
+            resetIdleTimer();
+            isDrawingSig = true;
+            const p = getPos(e);
+            sigCtx.beginPath();
+            sigCtx.moveTo(p.x, p.y);
+        }
+
+        function draw(e) {
+            if (!isDrawingSig) return;
+            e.preventDefault();
+            resetIdleTimer();
+            const p = getPos(e);
+            sigCtx.lineTo(p.x, p.y);
+            sigCtx.stroke();
+        }
+
+        function stopDraw() {
+            isDrawingSig = false;
+        }
+
+        sigCanvas.onmousedown = startDraw;
+        sigCanvas.onmousemove = draw;
+        window.onmouseup = stopDraw;
+
+        sigCanvas.ontouchstart = startDraw;
+        sigCanvas.ontouchmove = draw;
+        sigCanvas.ontouchend = stopDraw;
+    };
+
+    window.clearSignatureCanvas = function() {
+        if (!sigCanvas || !sigCtx) return;
+        sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+        playSound('beep');
+        resetIdleTimer();
+    };
+
+    window.submitSignature = function() {
+        resetIdleTimer();
+        playSound('beep');
+        if (!sigCanvas) return;
+        const base64Sig = sigCanvas.toDataURL("image/png");
+        if (window.termSocket) {
+            window.termSocket.emit("submit_signature", { signature: base64Sig });
+        }
+    };
 
     window.resetTerminalToIdle = function() {
         if (stateIdle) showState(stateIdle);
@@ -872,6 +971,14 @@ document.addEventListener("DOMContentLoaded", () => {
         pinCardGreeting.textContent = data.card_name ? `Hallo ${data.card_name}! 💳` : "PIN eingeben 🔢";
         pinSubtitle.textContent = `Bitte 4-stellige Geheimzahl eingeben (${data.total_formatted || ''})`;
         showState(statePin);
+    });
+
+    socket.on("prompt_signature", (data) => {
+        showState(stateSignature);
+        setTimeout(() => {
+            initSignatureCanvas();
+            clearSignatureCanvas();
+        }, 50);
     });
 
     socket.on("pin_error", (data) => {
