@@ -456,7 +456,11 @@ document.addEventListener("DOMContentLoaded", () => {
         let isTouching = false;
         let lastActionTime = 0;
 
-        function triggerAction() {
+        function triggerAction(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
             const now = Date.now();
             if (now - lastActionTime < 300) return;
             lastActionTime = now;
@@ -475,11 +479,11 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        window.addEventListener("pointerup", () => {
+        btn.addEventListener("pointerup", (e) => {
             if (isTouching) {
                 isTouching = false;
                 btn.classList.remove("pressed");
-                if (!btn.disabled) triggerAction();
+                if (!btn.disabled) triggerAction(e);
             }
         });
 
@@ -491,8 +495,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        btn.addEventListener("click", () => {
-            if (!btn.disabled) triggerAction();
+        btn.addEventListener("click", (e) => {
+            if (!btn.disabled) triggerAction(e);
         });
     }
 
