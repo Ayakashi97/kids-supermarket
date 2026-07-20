@@ -557,7 +557,12 @@ async function initWebNFC() {
             await ndefReaderInstance.scan();
             webNfcScanning = true;
             console.log("Web NFC reader scanner active!");
-            updateNfcStatus("active", "📱", "Web NFC aktiv");
+            updateNfcStatus("active", "📱", "Web NFC aktiv (Physische Karten)");
+
+            const waitingSubtitle = document.getElementById("waitingSubtitle");
+            if (waitingSubtitle) {
+                waitingSubtitle.textContent = "Halte deine physische Supermarkt-Karte an die Rückseite des Handys";
+            }
 
             ndefReaderInstance.onreadingerror = () => {
                 console.warn("Web NFC reading error.");
@@ -573,7 +578,7 @@ async function initWebNFC() {
                     const decoder = new TextDecoder();
                     for (const record of event.message.records) {
                         if (record.data) {
-                            rawUid = decoder.decode(record.data).strip();
+                            rawUid = decoder.decode(record.data).trim();
                             break;
                         }
                     }
@@ -586,10 +591,14 @@ async function initWebNFC() {
         } catch (error) {
             console.warn("Web NFC activation failed/denied:", error);
             webNfcScanning = false;
-            updateNfcStatus("touch", "👆", "Touchscreen-Modus");
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+                updateNfcStatus("touch", "⚠️", "NFC benötigt HTTPS oder Chrome Flag");
+            } else {
+                updateNfcStatus("touch", "👆", "Touchscreen-Modus");
+            }
         }
     } else {
-        console.log("Web NFC not supported in this browser (e.g. iOS Safari). Using Touchscreen fallback.");
+        console.log("Web NFC not supported in this browser. Using Touchscreen fallback.");
         webNfcScanning = false;
         updateNfcStatus("touch", "👆", "Touchscreen-Modus");
     }
