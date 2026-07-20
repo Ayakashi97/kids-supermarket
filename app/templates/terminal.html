@@ -439,7 +439,7 @@
         </div>
 
         <!-- State 4: PAYMENT SUCCESS -->
-        <div id="stateSuccess" class="hidden" style="cursor: pointer;" onclick="showState(document.getElementById('stateIdle'))">
+        <div id="stateSuccess" class="hidden" style="cursor: pointer;" onclick="resetTerminalToIdle()">
             <div class="customer-photo-box" id="photoBox" style="display: none;">
                 <img id="terminalPhoto" src="" alt="Kundenfoto">
             </div>
@@ -447,7 +447,7 @@
             <div class="terminal-title" id="successGreeting">Hallo! 🎉</div>
             <div class="terminal-subtitle">Zahlung erfolgreich!</div>
             
-            <button type="button" style="margin-top: 1rem; width: 75px; height: 75px; background: linear-gradient(135deg, #ff7675 0%, #d63031 100%); color: white; border: none; border-radius: 50%; font-size: 2.5rem; cursor: pointer; box-shadow: 0 10px 25px rgba(214, 48, 49, 0.4);">
+            <button type="button" id="btnTerminalSuccessClose" onclick="resetTerminalToIdle(); event.stopPropagation();" style="margin-top: 1rem; width: 75px; height: 75px; background: linear-gradient(135deg, #ff7675 0%, #d63031 100%); color: white; border: none; border-radius: 50%; font-size: 2.5rem; cursor: pointer; box-shadow: 0 10px 25px rgba(214, 48, 49, 0.4);">
                 ❌
             </button>
         </div>
@@ -762,6 +762,10 @@ document.addEventListener("DOMContentLoaded", () => {
         el.classList.remove("hidden");
         resetIdleTimer();
     }
+
+    window.resetTerminalToIdle = function() {
+        if (stateIdle) showState(stateIdle);
+    };
 
     document.addEventListener("pointerdown", () => {
         wakeUp();
