@@ -28,9 +28,9 @@
             <input type="number" id="sort_order" name="sort_order" value="{{ category.sort_order }}">
         </div>
 
-        <div style="display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
-            <button type="submit" class="btn btn-success">Änderungen speichern 💾</button>
-            <a href="{{ url_for('admin.categories') }}" class="btn btn-secondary">Abbrechen</a>
+        <div style="display: flex; gap: 0.8rem; margin-top: 1.5rem; flex-wrap: wrap;">
+            <button type="submit" class="btn btn-success">💾 Speichern</button>
+            <a href="{{ url_for('admin.categories') }}" class="btn btn-secondary">❌ Abbrechen</a>
         </div>
     </form>
 </div>

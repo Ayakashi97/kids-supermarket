@@ -5,24 +5,24 @@
 
 {% block admin_content %}
 <div class="page-title-row">
-    <h2>Kundenkarten (NFC Stickers) verwalten 💳</h2>
+    <h2>Kundenkarten (NFC Stickers) 💳</h2>
 </div>
 
 <div style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 1.1rem 1.4rem; border-radius: var(--radius-lg); margin-bottom: 1.8rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; box-shadow: 0 6px 20px rgba(249, 115, 22, 0.3);">
-    <span>🔢 <strong>Terminal PIN-Abfrage:</strong> Der PIN-Modus wird in den <strong>Einstellungen</strong> konfiguriert!</span>
-    <a href="{{ url_for('admin.settings') }}" class="btn btn-sm" style="background: white; color: #ea580c; font-weight: 900; text-decoration: none;">Zu den Einstellungen ⚙️</a>
+    <span>🔢 <strong>Terminal PIN-Abfrage:</strong> In den Einstellungen konfiguriert!</span>
+    <a href="{{ url_for('admin.settings') }}" class="btn btn-sm" style="background: white; color: #ea580c; font-weight: 900; text-decoration: none;">⚙️ Einstellungen</a>
 </div>
 
 <div class="admin-card">
-    <h3>Neue Kundenkarte registrieren ➕</h3>
+    <h3>Neue Karte registrieren ➕</h3>
     <p style="color: var(--admin-muted); margin-bottom: 1.4rem; font-weight: 600;">
-        Tippe auf <strong>"Scan 💳"</strong> und halte die neue Karte an die Rückseite deines Smartphones oder das Lesegerät.
+        Tippe auf <strong>"Scan 💳"</strong> und halte die neue Karte an die Rückseite deines Smartphones.
     </p>
 
     <form method="POST" enctype="multipart/form-data">
         <div class="form-grid">
             <div class="form-group">
-                <label for="nfc_uid">NFC UID (Automatisch oder Manuell):</label>
+                <label for="nfc_uid">NFC UID (Auto / Manuell):</label>
                 <div style="display: flex; gap: 0.6rem;">
                     <input type="text" id="nfc_uid" name="nfc_uid" placeholder="UID z.B. 4A8F91C2 oder Lena123" required>
                     <button type="button" class="btn btn-primary" id="scanBtn" style="white-space: nowrap;">Scan 💳</button>
@@ -35,18 +35,18 @@
             </div>
 
             <div class="form-group">
-                <label for="pin">Karten PIN (Optionale 4-stellige Geheimzahl):</label>
+                <label for="pin">Karten PIN (Optionale 4-stellige Zahl):</label>
                 <input type="text" id="pin" name="pin" maxlength="4" placeholder="z.B. 1234">
-                <small>Wird benötigt, wenn der PIN-Modus in den Einstellungen aktiviert ist.</small>
+                <small>Wird benötigt, wenn PIN-Modus in den Einstellungen aktiviert ist.</small>
             </div>
 
             <div class="form-group">
-                <label for="photo_file">Foto hochladen (wird bei Zahlung angezeigt):</label>
+                <label for="photo_file">Foto hochladen (optional):</label>
                 <input type="file" id="photo_file" name="photo_file" accept="image/*">
             </div>
         </div>
 
-        <button type="submit" class="btn btn-success" style="margin-top: 0.5rem;">Karte registrieren ➕</button>
+        <button type="submit" class="btn btn-success" style="margin-top: 0.5rem;">Speichern ➕</button>
     </form>
 </div>
 
@@ -68,31 +68,31 @@
             <tbody>
                 {% for c in cards %}
                 <tr>
-                    <td>
+                    <td data-label="Foto">
                         {% if c.image_path %}
                             <img src="{{ url_for('static', filename=c.image_path) }}" class="img-preview" alt="{{ c.name }}">
                         {% else %}
                             <span style="font-size: 2rem;">👤</span>
                         {% endif %}
                     </td>
-                    <td><strong>{{ c.name }}</strong></td>
-                    <td><code>{{ c.nfc_uid }}</code></td>
-                    <td><strong>{{ c.pin if c.pin else 'Keine (1234)' }}</strong></td>
-                    <td>{{ c.created_at.strftime('%d.%m.%Y %H:%M') if c.created_at else '-' }}</td>
-                    <td>
+                    <td data-label="Name"><strong>{{ c.name }}</strong></td>
+                    <td data-label="NFC UID"><code>{{ c.nfc_uid }}</code></td>
+                    <td data-label="Karten PIN"><strong>{{ c.pin if c.pin else 'Keine (1234)' }}</strong></td>
+                    <td data-label="Erstellt am">{{ c.created_at.strftime('%d.%m.%Y %H:%M') if c.created_at else '-' }}</td>
+                    <td data-label="Status">
                         {% if c.is_active %}
                             <span class="badge badge-success">Aktiv</span>
                         {% else %}
                             <span class="badge badge-secondary">Inaktiv</span>
                         {% endif %}
                     </td>
-                    <td>
+                    <td data-label="Aktionen">
                         <div class="action-buttons">
-                            <a href="{{ url_for('admin.edit_card', card_id=c.id) }}" class="btn btn-sm" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);">Bearbeiten ✏️</a>
-                            <a href="{{ url_for('admin.toggle_card', card_id=c.id) }}" class="btn btn-sm btn-primary">
-                                {% if c.is_active %}Deaktivieren{% else %}Aktivieren{% endif %}
+                            <a href="{{ url_for('admin.edit_card', card_id=c.id) }}" class="btn btn-icon btn-warning" title="Bearbeiten">✏️</a>
+                            <a href="{{ url_for('admin.toggle_card', card_id=c.id) }}" class="btn btn-icon btn-primary" title="{% if c.is_active %}Deaktivieren{% else %}Aktivieren{% endif %}">
+                                {% if c.is_active %}👁️{% else %}🙈{% endif %}
                             </a>
-                            <a href="{{ url_for('admin.delete_card', card_id=c.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Karte wirklich löschen?');">Löschen 🗑️</a>
+                            <a href="{{ url_for('admin.delete_card', card_id=c.id) }}" class="btn btn-icon btn-danger" title="Löschen" onclick="return confirm('Karte wirklich löschen?');">🗑️</a>
                         </div>
                     </td>
                 </tr>
@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     scanBtn.addEventListener("click", async () => {
         scanBtn.disabled = true;
-        scanBtn.textContent = "Warte auf Karte... 📱";
+        scanBtn.textContent = "Warte... 📱";
         
         socket.emit("start_registration");
 

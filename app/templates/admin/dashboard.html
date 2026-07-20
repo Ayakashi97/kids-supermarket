@@ -7,8 +7,8 @@
 <div class="page-title-row">
     <h2>Übersicht & Statistiken 📊</h2>
     <div class="action-buttons">
-        <a href="{{ url_for('admin.products') }}" class="btn btn-primary btn-sm">➕ Neues Produkt</a>
-        <a href="{{ url_for('admin.cards') }}" class="btn btn-success btn-sm">➕ Neue Karte</a>
+        <a href="{{ url_for('admin.products') }}" class="btn btn-primary btn-sm" title="Neues Produkt">➕ Produkt</a>
+        <a href="{{ url_for('admin.cards') }}" class="btn btn-success btn-sm" title="Neue Karte">➕ Karte</a>
     </div>
 </div>
 
@@ -34,7 +34,7 @@
 <div class="admin-card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.5rem;">
         <h3> Letzte Einkäufe</h3>
-        <a href="{{ url_for('admin.transactions') }}" style="color: var(--admin-primary); text-decoration: none; font-weight: 800; font-size: 0.9rem;">Alle anzeigen ➔</a>
+        <a href="{{ url_for('admin.transactions') }}" style="color: var(--admin-primary); text-decoration: none; font-weight: 800; font-size: 0.9rem;">Alle ➔</a>
     </div>
 
     <div class="table-responsive">
@@ -51,12 +51,12 @@
             <tbody>
                 {% for tx in recent_transactions %}
                 <tr>
-                    <td><span class="badge badge-secondary">#{{ tx.id }}</span></td>
-                    <td>{{ tx.created_at.strftime('%d.%m.%Y %H:%M') if tx.created_at else '-' }}</td>
-                    <td><strong>{{ tx.card.name if tx.card else 'Gast' }}</strong></td>
-                    <td><strong style="color: var(--admin-accent);">{{ "%.2f"|format(tx.total_cents / 100)|replace('.', ',') }} €</strong></td>
-                    <td>
-                        <a href="{{ url_for('cashier.view_receipt', tx_id=tx.id) }}" target="_blank" class="btn btn-sm btn-secondary" style="font-size: 0.8rem; padding: 0.3rem 0.7rem; min-height: auto;">Bon / PDF 📄</a>
+                    <td data-label="Bon-Nr."><span class="badge badge-secondary">#{{ tx.id }}</span></td>
+                    <td data-label="Datum">{{ tx.created_at.strftime('%d.%m.%Y %H:%M') if tx.created_at else '-' }}</td>
+                    <td data-label="Kunde"><strong>{{ tx.card.name if tx.card else 'Gast' }}</strong></td>
+                    <td data-label="Betrag"><strong style="color: var(--admin-accent);">{{ "%.2f"|format(tx.total_cents / 100)|replace('.', ',') }} €</strong></td>
+                    <td data-label="Aktion">
+                        <a href="{{ url_for('cashier.view_receipt', tx_id=tx.id) }}" target="_blank" class="btn btn-icon btn-secondary" title="Bon / PDF anzeigen">📄</a>
                     </td>
                 </tr>
                 {% else %}

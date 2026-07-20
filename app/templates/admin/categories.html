@@ -9,7 +9,7 @@
 </div>
 
 <div class="admin-card">
-    <h3>Neue Kategorie hinzufügen ➕</h3>
+    <h3>Neue Kategorie ➕</h3>
     <form method="POST">
         <div class="form-grid">
             <div class="form-group">
@@ -29,7 +29,7 @@
             </div>
         </div>
 
-        <button type="submit" class="btn btn-success" style="margin-top: 0.5rem;">Kategorie speichern ➕</button>
+        <button type="submit" class="btn btn-success" style="margin-top: 0.5rem;">Speichern ➕</button>
     </form>
 </div>
 
@@ -49,23 +49,23 @@
             <tbody>
                 {% for cat in categories %}
                 <tr>
-                    <td><span style="font-size: 1.8rem;">{{ cat.emoji or '📦' }}</span></td>
-                    <td><strong>{{ cat.name }}</strong></td>
-                    <td><span class="badge badge-secondary">{{ cat.sort_order }}</span></td>
-                    <td>
+                    <td data-label="Symbol"><span style="font-size: 1.8rem;">{{ cat.emoji or '📦' }}</span></td>
+                    <td data-label="Name"><strong>{{ cat.name }}</strong></td>
+                    <td data-label="Sortierung"><span class="badge badge-secondary">{{ cat.sort_order }}</span></td>
+                    <td data-label="Status">
                         {% if cat.is_active %}
                             <span class="badge badge-success">Aktiv</span>
                         {% else %}
                             <span class="badge badge-secondary">Inaktiv</span>
                         {% endif %}
                     </td>
-                    <td>
+                    <td data-label="Aktionen">
                         <div class="action-buttons">
-                            <a href="{{ url_for('admin.edit_category', cat_id=cat.id) }}" class="btn btn-sm" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);">Bearbeiten ✏️</a>
-                            <a href="{{ url_for('admin.toggle_category', cat_id=cat.id) }}" class="btn btn-sm btn-primary">
-                                {% if cat.is_active %}Deaktivieren{% else %}Aktivieren{% endif %}
+                            <a href="{{ url_for('admin.edit_category', cat_id=cat.id) }}" class="btn btn-icon btn-warning" title="Bearbeiten">✏️</a>
+                            <a href="{{ url_for('admin.toggle_category', cat_id=cat.id) }}" class="btn btn-icon btn-primary" title="{% if cat.is_active %}Deaktivieren{% else %}Aktivieren{% endif %}">
+                                {% if cat.is_active %}👁️{% else %}🙈{% endif %}
                             </a>
-                            <a href="{{ url_for('admin.delete_category', cat_id=cat.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Kategorie löschen?');">Löschen 🗑️</a>
+                            <a href="{{ url_for('admin.delete_category', cat_id=cat.id) }}" class="btn btn-icon btn-danger" title="Löschen" onclick="return confirm('Kategorie löschen?');">🗑️</a>
                         </div>
                     </td>
                 </tr>
