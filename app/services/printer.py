@@ -20,13 +20,13 @@ def get_setting(key: str, default_val: str) -> str:
 
 def print_receipt(transaction_data: dict) -> bool:
     """
-    Prints a thermal receipt via python-escpos USB/File device.
-    Configuration is dynamically read from DB settings with fallback to environment variables.
+    Prints a thermal receipt via python-escpos USB/File device if enabled and connected.
+    If disabled or disconnected, skips cleanly without throwing errors or interrupting transactions.
     """
-    # Check if printer is enabled in settings
-    printer_enabled_str = get_setting("printer_enabled", "true").lower()
+    # Check if printer is enabled in settings (default: false)
+    printer_enabled_str = get_setting("printer_enabled", "false").lower()
     if printer_enabled_str not in ("true", "1", "yes"):
-        logger.info("Receipt printing is disabled in settings. Skipping.")
+        logger.debug("Receipt printing is disabled in settings. Skipping hardware print.")
         return False
 
     device_path = get_setting("printer_device", Config.PRINTER_DEVICE)
@@ -54,15 +54,12 @@ def print_receipt(transaction_data: dict) -> bool:
 
     formatted_total = f"{total_cents / 100:.2f}".replace(".", ",") + " €"
 
-    logger.info("Printing receipt for Transaction #%s on device %s...", tx_id, device_path)
-
     # Check if hardware USB printer device exists
     if not os.path.exists(device_path):
-        logger.warning(
-            "Printer device path '%s' not found on system. Logging receipt to stdout instead.",
+        logger.info(
+            "USB printer device '%s' not found or disconnected. Skipping hardware print (PDF receipt available).",
             device_path,
         )
-        _log_receipt_text(shop_name, receipt_header, receipt_footer, tx_id, date_str, time_str, card_name, items, formatted_total)
         return False
 
     try:
@@ -110,38 +107,9 @@ def print_receipt(transaction_data: dict) -> bool:
         printer.cut()
         printer.close()
 
-        logger.info("Receipt #%s successfully printed to thermal printer!", tx_id)
+        logger.info("Receipt #%s successfully printed to USB thermal printer!", tx_id)
         return True
 
     except Exception as e:
-        logger.error("Failed to print to ESC/POS printer on %s: %s", device_path, str(e))
+        logger.info("Hardware printer on %s not accessible (%s). Payment completed normally.", device_path, str(e))
         return False
-
-
-def _log_receipt_text(shop_name, header, footer, tx_id, date_str, time_str, card_name, items, total_str):
-    receipt_lines = [
-        "========================================",
-        f"        🛒 {shop_name.upper()} 🛒",
-        f"        {header}",
-        "========================================",
-        f"Bon-Nr: #{tx_id}",
-        f"Datum:  {date_str}",
-        f"Zeit:   {time_str}",
-        f"Kunde:  {card_name} 💳",
-        "----------------------------------------",
-    ]
-    for item in items:
-        p_name = item.get("product_name", "Artikel")[:18]
-        qty = item.get("quantity", 1)
-        p_price = f"{(item.get('price_cents', 0) * qty) / 100:.2f}".replace(".", ",") + " €"
-        receipt_lines.append(f"{p_name:<18} {qty:>2}x {p_price:>12}")
-
-    receipt_lines.extend([
-        "----------------------------------------",
-        f"SUMME: {total_str:>31}",
-        "========================================",
-        f"  Vielen Dank, {card_name}! 😊",
-        f"  {footer}",
-        "========================================",
-    ])
-    logger.info("MOCK RECEIPT OUTPUT:\n" + "\n".join(receipt_lines))

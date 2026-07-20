@@ -76,11 +76,12 @@
             </div>
             
             <div class="form-group">
-                <label for="printer_enabled">Bon-Drucker aktivieren:</label>
+                <label for="printer_enabled">Hardware Bon-Drucker aktivieren:</label>
                 <select id="printer_enabled" name="printer_enabled">
-                    <option value="true" {% if settings.printer_enabled == 'true' %}selected{% endif %}>Ja (Aktiviert)</option>
-                    <option value="false" {% if settings.printer_enabled == 'false' %}selected{% endif %}>Nein (Deaktiviert)</option>
+                    <option value="false" {% if settings.printer_enabled == 'false' %}selected{% endif %}>Nein (Deaktiviert — Keine Fehler wenn kein Drucker angeschlossen ist)</option>
+                    <option value="true" {% if settings.printer_enabled == 'true' %}selected{% endif %}>Ja (Aktiviert — USB Thermodrucker an /dev/usb/lp0)</option>
                 </select>
+                <small style="color: #666;">HINWEIS: Auch wenn der Hardware-Drucker deaktiviert ist, steht der Bon jederzeit als <strong>PDF / Ansicht</strong> im Browser zur Verfügung!</small>
             </div>
 
             <div class="form-group">

@@ -242,7 +242,7 @@ def settings():
         shop_name = request.form.get("shop_name", Config.SHOP_NAME)
         admin_pin = request.form.get("admin_pin", Config.ADMIN_PIN)
         pin_mode = request.form.get("pin_mode", "disabled")
-        printer_enabled = request.form.get("printer_enabled", "true")
+        printer_enabled = request.form.get("printer_enabled", "false")
         printer_device = request.form.get("printer_device", Config.PRINTER_DEVICE)
         receipt_header = request.form.get("receipt_header", "")
         receipt_footer = request.form.get("receipt_footer", "")
@@ -270,7 +270,7 @@ def settings():
         "shop_name": get_setting("shop_name", Config.SHOP_NAME),
         "admin_pin": get_setting("admin_pin", Config.ADMIN_PIN),
         "pin_mode": get_setting("pin_mode", "disabled"),
-        "printer_enabled": get_setting("printer_enabled", "true"),
+        "printer_enabled": get_setting("printer_enabled", "false"),
         "printer_device": get_setting("printer_device", Config.PRINTER_DEVICE),
         "receipt_header": get_setting("receipt_header", "🛒 WILLKOMMEN IM KINDER-MARKT 🛒"),
         "receipt_footer": get_setting("receipt_footer", "Vielen Dank für deinen Einkauf! 😊"),
