@@ -6,53 +6,7 @@
 {% block admin_content %}
 <div class="page-title-row">
     <h2>Produkte verwalten 🍎</h2>
-</div>
-
-<div class="admin-card">
-    <h3>Neues Produkt ➕</h3>
-    <form method="POST" enctype="multipart/form-data">
-        <div class="form-grid">
-            <div class="form-group">
-                <label for="name">Produktname:</label>
-                <input type="text" id="name" name="name" placeholder="z.B. Brezel" required>
-            </div>
-
-            <div class="form-group">
-                <label for="price">Preis (€):</label>
-                <input type="number" step="0.01" id="price" name="price" placeholder="0.80" required>
-            </div>
-
-            <div class="form-group">
-                <label for="category">Kategorie:</label>
-                <select id="category" name="category">
-                    {% if categories %}
-                        {% for cat in categories %}
-                        <option value="{{ cat.name }}">{{ cat.name }} {{ cat.emoji or '' }}</option>
-                        {% endfor %}
-                    {% else %}
-                        <option value="Obst & Gemüse">Obst & Gemüse 🍎</option>
-                        <option value="Backwaren" selected>Backwaren 🥨</option>
-                        <option value="Milchprodukte">Milchprodukte 🥛</option>
-                        <option value="Getränke">Getränke 🧃</option>
-                        <option value="Süßes">Süßes 🍫</option>
-                        <option value="Sonstiges">Sonstiges 📦</option>
-                    {% endif %}
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="emoji">Emoji Symbol:</label>
-                <input type="text" id="emoji" name="emoji" placeholder="🥨" value="🥨">
-            </div>
-
-            <div class="form-group span-full" style="grid-column: span 2;">
-                <label for="image_file">Foto hochladen (optional):</label>
-                <input type="file" id="image_file" name="image_file" accept="image/*">
-            </div>
-        </div>
-
-        <button type="submit" class="btn btn-success" style="margin-top: 0.5rem;">Speichern ➕</button>
-    </form>
+    <button type="button" class="btn btn-primary btn-sm" onclick="openModal('addProductModal')">➕ Neues Produkt</button>
 </div>
 
 <div class="admin-card">
@@ -91,7 +45,7 @@
                     </td>
                     <td data-label="Aktionen">
                         <div class="action-buttons">
-                            <a href="{{ url_for('admin.edit_product', product_id=p.id) }}" class="btn btn-icon btn-warning" title="Bearbeiten">✏️</a>
+                            <button type="button" class="btn btn-icon btn-warning" onclick="editProduct({{ p.id }}, '{{ p.name|escape }}', '{{ "%.2f"|format(p.price_cents / 100) }}', '{{ p.category|escape }}', '{{ p.emoji or '' }}')" title="Bearbeiten">✏️</button>
                             <a href="{{ url_for('admin.toggle_product', product_id=p.id) }}" class="btn btn-icon btn-primary" title="{% if p.is_active %}Deaktivieren{% else %}Aktivieren{% endif %}">
                                 {% if p.is_active %}👁️{% else %}🙈{% endif %}
                             </a>
@@ -108,4 +62,122 @@
         </table>
     </div>
 </div>
+
+<!-- Modal: Neues Produkt -->
+<div class="overlay hidden" id="addProductModal">
+    <div class="admin-card overlay-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
+            <h3 style="margin: 0;">Neues Produkt ➕</h3>
+            <button type="button" class="btn-icon" onclick="closeModal('addProductModal')" style="background: transparent; border: none; font-size: 1.3rem; cursor: pointer;">❌</button>
+        </div>
+        <form method="POST" action="{{ url_for('admin.products') }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="add_p_name">Produktname:</label>
+                <input type="text" id="add_p_name" name="name" placeholder="z.B. Brezel" required>
+            </div>
+
+            <div class="form-group">
+                <label for="add_p_price">Preis (€):</label>
+                <input type="number" step="0.01" id="add_p_price" name="price" placeholder="0.80" required>
+            </div>
+
+            <div class="form-group">
+                <label for="add_p_cat">Kategorie:</label>
+                <select id="add_p_cat" name="category">
+                    {% if categories %}
+                        {% for cat in categories %}
+                        <option value="{{ cat.name }}">{{ cat.name }} {{ cat.emoji or '' }}</option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="Obst & Gemüse">Obst & Gemüse 🍎</option>
+                        <option value="Backwaren" selected>Backwaren 🥨</option>
+                        <option value="Milchprodukte">Milchprodukte 🥛</option>
+                        <option value="Getränke">Getränke 🧃</option>
+                        <option value="Süßes">Süßes 🍫</option>
+                        <option value="Sonstiges">Sonstiges 📦</option>
+                    {% endif %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="add_p_emoji">Emoji Symbol:</label>
+                <input type="text" id="add_p_emoji" name="emoji" placeholder="🥨" value="🥨">
+            </div>
+
+            <div class="form-group">
+                <label for="add_p_img">Foto hochladen (optional):</label>
+                <input type="file" id="add_p_img" name="image_file" accept="image/*">
+            </div>
+
+            <div style="display: flex; gap: 0.8rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-success" style="flex: 1;">Speichern ➕</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('addProductModal')">Abbrechen</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Produkt Bearbeiten -->
+<div class="overlay hidden" id="editProductModal">
+    <div class="admin-card overlay-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
+            <h3 style="margin: 0;">Produkt bearbeiten ✏️</h3>
+            <button type="button" class="btn-icon" onclick="closeModal('editProductModal')" style="background: transparent; border: none; font-size: 1.3rem; cursor: pointer;">❌</button>
+        </div>
+        <form method="POST" id="editProductForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="edit_p_name">Produktname:</label>
+                <input type="text" id="edit_p_name" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="edit_p_price">Preis (€):</label>
+                <input type="number" step="0.01" id="edit_p_price" name="price" required>
+            </div>
+
+            <div class="form-group">
+                <label for="edit_p_cat">Kategorie:</label>
+                <select id="edit_p_cat" name="category">
+                    {% for cat in categories %}
+                    <option value="{{ cat.name }}">{{ cat.name }} {{ cat.emoji or '' }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="edit_p_emoji">Emoji Symbol:</label>
+                <input type="text" id="edit_p_emoji" name="emoji">
+            </div>
+
+            <div class="form-group">
+                <label for="edit_p_img">Neues Foto hochladen (optional):</label>
+                <input type="file" id="edit_p_img" name="image_file" accept="image/*">
+            </div>
+
+            <div style="display: flex; gap: 0.8rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-success" style="flex: 1;">Speichern 💾</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editProductModal')">Abbrechen</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function openModal(id) {
+    document.getElementById(id).classList.remove("hidden");
+}
+function closeModal(id) {
+    document.getElementById(id).classList.add("hidden");
+}
+function editProduct(id, name, price, category, emoji) {
+    document.getElementById("editProductForm").action = "/admin/products/edit/" + id;
+    document.getElementById("edit_p_name").value = name;
+    document.getElementById("edit_p_price").value = price;
+    document.getElementById("edit_p_cat").value = category;
+    document.getElementById("edit_p_emoji").value = emoji;
+    openModal("editProductModal");
+}
+</script>
 {% endblock %}

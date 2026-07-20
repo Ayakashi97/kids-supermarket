@@ -6,48 +6,12 @@
 {% block admin_content %}
 <div class="page-title-row">
     <h2>Kundenkarten (NFC Stickers) 💳</h2>
+    <button type="button" class="btn btn-primary btn-sm" onclick="openModal('addCardModal')">➕ Neue Karte</button>
 </div>
 
 <div style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 1.1rem 1.4rem; border-radius: var(--radius-lg); margin-bottom: 1.8rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; box-shadow: 0 6px 20px rgba(249, 115, 22, 0.3);">
     <span>🔢 <strong>Terminal PIN-Abfrage:</strong> In den Einstellungen konfiguriert!</span>
     <a href="{{ url_for('admin.settings') }}" class="btn btn-sm" style="background: white; color: #ea580c; font-weight: 900; text-decoration: none;">⚙️ Einstellungen</a>
-</div>
-
-<div class="admin-card">
-    <h3>Neue Karte registrieren ➕</h3>
-    <p style="color: var(--admin-muted); margin-bottom: 1.4rem; font-weight: 600;">
-        Tippe auf <strong>"Scan 💳"</strong> und halte die neue Karte an die Rückseite deines Smartphones.
-    </p>
-
-    <form method="POST" enctype="multipart/form-data">
-        <div class="form-grid">
-            <div class="form-group">
-                <label for="nfc_uid">NFC UID (Auto / Manuell):</label>
-                <div style="display: flex; gap: 0.6rem;">
-                    <input type="text" id="nfc_uid" name="nfc_uid" placeholder="UID z.B. 4A8F91C2 oder Lena123" required>
-                    <button type="button" class="btn btn-primary" id="scanBtn" style="white-space: nowrap;">Scan 💳</button>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="name">Name des Kindes / Inhabers:</label>
-                <input type="text" id="name" name="name" placeholder="z.B. Lena" required>
-            </div>
-
-            <div class="form-group">
-                <label for="pin">Karten PIN (Optionale 4-stellige Zahl):</label>
-                <input type="text" id="pin" name="pin" maxlength="4" placeholder="z.B. 1234">
-                <small>Wird benötigt, wenn PIN-Modus in den Einstellungen aktiviert ist.</small>
-            </div>
-
-            <div class="form-group">
-                <label for="photo_file">Foto hochladen (optional):</label>
-                <input type="file" id="photo_file" name="photo_file" accept="image/*">
-            </div>
-        </div>
-
-        <button type="submit" class="btn btn-success" style="margin-top: 0.5rem;">Speichern ➕</button>
-    </form>
 </div>
 
 <div class="admin-card">
@@ -88,7 +52,7 @@
                     </td>
                     <td data-label="Aktionen">
                         <div class="action-buttons">
-                            <a href="{{ url_for('admin.edit_card', card_id=c.id) }}" class="btn btn-icon btn-warning" title="Bearbeiten">✏️</a>
+                            <button type="button" class="btn btn-icon btn-warning" onclick="editCard({{ c.id }}, '{{ c.nfc_uid }}', '{{ c.name|escape }}', '{{ c.pin or '' }}')" title="Bearbeiten">✏️</button>
                             <a href="{{ url_for('admin.toggle_card', card_id=c.id) }}" class="btn btn-icon btn-primary" title="{% if c.is_active %}Deaktivieren{% else %}Aktivieren{% endif %}">
                                 {% if c.is_active %}👁️{% else %}🙈{% endif %}
                             </a>
@@ -105,74 +69,165 @@
         </table>
     </div>
 </div>
+
+<!-- Modal: Neue Kundenkarte -->
+<div class="overlay hidden" id="addCardModal">
+    <div class="admin-card overlay-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
+            <h3 style="margin: 0;">Neue Kundenkarte registrieren 💳</h3>
+            <button type="button" class="btn-icon" onclick="closeModal('addCardModal')" style="background: transparent; border: none; font-size: 1.3rem; cursor: pointer;">❌</button>
+        </div>
+        <form method="POST" action="{{ url_for('admin.cards') }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="nfc_uid">NFC UID (Auto / Manuell):</label>
+                <div style="display: flex; gap: 0.6rem;">
+                    <input type="text" id="nfc_uid" name="nfc_uid" placeholder="UID z.B. 4A8F91C2 oder Lena123" required>
+                    <button type="button" class="btn btn-primary" id="scanBtn" style="white-space: nowrap;">Scan 💳</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="add_c_name">Name des Kindes / Inhabers:</label>
+                <input type="text" id="add_c_name" name="name" placeholder="z.B. Lena" required>
+            </div>
+
+            <div class="form-group">
+                <label for="add_c_pin">Karten PIN (Optionale 4-stellige Zahl):</label>
+                <input type="text" id="add_c_pin" name="pin" maxlength="4" placeholder="z.B. 1234">
+            </div>
+
+            <div class="form-group">
+                <label for="add_c_photo">Foto hochladen (optional):</label>
+                <input type="file" id="add_c_photo" name="photo_file" accept="image/*">
+            </div>
+
+            <div style="display: flex; gap: 0.8rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-success" style="flex: 1;">Speichern ➕</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('addCardModal')">Abbrechen</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Karte Bearbeiten -->
+<div class="overlay hidden" id="editCardModal">
+    <div class="admin-card overlay-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
+            <h3 style="margin: 0;">Kundenkarte bearbeiten ✏️</h3>
+            <button type="button" class="btn-icon" onclick="closeModal('editCardModal')" style="background: transparent; border: none; font-size: 1.3rem; cursor: pointer;">❌</button>
+        </div>
+        <form method="POST" id="editCardForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label>NFC UID (Unveränderbar):</label>
+                <input type="text" id="edit_c_uid" readonly style="background: #f1f5f9; font-family: monospace; font-weight: bold; color: var(--admin-muted);">
+            </div>
+
+            <div class="form-group">
+                <label for="edit_c_name">Name des Kindes / Inhabers:</label>
+                <input type="text" id="edit_c_name" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="edit_c_pin">Karten PIN (Optionale 4-stellige Zahl):</label>
+                <input type="text" id="edit_c_pin" name="pin" maxlength="4">
+            </div>
+
+            <div class="form-group">
+                <label for="edit_c_photo">Neues Foto hochladen (optional):</label>
+                <input type="file" id="edit_c_photo" name="photo_file" accept="image/*">
+            </div>
+
+            <div style="display: flex; gap: 0.8rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-success" style="flex: 1;">Speichern 💾</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editCardModal')">Abbrechen</button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 <script>
+function openModal(id) {
+    document.getElementById(id).classList.remove("hidden");
+}
+function closeModal(id) {
+    document.getElementById(id).classList.add("hidden");
+}
+function editCard(id, uid, name, pin) {
+    document.getElementById("editCardForm").action = "/admin/cards/edit/" + id;
+    document.getElementById("edit_c_uid").value = uid;
+    document.getElementById("edit_c_name").value = name;
+    document.getElementById("edit_c_pin").value = pin;
+    openModal("editCardModal");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const socket = io();
     const scanBtn = document.getElementById("scanBtn");
     const uidInput = document.getElementById("nfc_uid");
 
-    scanBtn.addEventListener("click", async () => {
-        scanBtn.disabled = true;
-        scanBtn.textContent = "Warte... 📱";
-        
-        socket.emit("start_registration");
+    if (scanBtn) {
+        scanBtn.addEventListener("click", async () => {
+            scanBtn.disabled = true;
+            scanBtn.textContent = "Warte... 📱";
+            
+            socket.emit("start_registration");
 
-        if ('NDEFReader' in window) {
-            try {
-                const ndef = new NDEFReader();
-                await ndef.scan();
-                
-                ndef.onreadingerror = () => {
-                    console.warn("NFC Read Error in Admin");
-                };
+            if ('NDEFReader' in window) {
+                try {
+                    const ndef = new NDEFReader();
+                    await ndef.scan();
+                    
+                    ndef.onreadingerror = () => {
+                        console.warn("NFC Read Error in Admin");
+                    };
 
-                ndef.onreading = (event) => {
-                    let rawUid = event.serialNumber || "";
+                    ndef.onreading = (event) => {
+                        let rawUid = event.serialNumber || "";
 
-                    if (!rawUid && event.message && event.message.records) {
-                        const decoder = new TextDecoder();
-                        for (const record of event.message.records) {
-                            if (record.data) {
-                                try {
-                                    const textContent = decoder.decode(record.data).trim();
-                                    if (textContent) {
-                                        rawUid = textContent;
-                                        break;
-                                    }
-                                } catch(e){}
+                        if (!rawUid && event.message && event.message.records) {
+                            const decoder = new TextDecoder();
+                            for (const record of event.message.records) {
+                                if (record.data) {
+                                    try {
+                                        const textContent = decoder.decode(record.data).trim();
+                                        if (textContent) {
+                                            rawUid = textContent;
+                                            break;
+                                        }
+                                    } catch(e){}
+                                }
                             }
                         }
-                    }
 
-                    if (rawUid) {
-                        uidInput.value = rawUid;
-                        scanBtn.disabled = false;
-                        scanBtn.textContent = "Erfasst! ✅";
-                        socket.emit("card_tapped", { uid: rawUid });
-                        setTimeout(() => { scanBtn.textContent = "Scan 💳"; }, 3000);
-                    }
-                };
-            } catch (err) {
-                console.warn("Web NFC scan error in admin:", err);
-                scanBtn.disabled = false;
-                scanBtn.textContent = "Scan 💳";
-            }
-        } else {
-            setTimeout(() => {
-                if (scanBtn.disabled && !uidInput.value) {
+                        if (rawUid) {
+                            uidInput.value = rawUid;
+                            scanBtn.disabled = false;
+                            scanBtn.textContent = "Erfasst! ✅";
+                            socket.emit("card_tapped", { uid: rawUid });
+                            setTimeout(() => { scanBtn.textContent = "Scan 💳"; }, 3000);
+                        }
+                    };
+                } catch (err) {
+                    console.warn("Web NFC scan error in admin:", err);
                     scanBtn.disabled = false;
                     scanBtn.textContent = "Scan 💳";
                 }
-            }, 6000);
-        }
-    });
+            } else {
+                setTimeout(() => {
+                    if (scanBtn.disabled && !uidInput.value) {
+                        scanBtn.disabled = false;
+                        scanBtn.textContent = "Scan 💳";
+                    }
+                }, 6000);
+            }
+        });
+    }
 
     socket.on("card_tapped", (data) => {
-        if (data && data.uid) {
+        if (data && data.uid && uidInput) {
             uidInput.value = data.uid;
             scanBtn.disabled = false;
             scanBtn.textContent = "Erfasst! ✅";
