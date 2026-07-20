@@ -1,6 +1,6 @@
 # 🛠️ Raspberry Pi Hardware & OS Setup Guide
 
-Complete step-by-step setup guide for both Raspberry Pi units in the **Kinder-Supermarkt** system.
+Complete step-by-step setup guide for both Raspberry Pi units in the **Kinder-Supermarkt** system, including display troubleshooting and hardware configuration.
 
 ---
 
@@ -8,8 +8,8 @@ Complete step-by-step setup guide for both Raspberry Pi units in the **Kinder-Su
 
 | Device | Role | Recommended OS | Connected Hardware | Default Access URL |
 |---|---|---|---|---|
-| **Raspberry Pi #1** | Backend Server (Flask, SQLite, Docker) | **Raspberry Pi OS Lite (64-bit)** | USB Thermal Receipt Printer | `http://<pi1-ip>:5050` (or `:5000`) |
-| **Raspberry Pi #2** | NFC Reader & Touchscreen Terminal | **Raspberry Pi OS with Desktop (64-bit)** | Touchscreen Display + PN532 NFC Module | `http://<pi1-ip>:5050/terminal` (Kiosk Mode) |
+| **Raspberry Pi #1** | Backend Server (Flask, SQLite, Docker) | **Raspberry Pi OS Lite (64-bit)** | USB Thermal Receipt Printer | `http://<pi1-ip>:5050` |
+| **Raspberry Pi #2** | NFC Reader & Touchscreen Terminal | **Raspberry Pi OS Desktop (64-bit)** | Touchscreen Display + PN532 NFC Module | `http://<pi1-ip>:5050/terminal` (Kiosk Mode) |
 | **Tablet** | Cashier UI | Any OS (iOS / Android / Windows) | Web Browser | `http://<pi1-ip>:5050` |
 
 ---
@@ -53,8 +53,8 @@ After rebooting and logging back in:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-repo/supermarket.git
-cd supermarket
+git clone https://github.com/Ayakashi97/kids-supermarket.git
+cd kids-supermarket
 
 # Create environment configuration
 cp .env.example .env
@@ -73,10 +73,6 @@ docker compose up -d
    ```env
    PRINTER_DEVICE=/dev/usb/lp0
    ```
-4. If permissions are needed on host:
-   ```bash
-   sudo usermod -aG lp $USER
-   ```
 
 ---
 
@@ -92,6 +88,50 @@ docker compose up -d
    - Configure Wi-Fi / LAN settings
 4. Flash SD card & insert into Pi #2.
 
+---
+
+### 🖥️ Touchscreen Setup & White Screen Troubleshooting
+
+If your Raspberry Pi touchscreen turns on but stays **solid white** or shows **no display signal**:
+
+#### A. Official Raspberry Pi 7" Touchscreen (DSI Ribbon Cable)
+1. **Ribbon Cable Orientation**:
+   - Ensure the DSI ribbon cable is connected to the `DISPLAY` port (not the `CAMERA` port!).
+   - Black locking latch pulled up, blue tab on ribbon cable facing the USB/Ethernet ports, metal contacts facing PCB board.
+2. **Display Drivers in `/boot/firmware/config.txt`**:
+   SSH into Pi #2 (`ssh pi@supermarket-terminal.local`) and edit `/boot/firmware/config.txt` (or `/boot/config.txt` on older OS):
+   ```bash
+   sudo nano /boot/firmware/config.txt
+   ```
+   Ensure the DRM graphics driver overlay is enabled under `[all]`:
+   ```ini
+   # Enable DRM VC4 V3D driver
+   dtoverlay=vc4-kms-v3d
+   
+   # For Official Raspberry Pi 7" Touchscreen DSI:
+   dtoverlay=vc4-kms-dsi-7inch
+   ```
+3. **GPU Memory**:
+   Ensure GPU memory is allocated:
+   ```ini
+   gpu_mem=128
+   ```
+
+#### B. Waveshare / Elecrow HDMI Touchscreen Displays
+If using a 5-inch or 7-inch HDMI touchscreen connected via HDMI adapter:
+1. Open `/boot/firmware/config.txt`:
+   ```ini
+   hdmi_force_hotplug=1
+   config_hdmi_boost=10
+   hdmi_group=2
+   hdmi_mode=87
+   hdmi_cvt 1024 600 60 6 0 0 0
+   hdmi_drive=1
+   ```
+2. Reboot: `sudo reboot`.
+
+---
+
 ### 2. PN532 NFC Module Wiring
 Set DIP switches on PN532 board to **I2C Mode** (`SEL0 = HIGH (1)`, `SEL1 = LOW (0)`).
 
@@ -104,10 +144,8 @@ Connect PN532 to Raspberry Pi #2 GPIO pins:
 | `SDA` | Pin 3 (GPIO 2 - SDA) | I2C Data |
 | `SCL` | Pin 5 (GPIO 3 - SCL) | I2C Clock |
 
-*Alternative (SPI Mode)*: Set DIP switches to `SEL0 = LOW (0)`, `SEL1 = HIGH (1)` and connect to SCK (Pin 23), MISO (Pin 21), MOSI (Pin 19), SSEL (Pin 24).
-
 ### 3. Enable I2C & SPI Interfaces on Pi #2
-SSH into Pi #2 (`ssh pi@supermarket-terminal.local`):
+SSH into Pi #2:
 
 ```bash
 sudo raspi-config
@@ -123,6 +161,8 @@ sudo i2cdetect -y 1
 ```
 *(You should see `0x24` listed for the PN532 chip)*.
 
+---
+
 ### 4. Setup NFC Reader Python Service
 SSH into Pi #2:
 
@@ -131,8 +171,8 @@ SSH into Pi #2:
 sudo apt update && sudo apt install -y git python3-pip python3-venv
 
 # Clone project
-git clone https://github.com/your-repo/supermarket.git
-cd supermarket/nfc_reader
+git clone https://github.com/Ayakashi97/kids-supermarket.git
+cd kids-supermarket/nfc_reader
 
 # Create Python virtual environment
 python3 -m venv venv
@@ -151,8 +191,8 @@ After=network.target
 [Service]
 Type=simple
 User=pi
-WorkingDirectory=/home/pi/supermarket/nfc_reader
-ExecStart=/home/pi/supermarket/nfc_reader/venv/bin/python reader.py --server http://supermarket-server.local:5050
+WorkingDirectory=/home/pi/kids-supermarket/nfc_reader
+ExecStart=/home/pi/kids-supermarket/nfc_reader/venv/bin/python reader.py --server http://supermarket-server.local:5050
 Restart=always
 RestartSec=5
 
@@ -166,26 +206,28 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now supermarkt-nfc
 ```
 
-### 5. Setup Touchscreen Chromium Kiosk Mode
-To automatically launch the terminal UI on Pi #2's touchscreen display on boot:
+---
+
+### 5. Setup Touchscreen Kiosk Mode & Automatic Display Standby (30s Timeout)
+
+The Kinder-Supermarkt system includes **software-level screen standby** (configurable in Admin Panel at `/admin/settings` to 15s, 30s, 60s, 2m, 5m, or Never).
+
+To configure Chromium Kiosk mode on boot:
 
 1. Install unclutter (hides mouse cursor):
    ```bash
    sudo apt install -y chromium-browser unclutter
    ```
 
-2. Edit autostart configuration (`~/.config/lxsession/LXDE-pi/autostart` or `~/.config/wayfire.ini` for Wayland):
-
-   For X11 (`~/.config/lxsession/LXDE-pi/autostart`):
+2. Edit autostart configuration for X11 (`~/.config/lxsession/LXDE-pi/autostart`):
    ```bash
-   @xset s off
-   @xset -dpms
-   @xset s noblank
+   @xset s 30
+   @xset dpms 30 30 30
    @unclutter -idle 0.1 -root
    @chromium-browser --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://supermarket-server.local:5050/terminal
    ```
 
-3. Reboot Pi #2. The screen will automatically boot straight into the animated card terminal view!
+3. Reboot Pi #2. The screen will automatically boot into the animated terminal view and dim after 30 seconds of inactivity!
 
 ---
 
@@ -202,4 +244,4 @@ To automatically launch the terminal UI on Pi #2's touchscreen display on boot:
 
 1. Open `http://supermarket-server.local:5050/admin` in any browser.
 2. Use the touchscreen **PIN-Pad** to enter the admin PIN (default: `1234`).
-3. Manage products, register NFC cards with photos, customize thermal & PDF receipt layouts, and view transactions.
+3. Manage products, register/edit NFC cards with photos & PINs, configure thermal & PDF receipt layouts, set terminal PIN modes, and adjust display standby timeout (`screen_timeout`).

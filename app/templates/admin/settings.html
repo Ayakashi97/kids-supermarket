@@ -54,6 +54,19 @@
                 </select>
                 <small style="color: #666;">Bestimmt, ob das Touchscreen-Terminal nach dem Auflegen der Karte eine 4-stellige PIN abfragt.</small>
             </div>
+
+            <div class="form-group">
+                <label for="screen_timeout">Terminal Bildschirm-Standby (Display ausschalten / dimmen):</label>
+                <select id="screen_timeout" name="screen_timeout">
+                    <option value="15" {% if settings.screen_timeout == '15' %}selected{% endif %}>Nach 15 Sekunden Inaktivität</option>
+                    <option value="30" {% if settings.screen_timeout == '30' %}selected{% endif %}>Nach 30 Sekunden Inaktivität (Standard)</option>
+                    <option value="60" {% if settings.screen_timeout == '60' %}selected{% endif %}>Nach 1 Minute Inaktivität</option>
+                    <option value="120" {% if settings.screen_timeout == '120' %}selected{% endif %}>Nach 2 Minuten Inaktivität</option>
+                    <option value="300" {% if settings.screen_timeout == '300' %}selected{% endif %}>Nach 5 Minuten Inaktivität</option>
+                    <option value="0" {% if settings.screen_timeout == '0' %}selected{% endif %}>Nie (Bildschirm bleibt dauerhaft an)</option>
+                </select>
+                <small style="color: #666;">Schaltet das Terminal-Display im Leerlauf automatisch ab/dunkel. Bei Karte auflegen oder Tippen wird es sofort wieder wach.</small>
+            </div>
         </div>
 
         <div class="admin-card">

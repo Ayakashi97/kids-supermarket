@@ -13,7 +13,8 @@ def index():
 @cashier_bp.route("/terminal")
 def terminal():
     """Touchscreen terminal view for Raspberry Pi #2."""
-    return render_template("terminal.html")
+    screen_timeout = get_setting("screen_timeout", "30")
+    return render_template("terminal.html", screen_timeout=screen_timeout)
 
 
 def get_setting(key: str, default_val: str) -> str:

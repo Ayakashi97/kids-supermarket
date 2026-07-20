@@ -150,6 +150,32 @@
     .t-pin-btn.btn-clear { background: rgba(231, 76, 60, 0.6); }
     .t-pin-btn.btn-submit { background: rgba(46, 204, 113, 0.8); }
 
+    /* Screen Standby / Sleep Overlay */
+    .sleep-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: #000;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #444;
+        cursor: pointer;
+    }
+    .sleep-overlay .sleep-icon {
+        font-size: 5rem;
+        margin-bottom: 1rem;
+        opacity: 0.3;
+    }
+    .sleep-overlay p {
+        font-size: 1.5rem;
+        opacity: 0.3;
+    }
+
     .hidden {
         display: none !important;
     }
@@ -220,12 +246,21 @@
         <div class="terminal-subtitle" id="errorMessageDisplay">Unbekannte Karte</div>
     </div>
 </div>
+
+<!-- State 6: STANDBY / SLEEP OVERLAY -->
+<div id="stateSleep" class="sleep-overlay hidden">
+    <div class="sleep-icon">😴</div>
+    <p>Standby — Tippen oder Karte anhalten zum Aufwecken</p>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 <script>
 let termPin = "";
+const screenTimeoutSec = parseInt("{{ screen_timeout or 30 }}");
+let idleTimer = null;
+let currentVisibleState = null;
 
 function updateTPinDisplay() {
     const display = document.getElementById("tPinDisplay");
@@ -238,6 +273,7 @@ function updateTPinDisplay() {
 }
 
 function tPressNum(num) {
+    resetIdleTimer();
     if (termPin.length < 4) {
         termPin += num;
         updateTPinDisplay();
@@ -245,15 +281,43 @@ function tPressNum(num) {
 }
 
 function tClearPin() {
+    resetIdleTimer();
     termPin = "";
     updateTPinDisplay();
 }
 
 function tSubmitPin() {
+    resetIdleTimer();
     if (window.termSocket) {
         console.log("Submitting PIN:", termPin);
         window.termSocket.emit("submit_pin", { pin: termPin });
     }
+}
+
+function resetIdleTimer() {
+    if (idleTimer) clearTimeout(idleTimer);
+    
+    // If standby mode is enabled (>0 seconds)
+    if (screenTimeoutSec > 0) {
+        idleTimer = setTimeout(() => {
+            enterSleepMode();
+        }, screenTimeoutSec * 1000);
+    }
+}
+
+function enterSleepMode() {
+    const stateSleep = document.getElementById("stateSleep");
+    if (stateSleep) {
+        stateSleep.classList.remove("hidden");
+    }
+}
+
+function wakeUp() {
+    const stateSleep = document.getElementById("stateSleep");
+    if (stateSleep) {
+        stateSleep.classList.add("hidden");
+    }
+    resetIdleTimer();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -265,6 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const statePin = document.getElementById("statePin");
     const stateSuccess = document.getElementById("stateSuccess");
     const stateError = document.getElementById("stateError");
+    const stateSleep = document.getElementById("stateSleep");
 
     const payAmountDisplay = document.getElementById("payAmountDisplay");
     const pinCardGreeting = document.getElementById("pinCardGreeting");
@@ -276,12 +341,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const errorMessageDisplay = document.getElementById("errorMessageDisplay");
 
     function showState(el) {
-        [stateIdle, stateWaiting, statePin, stateSuccess, stateError].forEach(s => s.classList.add("hidden"));
+        wakeUp();
+        [stateIdle, stateWaiting, statePin, stateSuccess, stateError, stateSleep].forEach(s => s.classList.add("hidden"));
         el.classList.remove("hidden");
+        currentVisibleState = el;
+        resetIdleTimer();
     }
+
+    // Wake up on any touch or click
+    document.addEventListener("pointerdown", () => {
+        wakeUp();
+    });
 
     socket.on("connect", () => {
         console.log("Terminal connected to server!");
+        resetIdleTimer();
     });
 
     socket.on("waiting_for_payment", (data) => {
@@ -300,6 +374,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     socket.on("pin_error", (data) => {
+        wakeUp();
         pinSubtitle.textContent = data.message || "Falsche PIN! Versuche es nochmal.";
         tClearPin();
     });
@@ -336,6 +411,9 @@ document.addEventListener("DOMContentLoaded", () => {
         termPin = "";
         showState(stateIdle);
     });
+
+    // Start initial idle timer
+    resetIdleTimer();
 });
 </script>
 {% endblock %}

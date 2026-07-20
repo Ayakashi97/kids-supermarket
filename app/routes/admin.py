@@ -249,6 +249,7 @@ def settings():
         show_card_name = request.form.get("show_card_name", "true")
         show_date_time = request.form.get("show_date_time", "true")
         paper_width = request.form.get("paper_width", "58mm")
+        screen_timeout = request.form.get("screen_timeout", "30")
 
         set_setting("shop_name", shop_name)
         set_setting("admin_pin", admin_pin)
@@ -260,8 +261,9 @@ def settings():
         set_setting("show_card_name", show_card_name)
         set_setting("show_date_time", show_date_time)
         set_setting("paper_width", paper_width)
+        set_setting("screen_timeout", screen_timeout)
 
-        flash("Einstellungen & Terminal PIN-Modus erfolgreich gespeichert!", "success")
+        flash("Einstellungen & Bildschirm-Standby erfolgreich gespeichert!", "success")
         return redirect(url_for("admin.settings"))
 
     current_settings = {
@@ -275,6 +277,7 @@ def settings():
         "show_card_name": get_setting("show_card_name", "true"),
         "show_date_time": get_setting("show_date_time", "true"),
         "paper_width": get_setting("paper_width", "58mm"),
+        "screen_timeout": get_setting("screen_timeout", "30"),
     }
     return render_template("admin/settings.html", settings=current_settings)
 
