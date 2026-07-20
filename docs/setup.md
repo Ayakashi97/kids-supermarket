@@ -1,6 +1,6 @@
 # 🛠️ Raspberry Pi Hardware & OS Setup Guide
 
-Complete step-by-step setup guide for both Raspberry Pi units in the **Kinder-Supermarkt** system, including dual-hardware wiring (3.5" Touchscreen Display + PN532 NFC Reader on the SAME Raspberry Pi #2).
+Complete step-by-step setup guide for both Raspberry Pi units in the **Kinder-Supermarkt** system, including display troubleshooting, enclosure constraints, and NFC reader hardware options.
 
 ---
 
@@ -90,53 +90,45 @@ docker compose up -d
 
 ---
 
-## 🔌 Dual Hardware Wiring Guide: Connecting BOTH 3.5" Touchscreen Display AND PN532 NFC Reader to Pi #2
+## 🔌 Enclosure & Case Options: Connecting NFC when a 3.5" Screen Occupies the 40-Pin Header
 
-A 3.5" SPI display plugs directly onto the 40-pin GPIO header. Here is how to connect the PN532 NFC Module to the **SAME Raspberry Pi #2** without hardware pin conflicts.
-
-### Why there is NO GPIO pin conflict:
-- **3.5" SPI Display** uses: SPI bus (Pins 19, 21, 23, 24, 26) + Touch IRQ/CS (Pins 11, 18, 22).
-- **PN532 NFC Module** uses: **I2C bus (Pins 3 & 5)**.
-- Pins 3 (SDA) and 5 (SCL) are **completely unused** by 3.5" SPI displays!
-
-![Raspberry Pi 40-Pin GPIO Wiring Diagram](images/pi_gpio_wiring_diagram.jpg)
+When using an enclosure/case where a 3.5" Touchscreen Display plugs flush onto all 40 GPIO pins, Dupont jumper wires cannot fit on top of the header pins inside the case. Here are the 4 best hardware options:
 
 ---
 
-### Method A: I2C Mode Wiring (Shared GPIO Header)
+### Option 1: Use a USB-to-TTL Adapter with your existing PN532 Module (Recommended)
+You can connect your existing PN532 module into one of Pi #2's **external USB ports** using a $2 USB-to-TTL Serial Adapter (CP2102, PL2303, or FT232):
 
-Set PN532 DIP Switches to **I2C Mode**: `SEL0 = 1 (HIGH / ON)`, `SEL1 = 0 (LOW / OFF)`.
-
-![PN532 DIP Switches Configuration for I2C Mode](images/pn532_dip_switches.jpg)
-
-| PN532 Pin | Raspberry Pi #2 GPIO Pin | Function | Notes |
-|---|---|---|---|
-| `VCC` | **Pin 2** (5V) or **Pin 4** (5V) or **Pin 17** (3.3V) | Power | Power pin |
-| `GND` | **Pin 9** or **Pin 14** or **Pin 20** or **Pin 30** or **Pin 34** | Ground | Ground pin |
-| `SDA` | **Pin 3** (GPIO 2 - SDA) | I2C Data | **Not used by 3.5" LCD** |
-| `SCL` | **Pin 5** (GPIO 3 - SCL) | I2C Clock | **Not used by 3.5" LCD** |
-
-#### How to physically attach wires when 3.5" LCD is plugged in:
-1. **Option 1 (Pass-through / Stacking Header - Easiest)**: Use female-to-male Dupont jumper wires inserted into the top of the 3.5" display header socket at Pins 3, 5, 2, 9.
-2. **Option 2 (GPIO Stacking / Breakout Board)**: Place a 40-pin GPIO Stacking Header or GPIO Extension Ribbon Cable between the Raspberry Pi and the 3.5" screen.
-3. **Option 3 (Under-PCB Soldering)**: Solder 4 thin wires to the underside of GPIO Pins 3, 5, 5V, GND on the Raspberry Pi PCB.
+1. Set PN532 DIP Switches to **HSU Mode**: `SEL0 = 0 (LOW / OFF)`, `SEL1 = 0 (LOW / OFF)`.
+2. Connect PN532 pins to the USB Serial Adapter:
+   - `VCC` ➡️ `5V` or `3.3V`
+   - `GND` ➡️ `GND`
+   - `TX`  ➡️ `RX`
+   - `RX`  ➡️ `TX`
+3. Plug the USB adapter into any USB port on Pi #2! The 40-pin GPIO header remains 100% free inside the case for the 3.5" touchscreen.
 
 ---
 
-### Method B: USB Serial Mode (Easiest — Zero Header Pin Sharing!)
+### Option 2: Use a Plug-and-Play USB NFC Reader Stick
+Instead of a raw GPIO board, use a USB NFC reader stick:
+1. **USB HID / Keyboard Emulation NFC Reader**:
+   - *Examples*: R80UF, JustID, or NeosID 13.56MHz USB NFC Dongle.
+   - **Advantage**: Plugs into USB port. When a card is scanned, it automatically types the UID into the terminal view. No GPIO wiring or special libraries needed.
+2. **ACR122U USB Smart Card Reader**:
+   - Industry-standard USB NFC smart card reader (plugs into USB port).
 
-If you do not want to share GPIO pins, connect the PN532 module to a USB port using a cheap **USB-to-TTL Adapter** (PL2303 / CP2102 / FT232):
+---
 
-Set PN532 DIP Switches to **HSU/UART Mode**: `SEL0 = 0 (LOW)`, `SEL1 = 0 (LOW)`.
+### Option 3: Low-Profile GPIO Ribbon Extension Cable
+If you want to keep GPIO communication:
+- Use a flat 40-pin GPIO ribbon cable with a 90-degree low-profile female header.
+- The ribbon cable fits between the Pi PCB and the 3.5" screen header, extending the 40 pins outside the case to a breakout board.
 
-| PN532 Pin | USB-to-TTL Serial Adapter Pin |
-|---|---|
-| `VCC` | `5V` / `3.3V` |
-| `GND` | `GND` |
-| `TX` | `RX` |
-| `RX` | `TX` |
+---
 
-Plug the USB adapter into any USB port on Pi #2! The 40-pin GPIO header remains 100% dedicated to the 3.5" touchscreen.
+### Option 4: Solder 4 Wires to the Underside of the Raspberry Pi PCB
+If mounting the PN532 inside or flush against the enclosure:
+- Solder 4 thin enamel wires directly to the bottom pads of GPIO **Pin 3 (SDA)**, **Pin 5 (SCL)**, **Pin 2 (5V)**, and **Pin 9 (GND)** on the underside of the Raspberry Pi PCB board.
 
 ---
 
