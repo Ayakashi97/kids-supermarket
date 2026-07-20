@@ -1,16 +1,38 @@
-# 🛠️ Raspberry Pi Hardware & OS Setup Guide
+# 🛠️ Raspberry Pi & Smartphone Setup Guide
 
-Complete step-by-step setup guide for both Raspberry Pi units in the **Kinder-Supermarkt** system, including display drivers, enclosure constraints, and NFC reader hardware options.
+Complete step-by-step setup guide for the **Kinder-Supermarkt** system, including server deployment, smartphone Web NFC & PWA full-screen setup, and legacy Raspberry Pi hardware options.
 
 ---
 
 ## 📐 Architecture Overview
 
-| Device | Role | Recommended OS | Connected Hardware | Default Access URL |
+| Device | Role | OS / Browser | Connected Hardware | Default Access URL |
 |---|---|---|---|---|
 | **Raspberry Pi #1** | Backend Server (Flask, SQLite, Docker) | **Raspberry Pi OS Lite (64-bit)** | USB Thermal Receipt Printer | `http://<pi1-ip>:5050` |
-| **Raspberry Pi #2** | NFC Reader & Touchscreen Terminal | **Raspberry Pi OS Desktop (64-bit)** | Touchscreen Display + PN532 NFC Module | `http://<pi1-ip>:5050/terminal` (Kiosk Mode) |
+| **Smartphone (Empfohlen)** | NFC Reader & Terminal Display | **Android (Chrome Web NFC)** or **iOS (Safari PWA)** | Built-in NFC chip | `http://<pi1-ip>:5050/terminal` |
 | **Tablet** | Cashier UI | Any OS (iOS / Android / Windows) | Web Browser | `http://<pi1-ip>:5050` |
+| **Raspberry Pi #2 (Legacy)** | Hardware NFC Reader & LCD | **Raspberry Pi OS Desktop** | Touchscreen LCD + PN532 USB | `http://<pi1-ip>:5050/terminal` |
+
+---
+
+## 📱 Smartphone Setup (NFC Reader & Terminal PWA)
+
+Using an old smartphone (Android or iPhone) is the easiest and cleanest way to run the payment terminal without extra hardware!
+
+### 1. Android Smartphone (Web NFC Scanning)
+1. Ensure Wi-Fi is connected to the same network as Raspberry Pi #1.
+2. Open **Google Chrome** on the Android phone.
+3. Open `http://<pi1-ip>:5050/terminal`.
+4. Tap the browser menu `⋮` ➡️ **"Zum Startbildschirm hinzufügen"** (Add to Home screen) or **"App installieren"**.
+5. Launch the app from the Home Screen — it opens in **100% full screen** without browser bars!
+6. **Web NFC**: Android Chrome will automatically scan NFC cards/stickers brought near the back of the phone. When scanned, the phone emits the UID directly over SocketIO and processes the payment!
+
+### 2. iPhone (iOS Safari PWA & Touchscreen Terminal)
+1. Connect iPhone to the local Wi-Fi.
+2. Open **Safari** on the iPhone and navigate to `http://<pi1-ip>:5050/terminal`.
+3. Tap the Share button 📤 ➡️ **"Zum Home-Bildschirm"** (Add to Home Screen).
+4. Launch the app from the iPhone Home Screen — it opens in borderless **fullscreen app mode**.
+5. *Note on iOS*: Apple blocks Web NFC in Safari, so on iOS the terminal displays in **Touchscreen Mode** where children can tap their card avatar on screen to pay or enter their PIN.
 
 ---
 
@@ -63,169 +85,27 @@ cp .env.example .env
 docker compose up -d
 ```
 
-### 4. Connect USB Printer
+### 4. Connect USB Printer (Optional)
 1. Connect Epson (or compatible ESC/POS) USB thermal printer via USB cable.
 2. Verify system detects printer:
    ```bash
    ls -l /dev/usb/lp*
    ```
-3. If `/dev/usb/lp0` is present, update `.env` if needed:
+3. Update `.env` if needed:
    ```env
    PRINTER_DEVICE=/dev/usb/lp0
    ```
 
 ---
 
-## 💳 Raspberry Pi #2 — Touchscreen Terminal & NFC Reader Setup
+## 💳 Optional: Legacy Raspberry Pi #2 Hardware Terminal Setup
 
-To prevent first-time setup popups on the small 3.5" LCD screen, follow this **exact 4-step sequence**:
+If you prefer using a dedicated Raspberry Pi #2 with a 3.5" LCD touchscreen and PN532 NFC module:
 
----
-
-### Step 1: Flash OS & Disable the "Welcome to Raspberry Pi" Wizard via SSH
-
-1. Flash **Raspberry Pi OS Desktop (64-bit)** using Raspberry Pi Imager (enable SSH in the OS customization options).
-2. Power on Pi #2 — you can skip the HDMI monitor entirely!
-3. SSH into Pi #2 from your computer:
-   ```bash
-   ssh admin@supermarket-terminal.local
-   ```
-4. Remove the **piwiz** wizard autostart file — this is the cause of the "Welcome to the Raspberry Pi Desktop" popup:
-   ```bash
-   sudo rm /etc/xdg/autostart/piwiz.desktop
-   ```
-   *(This is a permanent fix — the wizard will never appear again after this).*
-
----
-
-### Step 2: Configure Chromium Kiosk Autostart (Auto-Boot into Supermarket Terminal)
-
-Create an autostart script that waits for network connection before launching Chromium in kiosk mode:
-
-1. **Create Kiosk Script**:
-   ```bash
-   nano /home/pi/start_kiosk.sh
-   ```
-   Paste the following:
-   ```bash
-   #!/bin/bash
-   # Wait 8 seconds for Wi-Fi and display initialization
-   sleep 8
-
-   # Launch Chromium in full-screen kiosk mode
-   export DISPLAY=:0
-   chromium-browser --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://10.9.3.172:5050/terminal &
-   ```
-   Save (`Ctrl + O`, `Enter`) and exit (`Ctrl + X`).
-
-2. **Make Executable & Add to Crontab**:
-   ```bash
-   chmod +x /home/pi/start_kiosk.sh
-   (crontab -l 2>/dev/null; echo "@reboot /home/pi/start_kiosk.sh") | crontab -
-   ```
-
-3. **Add Universal XDG Autostart File**:
-   ```bash
-   mkdir -p ~/.config/autostart
-   nano ~/.config/autostart/kiosk.desktop
-   ```
-   Paste:
-   ```ini
-   [Desktop Entry]
-   Type=Application
-   Name=Supermarkt Kiosk
-   Exec=/home/pi/start_kiosk.sh
-   X-GNOME-Autostart-enabled=true
-   ```
-
----
-
-### Step 3: Hardware Connection (3.5" Touchscreen + PN532 NFC Reader)
-
-![Connecting AZDelivery USB-C to TTL Serial Adapter to Raspberry Pi 4 and PN532 NFC Module](images/azdelivery_usb_connection.jpg)
-
-When using an enclosure/case where a 3.5" Touchscreen Display plugs flush onto all 40 GPIO pins, connect the PN532 module via USB:
-
-1. **PN532 DIP Switches**: Set to **HSU/UART Mode**: `SEL0 = 0 (LOW / OFF)`, `SEL1 = 0 (LOW / OFF)`.
-2. **Connect to USB-to-TTL Adapter (AZDelivery / CP2102 / FT232)**:
-   - `VCC` ➡️ `5V` (Set jumper on AZDelivery adapter to **5V**)
-   - `GND` ➡️ `GND`
-   - `TX`  ➡️ `RX`
-   - `RX`  ➡️ `TX`
-3. Plug the USB-C adapter cable into any USB port on Pi #2!
-
----
-
-### Step 4: Install 3.5" Touchscreen Driver (`LCD35-show`) & Switch Display Output
-
-Now attach the 3.5" SPI Touchscreen Display to the 40-pin GPIO header and switch graphics output from HDMI to the 3.5" LCD screen:
-
-```bash
-# Clone official LCD-show driver repository
-git clone https://github.com/goodtft/LCD-show.git
-chmod -R 755 LCD-show
-cd LCD-show/
-
-# Run installer script for 3.5" XPT2046 SPI display
-sudo ./LCD35-show
-```
-
-> ⚙️ **What happens next**:
-> - The installer configures the SPI display overlays.
-> - The Raspberry Pi reboots automatically.
-> - Graphics output switches from HDMI to the **3.5" Touchscreen LCD**.
-> - Pi #2 boots straight into the full-screen animated **Kinder-Supermarkt Terminal** (`http://10.9.3.172:5050/terminal`)!
-
----
-
-## 🛠️ Handy Display Output Commands
-
-To switch display output between HDMI and the 3.5" Touchscreen display at any time:
-
-- **Switch back to HDMI Monitor**:
-  ```bash
-  cd LCD-show/ && sudo ./LCD-hdmi
-  ```
-- **Switch back to 3.5" Touchscreen LCD**:
-  ```bash
-  cd LCD-show/ && sudo ./LCD35-show
-  ```
-
----
-
-## 💳 Optional: Setup Hardware NFC Reader Python Service
-
-If using hardware NFC cards (PN532 via USB `/dev/ttyUSB0` or I2C):
-
-```bash
-# Enable I2C & SPI
-sudo raspi-config nonint do_i2c 0
-sudo raspi-config nonint do_spi 0
-
-# Clone repo and setup python service
-git clone https://github.com/Ayakashi97/kids-supermarket.git
-cd kids-supermarket/nfc_reader
-
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-# Create systemd auto-start service
-sudo cp supermarkt-nfc.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now supermarkt-nfc
-```
-
-*(Note: If no physical NFC reader is connected, set **NFC-Lesegerät Modus** to **"Touchscreen-Kartenwahl"** in Admin Settings at `/admin/settings` so children can tap their card photos directly on the touchscreen!).*
-
----
-
-## 📱 Tablet Setup (Cashier UI)
-
-1. Connect tablet to the same Wi-Fi network as Pi #1 and Pi #2.
-2. Open browser (Safari / Chrome / Firefox).
-3. Navigate to `http://supermarket-server.local:5050` (or `http://<pi1-ip-address>:5050`).
-4. (Optional) Add web page to Home Screen for a native full-screen app experience.
+1. Flash **Raspberry Pi OS Desktop (64-bit)**.
+2. Configure Chromium Kiosk Mode to boot into `http://<pi1-ip>:5050/terminal`.
+3. Connect PN532 via USB adapter (`/dev/ttyUSB0`) or I2C.
+4. Run `python3 nfc_reader/reader.py` to send SocketIO events on card detection.
 
 ---
 
@@ -233,4 +113,4 @@ sudo systemctl enable --now supermarkt-nfc
 
 1. Open `http://supermarket-server.local:5050/admin` in any browser.
 2. Use the touchscreen **PIN-Pad** to enter the admin PIN (default: `1234`).
-3. Manage products, register/edit NFC cards with photos & PINs, configure thermal & PDF receipt layouts, set terminal PIN modes, and adjust display standby timeout (`screen_timeout`).
+3. Set **NFC-Lesegerät Modus** to `web_nfc` (Smartphone Web NFC) or `touchscreen_simulation`.

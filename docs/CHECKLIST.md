@@ -59,3 +59,13 @@
 - [x] Product category navigation tabs
 - [x] Scanning animations
 - [x] Touch-optimized UI elements (minimum 80px tap targets)
+
+## Phase 8 — Smartphone Web NFC & PWA Migration
+- [x] Replaced Pi #2 requirement with Smartphone (Android / iPhone)
+- [x] Web NFC API integration (`window.NDEFReader`) in `/terminal` for Android Chrome
+- [x] Progressive Web App (PWA) manifest (`manifest.json`) & Service Worker (`sw.js`)
+- [x] Borderless fullscreen app mode for iOS Safari & Android Chrome ("Add to Home Screen")
+- [x] Header Fullscreen toggle (`⛶ Vollbild`) & Web NFC Status badge
+- [x] Flexible NFC UID normalization (`find_card_by_uid`) in backend socket events
+- [x] Web NFC card scanning in Admin Card Registration (`/admin/cards`)
+

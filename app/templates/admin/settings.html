@@ -46,12 +46,13 @@
             </div>
 
             <div class="form-group">
-                <label for="nfc_mode">NFC-Lesegerät Modus (Hardware vs Touchscreen-Kartenwahl):</label>
+                <label for="nfc_mode">NFC-Lesegerät Modus (Smartphone Web NFC vs Touchscreen vs Legacy Hardware):</label>
                 <select id="nfc_mode" name="nfc_mode">
-                    <option value="hardware" {% if settings.nfc_mode == 'hardware' %}selected{% endif %}>Hardware NFC-Lesegerät aktiv (PN532 Modul via I2C/USB)</option>
-                    <option value="touchscreen_simulation" {% if settings.nfc_mode == 'touchscreen_simulation' %}selected{% endif %}>Touchscreen-Kartenwahl auf Terminal (Keine Hardware erforderlich)</option>
+                    <option value="web_nfc" {% if settings.nfc_mode == 'web_nfc' or not settings.nfc_mode %}selected{% endif %}>📱 Smartphone Web NFC (NFC-Chip im Handy z.B. Android Chrome)</option>
+                    <option value="touchscreen_simulation" {% if settings.nfc_mode == 'touchscreen_simulation' %}selected{% endif %}>👆 Touchscreen-Kartenwahl auf Terminal (Ideal für iOS Safari / ohne NFC)</option>
+                    <option value="hardware" {% if settings.nfc_mode == 'hardware' %}selected{% endif %}>🔌 Legacy Hardware NFC-Lesegerät (PN532 Modul via Pi #2)</option>
                 </select>
-                <small style="color: #666;">Wenn 'Touchscreen-Kartenwahl' aktiviert ist, erscheint beim Bezahlen auf dem Terminal-Display ein Popup zur Kartenauswahl per Antippen!</small>
+                <small style="color: #666;">Bei 'Smartphone Web NFC' scannt das alte Smartphone direkt über seinen eingebauten NFC-Chip im Browser!</small>
             </div>
 
             <div class="form-group">

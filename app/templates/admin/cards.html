@@ -40,7 +40,7 @@
     <div class="admin-card">
         <h3>Neue Kundenkarte registrieren</h3>
         <p style="color: #666; margin-bottom: 1rem;">
-            Tippe auf <strong>"Karte jetzt scannen"</strong> und halte die neue Karte an das Lesegerät (Pi #2).
+            Tippe auf <strong>"Scan 💳"</strong> und halte die neue Karte an die Rückseite deines Smartphones oder das Lesegerät.
         </p>
 
         <form method="POST" enctype="multipart/form-data">
@@ -132,11 +132,30 @@ document.addEventListener("DOMContentLoaded", () => {
     const scanBtn = document.getElementById("scanBtn");
     const uidInput = document.getElementById("nfc_uid");
 
-    scanBtn.addEventListener("click", () => {
+    scanBtn.addEventListener("click", async () => {
         scanBtn.disabled = true;
         scanBtn.textContent = "Warte auf Karte...";
         uidInput.value = "";
         socket.emit("start_registration");
+
+        // Web NFC Scanner for Smartphones
+        if ('NDEFReader' in window) {
+            try {
+                const ndef = new NDEFReader();
+                await ndef.scan();
+                ndef.onreading = (event) => {
+                    if (event.serialNumber) {
+                        uidInput.value = event.serialNumber;
+                        scanBtn.disabled = false;
+                        scanBtn.textContent = "Erfasst! ✅";
+                        socket.emit("card_tapped", { uid: event.serialNumber });
+                        setTimeout(() => { scanBtn.textContent = "Scan 💳"; }, 2000);
+                    }
+                };
+            } catch (err) {
+                console.warn("Web NFC scan error in admin:", err);
+            }
+        }
     });
 
     socket.on("card_captured", (data) => {
@@ -149,7 +168,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     socket.on("waiting_for_registration", (data) => {
-        alert(data.message || "Bitte Karte jetzt an das Lesegerät halten...");
+        if (!('NDEFReader' in window)) {
+            alert(data.message || "Bitte Karte jetzt an das Lesegerät halten...");
+        }
     });
 });
 </script>

@@ -26,6 +26,30 @@ def get_setting(key: str, default_val: str) -> str:
     return setting.value if setting and setting.value is not None else default_val
 
 
+def find_card_by_uid(uid: str) -> Card:
+    """Find card by NFC UID using exact match or normalized UID comparison."""
+    if not uid:
+        return None
+    # 1. Exact match
+    card = Card.query.filter_by(nfc_uid=uid).first()
+    if card:
+        return card
+
+    # 2. Normalized match (remove colons, dashes, spaces, lower-case)
+    clean_uid = uid.replace(":", "").replace("-", "").replace(" ", "").strip().lower()
+    if not clean_uid:
+        return None
+
+    all_cards = Card.query.all()
+    for c in all_cards:
+        if c.nfc_uid:
+            c_clean = c.nfc_uid.replace(":", "").replace("-", "").replace(" ", "").strip().lower()
+            if c_clean == clean_uid:
+                return c
+    return None
+
+
+
 def process_completed_payment(card: Card, cart: list, socket_io: SocketIO):
     """Saves completed transaction to DB, prints thermal receipt, and broadcasts payment_success."""
     total_cents = sum(item.get("price_cents", 0) * item.get("quantity", 1) for item in cart)
@@ -134,7 +158,7 @@ def register_socket_events(socket_io: SocketIO):
             "item_count": len(cart),
             "total_cents": total_cents,
             "total_formatted": f"{total_cents / 100:.2f}".replace(".", ",") + " €",
-            "nfc_mode": get_setting("nfc_mode", "hardware"),
+            "nfc_mode": get_setting("nfc_mode", "web_nfc"),
             "cards": cards_payload,
         })
 
@@ -173,7 +197,7 @@ def register_socket_events(socket_io: SocketIO):
                 socket_io.emit("payment_error", {"message": "Warenkorb ist leer!"})
                 return
 
-            card = Card.query.filter_by(nfc_uid=uid).first()
+            card = find_card_by_uid(uid)
 
             if not card:
                 logger.warning("Unknown card tapped: %s", uid)
@@ -212,7 +236,7 @@ def register_socket_events(socket_io: SocketIO):
 
         # CASE 3: Idle Mode
         logger.info("Card tapped while server in idle mode: %s", uid)
-        card = Card.query.filter_by(nfc_uid=uid).first()
+        card = find_card_by_uid(uid)
         if card:
             socket_io.emit("card_scanned_info", {
                 "name": card.name,

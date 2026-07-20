@@ -2,8 +2,8 @@
 
 ## Project Overview
 A play supermarket system designed for children aged 3+.
-It consists of a tablet-based cashier UI (Flask web app), a Raspberry Pi backend server,
-and a second Raspberry Pi acting as the NFC card reader terminal with touchscreen display animations.
+It consists of a tablet-based cashier UI (Flask web app), a single Raspberry Pi backend server (Pi #1),
+and an old smartphone (Android/iPhone) acting as the NFC card reader terminal and display via Web NFC & PWA mode.
 
 ## Language
 - UI language: **German** (all product names, buttons, messages in German)
@@ -12,39 +12,31 @@ and a second Raspberry Pi acting as the NFC card reader terminal with touchscree
 ## Tech Stack
 - **Backend**: Python 3.11+, Flask, Flask-SocketIO
 - **Frontend**: HTML + Vanilla CSS + Vanilla JS (no frameworks)
-- **Communication**: WebSockets (Flask-SocketIO) for real-time updates between tablet and NFC reader
+- **Communication**: WebSockets (Flask-SocketIO) for real-time updates between tablet and smartphone terminal
 - **Database**: SQLite via SQLAlchemy (for products, transactions, customer cards, settings)
 - **Printer**: Epson TM-series USB thermal receipt printer (via `python-escpos`) + Printable PDF Exporter
-- **NFC Reader**: PN532 via SPI/I2C on second Raspberry Pi (via `nfcpy` or `adafruit-circuitpython-pn532`)
+- **NFC Reader**: Smartphone Web NFC API (`window.NDEFReader` on Android Chrome) OR Touchscreen Card Selector (iOS Safari / Fallback) OR optional PN532 hardware
+- **PWA**: Web App Manifest (`manifest.json`) + Service Worker (`sw.js`) for full-screen "Add to Home Screen" on iOS & Android
 - **Containerization**: Docker + Docker Compose (multi-service)
 - **Configuration**: Products, card photos, receipt layouts, and settings via admin panel (stored in SQLite)
 
 ## Hardware Architecture
 ```
-[Tablet / Browser]  <──HTTP/WebSocket──>  [Raspberry Pi #1: Backend Server]
-                                                    │
-                                          ┌─────────┴──────────┐
-                                          │                    │
-                               [USB Thermal Printer]  [Raspberry Pi #2: NFC Reader]
-                                                              │
-                                                      [PN532 NFC Module + Touchscreen Display]
+[Tablet / Browser (Cashier)] <──HTTP/WebSocket──> [Raspberry Pi #1: Backend Server] <──HTTP/WebSocket──> [Smartphone (Terminal PWA + Web NFC)]
+                                                            │
+                                                  [USB Thermal Printer]
 ```
 
 - **Raspberry Pi #1**: Runs the Flask backend + Docker Compose stack (Port `5050` or `5000`)
 - **Tablet**: Browser pointing to `http://<pi1-ip>:5050` — acts as the cashier display
-- **Raspberry Pi #2**: Connected to PN532 NFC reader AND a touchscreen display.
-  Opens `http://<pi1-ip>:5050/terminal` in kiosk mode to display real-time payment animations (pulsing card reader graphic, green checkmark, card holder photo), while running the Python NFC reader service.
+- **Smartphone (Android / iPhone)**: Opens `http://<pi1-ip>:5050/terminal` as a PWA (full-screen App).
+  On Android Chrome, it reads NFC cards directly via built-in Web NFC (`NDEFReader`). On iOS / non-WebNFC devices, it acts as an interactive touchscreen terminal with card selection buttons and full-screen animations.
 - **USB Thermal Printer**: Connected to Raspberry Pi #1 via USB
 
 ## Services (Docker Compose on Pi #1)
 | Service | Description |
 |---|---|
-| `web` | Flask app (cashier UI + REST API + WebSocket server + PDF receipt engine + Admin Panel) |
-
-> Note: The SQLite DB is stored in a named Docker volume. The USB printer device is passed
-> through to the container via `devices:` in docker-compose.yml.
-> NFC reader on Pi #2 runs as a standalone Python script (not in Docker, needs GPIO access).
-> It connects to the Flask WebSocket server on Pi #1.
+| `web` | Flask app (cashier UI + REST API + WebSocket server + PDF receipt engine + Admin Panel + PWA manifest & SW) |
 
 ## Key Rules & Conventions
 - **Kid-friendly UI first**: Big buttons, bright colors, large emoji/icons, simple animations
@@ -77,13 +69,15 @@ supermarket/
 │   ├── db.py                  ← DB init & helpers
 │   ├── seed.py                ← Initial products & test cards seeding
 │   ├── routes/
-│   │   ├── cashier.py         ← Cashier UI & PDF receipt routes
+│   │   ├── cashier.py         ← Cashier UI, PDF receipt & PWA routes
 │   │   ├── admin.py           ← Admin panel routes
 │   │   └── api.py             ← REST API
 │   ├── services/
 │   │   ├── printer.py         ← Receipt printing via python-escpos
-│   │   └── socket_events.py   ← Flask-SocketIO event handlers
+│   │   └── socket_events.py   ← Flask-SocketIO event handlers (Web NFC & card lookup)
 │   ├── static/
+│   │   ├── manifest.json      ← PWA Web App Manifest
+│   │   ├── sw.js              ← PWA Service Worker
 │   │   ├── css/
 │   │   │   ├── main.css       ← Cashier UI & Terminal styles
 │   │   │   └── admin.css      ← Admin panel & PIN-Pad styles
@@ -94,23 +88,23 @@ supermarket/
 │   │       ├── products/      ← Product images
 │   │       └── cards/         ← Customer card photos
 │   └── templates/
-│       ├── base.html
+│       ├── base.html          ← Base layout with PWA meta tags & Service Worker
 │       ├── cashier.html       ← Main cashier view
-│       ├── terminal.html      ← Pi #2 Touchscreen Terminal UI
+│       ├── terminal.html      ← Smartphone Web NFC & Touchscreen Terminal UI
 │       ├── receipt.html       ← Thermal receipt & PDF export view
 │       └── admin/
 │           ├── login.html     ← Touchscreen PIN-Pad login
 │           ├── dashboard.html
 │           ├── products.html
-│           ├── cards.html     ← NFC card registration
-│           ├── settings.html  ← Receipt layout & shop settings
+│           ├── cards.html     ← NFC card registration (Smartphone Web NFC + socket)
+│           ├── settings.html  ← Receipt layout & shop settings (NFC mode chooser)
 │           └── transactions.html
-├── nfc_reader/
-│   ├── requirements.txt       ← adafruit-circuitpython-pn532, python-socketio
-│   ├── reader.py              ← Polls NFC, sends WebSocket event to Pi #1
+├── nfc_reader/                ← Optional standalone PN532 daemon for Pi #2 (Legacy)
+│   ├── requirements.txt
+│   ├── reader.py
 │   └── README.md
 └── docs/
-    ├── setup.md               ← Complete Raspberry Pi OS & hardware guide
+    ├── setup.md               ← Complete Raspberry Pi OS & Smartphone setup guide
     ├── DEV_MODE.md            ← Dev emulation & PDF testing guide
     ├── CHECKLIST.md           ← Master phase checklist
     └── PHASE_1.md - PHASE_6.md
@@ -132,6 +126,7 @@ supermarket/
 - [x] **Phase 2: Cashier UI (Tablet Frontend)**
 - [x] **Phase 3: Payment Flow (WebSocket & Card Lookup)**
 - [x] **Phase 4: Receipt Printing & PDF Exporter (USB ESC/POS & PDF View)**
-- [x] **Phase 5: NFC Reader Service & Touchscreen Terminal (Pi #2)**
+- [x] **Phase 5: NFC Reader Service & Touchscreen Terminal (Pi #2 / Smartphone Web NFC)**
 - [x] **Phase 6: Admin Panel (PIN-Pad Login, Product & Card Management, Editable Receipt Settings)**
 - [x] **Phase 7: Polish & Kid Experience (DEV_MODE emulation bar, PDF toolbar link, Web Audio API)**
+- [x] **Phase 8: Smartphone Web NFC & PWA Migration (Replaced Pi #2 with Android/iPhone PWA)**

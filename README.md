@@ -6,7 +6,7 @@
 [![Flask](https://img.shields.io/badge/Flask-SocketIO-000000.svg)](https://flask.palletsprojects.org/)
 
 Ein interaktives, kinderfreundliches Spiel-Supermarktsystem für Kinder ab 3 Jahren. 
-Bestehend aus einer **Kassen-App auf dem Tablet**, einem **Raspberry Pi Server**, einem **Raspberry Pi 2 Touchscreen-Terminal mit PN532 NFC-Kartenleser**, einem **USB-Thermodrucker** sowie **PDF-Kassenbon-Export**.
+Bestehend aus einer **Kassen-App auf dem Tablet**, einem **Raspberry Pi Server**, einem **Smartphone als NFC-Zahlungsterminal (Web NFC & PWA)**, einem **USB-Thermodrucker** sowie **PDF-Kassenbon-Export**.
 
 ---
 
@@ -17,13 +17,14 @@ Bestehend aus einer **Kassen-App auf dem Tablet**, einem **Raspberry Pi Server**
   - Sound-Effekte über Web Audio API (Kassen-Piep beim Tippen, Sieges-Fanfaren bei Bezahlung, Fehler-Buzz).
   - Minimaler Text, intuitive Bedienung für kleine Kinder.
 
-- **💳 NFC-Zahlungsterminal mit Touchscreen-PIN-Pad (Raspberry Pi #2)**:
-  - Läuft im Kiosk-Modus mit visuellen Live-Animationen (*Pulsierendes Lesegerät, Touchscreen-PIN-Eingabe, Grünes Häkchen, Kundenfoto des Kindes*).
+- **📲 Altes Smartphone als NFC-Zahlungsterminal (Web NFC & PWA Fullscreen)**:
+  - Benutze einfach ein **altes Smartphone (Android mit NFC oder iPhone)** statt eines zweiten Raspberry Pis!
+  - **Android Chrome**: Liest NFC-Karten/Sticker direkt über den eingebauten NFC-Chip im Smartphone aus (`window.NDEFReader`).
+  - **iOS Safari / PWA**: Funktioniert als vollwertige App ("Zum Home-Bildschirm hinzufügen") im 100% Vollbildmodus mit visuellen Live-Animationen, Touchscreen-Kartenwahl und PIN-Eingabe.
   - **3 Konfigurierbare PIN-Modi** (im Admin-Panel einstellbar):
     1. **Deaktiviert**: Sofortige Bezahlung nach Auflegen der Karte.
     2. **Spielgeld-Modus (`any_4_digits`)**: Terminal verlangt 4-stellige PIN, akzeptiert jede Zahlenkombination für echtes EC-Karten-Spielgefühl.
     3. **Sicherheits-Modus (`exact_match`)**: Terminal prüft exakte 4-stellige PIN der Kundenkarte (Standard: `1234`).
-  - Eigenständiger Python-Dienst liest PN532 NFC-Karten/Chips aus und kommuniziert in Echtzeit über WebSockets mit dem Server.
 
 - **🧾 Echter Thermobon-Druck & PDF-Bon-Export**:
   - Druckt automatische Kassenbons über USB-Thermodrucker (`python-escpos`).
@@ -33,11 +34,11 @@ Bestehend aus einer **Kassen-App auf dem Tablet**, einem **Raspberry Pi Server**
 - **🔐 Touchscreen PIN-Pad Admin-Panel (`/admin`)**:
   - Großes 3x4 Touchscreen PIN-Pad zur Eltern-Authentifizierung (Standard-PIN: `1234`).
   - Produkt-Verwaltung (CRUD mit Bild-Upload & Preisen in Euro/Cent).
-  - NFC-Kundenkarten Registrierung: Karte an den Pi #2 halten, Name, optionale PIN & Foto des Kindes zuweisen.
+  - NFC-Kundenkarten Registrierung: Karte an das Smartphone / Lesegerät halten, Name, optionale PIN & Foto des Kindes zuweisen.
   - Transaktions-Historie aller getätigten Einkäufe.
 
 - **🧪 Entwicklungs- & Simulations-Modus (`DEV_MODE=true`)**:
-  - Testen des gesamten Systems auf einem normalen Laptop ohne physischen Raspberry Pi oder NFC-Leser.
+  - Testen des gesamten Systems auf einem normalen Laptop ohne physische Hardware.
   - Einblenden einer **DEV SIMULATOR** Toolbar zum 1-Klick Auslösen von Test-Karten (*👧 Lena, 👨 Papa, ❓ Unbekannt*), PIN-Simulation (*PIN 1234 🔢*) sowie Schnelllinks zum Terminal und PDF-Bon.
 
 ---
@@ -45,20 +46,16 @@ Bestehend aus einer **Kassen-App auf dem Tablet**, einem **Raspberry Pi Server**
 ## 📐 Hardware-Architektur
 
 ```
-[Tablet / Browser]  <──HTTP/WebSocket──>  [Raspberry Pi #1: Backend Server]
- (Kassen-Display)                                   │
-                                          ┌─────────┴──────────┐
-                                          │                    │
-                               [USB Thermal Printer]  [Raspberry Pi #2: NFC Reader]
-                                                              │
-                                                      [PN532 NFC Module + Touchscreen Display]
+[Tablet / Browser (Kasse)] <──HTTP/WebSocket──> [Raspberry Pi #1: Backend Server] <──HTTP/WebSocket──> [Smartphone (Terminal PWA + Web NFC)]
+                                                           │
+                                                 [USB Thermal Printer]
 ```
 
-| Gerät | Rolle | Betriebssystem | Angeschlossene Hardware | Standard-URL |
-|---|---|---|---|---|
-| **Raspberry Pi #1** | Server (Flask, DB, Docker) | Raspberry Pi OS Lite (64-bit) | USB Thermodrucker (Epson etc.) | `http://<pi1-ip>:5050` |
-| **Raspberry Pi #2** | NFC-Leser & Terminal-Display | Raspberry Pi OS Desktop (64-bit) | Touchscreen Display + PN532 NFC Modul | `http://<pi1-ip>:5050/terminal` |
-| **Tablet** | Kassen-Display | iOS / Android / Webbrowser | Keine | `http://<pi1-ip>:5050` |
+| Gerät | Rolle | Betriebssystem | Standard-URL |
+|---|---|---|---|
+| **Raspberry Pi #1** | Server (Flask, DB, Docker) | Raspberry Pi OS Lite (64-bit) | `http://<pi1-ip>:5050` |
+| **Tablet** | Kassen-Display | iOS / Android / Webbrowser | `http://<pi1-ip>:5050` |
+| **Smartphone** | Terminal & NFC-Reader | Android (Chrome Web NFC) / iOS (PWA Vollbild) | `http://<pi1-ip>:5050/terminal` |
 
 ---
 
@@ -80,7 +77,7 @@ docker compose up -d
 
 Nach dem Start ist das System direkt erreichbar unter:
 - **Kasse (Tablet UI)**: `http://localhost:5050`
-- **Touchscreen Terminal**: `http://localhost:5050/terminal`
+- **Zahlungsterminal (Smartphone PWA)**: `http://localhost:5050/terminal`
 - **Admin Panel**: `http://localhost:5050/admin` (PIN: `1234`)
 - **Muster-Bon (PDF)**: `http://localhost:5050/receipt/preview`
 
@@ -88,30 +85,12 @@ Nach dem Start ist das System direkt erreichbar unter:
 
 ## 🛠️ Ausführliche Dokumentation
 
-Sämtliche Guides und System-Spezifikationen befinden sich im Order [`docs/`](./docs):
+Sämtliche Guides und System-Spezifikationen befinden sich im Ordner [`docs/`](./docs):
 
 - 📘 **[GEMINI.md](./GEMINI.md)** — Repository-Regeln, Tech-Stack & Gesamtübersicht
-- 🛠️ **[Raspberry Pi Hardware & OS Setup Guide](./docs/setup.md)** — Vollständige Anleitung zum Flashen von Pi #1 & Pi #2, PN532 Verkabelung (I2C/SPI), Chromium Kiosk-Modus & Auto-Start Dienste
+- 🛠️ **[Raspberry Pi & Smartphone Setup Guide](./docs/setup.md)** — Anleitung für Smartphone Web NFC & PWA Installation auf iPhone / Android
 - 🧪 **[Development & Emulation Mode Guide](./docs/DEV_MODE.md)** — Testen ohne Hardware über die Entwickler-Simulationsleiste
-- 📋 **[Master Phase Progress Checklist](./docs/CHECKLIST.md)** — Übersicht über alle 7 Entwicklungsphasen
-- 📄 **Phase-Dokumentationen**:
-  - [Phase 1: Foundation & Docker Setup](./docs/PHASE_1.md)
-  - [Phase 2: Cashier UI & Audio Synthesizer](./docs/PHASE_2.md)
-  - [Phase 3: Payment Flow & Socket State Machine](./docs/PHASE_3.md)
-  - [Phase 4: Receipt Printing & PDF Generator](./docs/PHASE_4.md)
-  - [Phase 5: Touchscreen Terminal & PN532 Reader](./docs/PHASE_5.md)
-  - [Phase 6: Admin Panel & PIN-Pad Login](./docs/PHASE_6.md)
-
----
-
-## 💻 Tech Stack
-
-- **Backend**: Python 3.11+, Flask, Flask-SocketIO, Flask-SQLAlchemy
-- **Frontend**: HTML5, Vanilla CSS, Vanilla JavaScript (keine schweren Frameworks)
-- **Kommunikation**: WebSockets (Flask-SocketIO) für Echtzeit-Synchronisation
-- **Datenbank**: SQLite (gespeichert im Docker-Volume)
-- **Drucker**: USB Thermodrucker (`python-escpos`) + HTML/CSS Print Exporter
-- **Containerisierung**: Docker + Docker Compose
+- 📋 **[Master Phase Progress Checklist](./docs/CHECKLIST.md)** — Übersicht über Entwicklungsphasen
 
 ---
 
