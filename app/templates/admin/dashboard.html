@@ -1,24 +1,74 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard — Kinder-Supermarkt{% endblock %}
+{% block title %}Dashboard — Admin Panel{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
 
 {% block content %}
-<div class="admin-dashboard-container">
-    <h2>Admin Dashboard</h2>
+<nav class="admin-nav">
+    <a href="{{ url_for('admin.dashboard') }}">🛒 Admin Panel</a>
+    <div class="admin-menu">
+        <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('admin.products') }}">Produkte</a>
+        <a href="{{ url_for('admin.cards') }}">Kundenkarten 💳</a>
+        <a href="{{ url_for('admin.transactions') }}">Einkäufe</a>
+        <a href="{{ url_for('admin.settings') }}">Einstellungen ⚙️</a>
+        <a href="{{ url_for('admin.logout') }}">Abmelden</a>
+    </div>
+</nav>
+
+<div class="admin-container">
+    <div class="page-title-row">
+        <h2>Übersicht & Statistiken</h2>
+    </div>
+
     <div class="stats-grid">
-        <div class="stat-card">
-            <h3>Produkte</h3>
-            <p>{{ products_count }}</p>
+        <div class="stat-box">
+            <h3>Produkte Im Shop</h3>
+            <div class="number">{{ products_count }}</div>
         </div>
-        <div class="stat-card">
-            <h3>Kundenkarten</h3>
-            <p>{{ cards_count }}</p>
+        <div class="stat-box">
+            <h3>Registrierte Karten</h3>
+            <div class="number">{{ cards_count }}</div>
         </div>
-        <div class="stat-card">
-            <h3>Einkäufe</h3>
-            <p>{{ transactions_count }}</p>
+        <div class="stat-box">
+            <h3>Gesamte Einkäufe</h3>
+            <div class="number">{{ transactions_count }}</div>
+        </div>
+        <div class="stat-box">
+            <h3>Spielgeld "Umsatz"</h3>
+            <div class="number" style="color: #27ae60;">{{ total_revenue_formatted }}</div>
         </div>
     </div>
-    <a href="{{ url_for('admin.logout') }}">Abmelden</a>
+
+    <div class="admin-card">
+        <h3>Letzte Einkäufe</h3>
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Bon-Nr.</th>
+                    <th>Datum</th>
+                    <th>Kunde</th>
+                    <th>Betrag</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in recent_transactions %}
+                <tr>
+                    <td>#{{ tx.id }}</td>
+                    <td>{{ tx.created_at.strftime('%d.%m.%Y %H:%M') if tx.created_at else '-' }}</td>
+                    <td>{{ tx.card.name if tx.card else 'Gast' }}</td>
+                    <td><strong>{{ (tx.total_cents / 100) | round(2) }} €</strong></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" style="text-align: center; color: #888;">Noch keine Transaktionen.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}

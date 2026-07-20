@@ -45,11 +45,12 @@
 - [x] Systemd service script for Pi #2 auto-start
 
 ## Phase 6 — Admin Panel
-- [ ] Admin login `/admin` with PIN authentication
-- [ ] Dashboard stats (products count, cards count, total transactions)
-- [ ] Product CRUD (name, price in cents, category, emoji/image upload)
-- [ ] Card Management (`/admin/cards`): register new card by NFC tap, name, photo upload, toggle active, delete
-- [ ] Transaction history viewer
+- [x] Admin login `/admin` with PIN authentication
+- [x] Dashboard stats (products count, cards count, total transactions, play money total)
+- [x] Product CRUD (name, price in cents, category, emoji/image upload)
+- [x] Card Management (`/admin/cards`): register new card by NFC tap, name, photo upload, toggle active, delete
+- [x] Settings UI (`/admin/settings`): Shop name, admin PIN, printer enable toggle, device path, header & footer customization
+- [x] Transaction history viewer (`/admin/transactions`)
 
 ## Phase 7 — Polish & Kid Experience
 - [ ] Audio feedback (beep, success, error sounds)

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Einstellungen — Admin{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block content %}
+<nav class="admin-nav">
+    <a href="{{ url_for('admin.dashboard') }}">🛒 Admin Panel</a>
+    <div class="admin-menu">
+        <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('admin.products') }}">Produkte</a>
+        <a href="{{ url_for('admin.cards') }}">Kundenkarten 💳</a>
+        <a href="{{ url_for('admin.transactions') }}">Einkäufe</a>
+        <a href="{{ url_for('admin.settings') }}">Einstellungen ⚙️</a>
+        <a href="{{ url_for('admin.logout') }}">Abmelden</a>
+    </div>
+</nav>
+
+<div class="admin-container">
+    <div class="page-title-row">
+        <h2>System-Einstellungen ⚙️</h2>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="badge badge-{{ category }}" style="font-size: 1rem; margin-bottom: 1rem;">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <div class="admin-card">
+            <h3>Supermarkt-Einstellungen</h3>
+            <div class="form-group">
+                <label for="shop_name">Name des Supermarkts:</label>
+                <input type="text" id="shop_name" name="shop_name" value="{{ settings.shop_name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="admin_pin">Admin PIN (Zugangsschutz):</label>
+                <input type="password" id="admin_pin" name="admin_pin" value="{{ settings.admin_pin }}" required>
+            </div>
+        </div>
+
+        <div class="admin-card">
+            <h3>🖨️ Bon-Drucker Einstellungen (Thermal Receipt Printer)</h3>
+            
+            <div class="form-group">
+                <label for="printer_enabled">Bon-Drucker aktivieren:</label>
+                <select id="printer_enabled" name="printer_enabled">
+                    <option value="true" {% if settings.printer_enabled == 'true' %}selected{% endif %}>Ja (Aktiviert)</option>
+                    <option value="false" {% if settings.printer_enabled == 'false' %}selected{% endif %}>Nein (Deaktiviert)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="printer_device">USB Drucker-Gerätepfad:</label>
+                <input type="text" id="printer_device" name="printer_device" value="{{ settings.printer_device }}">
+                <small style="color: #666;">Standard für Raspberry Pi USB-Drucker: <code>/dev/usb/lp0</code></small>
+            </div>
+
+            <div class="form-group">
+                <label for="receipt_header">Kopfzeile auf dem Kassenbon:</label>
+                <input type="text" id="receipt_header" name="receipt_header" value="{{ settings.receipt_header }}">
+            </div>
+
+            <div class="form-group">
+                <label for="receipt_footer">Fußzeile auf dem Kassenbon:</label>
+                <input type="text" id="receipt_footer" name="receipt_footer" value="{{ settings.receipt_footer }}">
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-success" style="font-size: 1.1rem; padding: 0.8rem 2rem;">Einstellungen speichern</button>
+    </form>
+</div>
+{% endblock %}
