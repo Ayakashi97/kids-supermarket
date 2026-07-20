@@ -60,7 +60,7 @@
         }
     </style>
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
     <main class="app-content">
         {% block content %}{% endblock %}
     </main>

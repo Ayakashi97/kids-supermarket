@@ -33,6 +33,15 @@
 }
 
 html, body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-main);
+    background: var(--bg-gradient);
+    color: var(--text-color);
+}
+
+/* Fixed fullscreen layout & gesture prevention ONLY for Cashier and Terminal screens */
+body.cashier-page, body.terminal-page {
     height: 100vh;
     height: 100dvh;
     width: 100vw;
@@ -46,13 +55,8 @@ html, body {
     bottom: 0;
     touch-action: none;
     overscroll-behavior: none;
-    -webkit-overflow-scrolling: auto;
-}
-
-body {
-    font-family: var(--font-main);
-    background: var(--bg-gradient);
-    color: var(--text-color);
+    user-select: none;
+    -webkit-user-select: none;
     font-size: 20px; /* Minimum 18px kid rule */
 }
 

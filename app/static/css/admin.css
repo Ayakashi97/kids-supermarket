@@ -18,13 +18,25 @@
     padding: 0;
 }
 
+html, body {
+    height: auto !important;
+    min-height: 100% !important;
+    width: 100% !important;
+    position: static !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    touch-action: auto !important;
+    overscroll-behavior: auto !important;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+}
+
 body {
     background-color: var(--admin-bg);
     color: var(--admin-text);
     font-family: var(--font-family);
     font-size: 18px;
     line-height: 1.5;
-    min-height: 100vh;
 }
 
 /* Navigation Bar */
