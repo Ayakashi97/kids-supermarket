@@ -144,13 +144,28 @@ document.addEventListener("DOMContentLoaded", () => {
         showPaymentPinErrorOverlay(data.message || "Falsche PIN! ❌");
     });
 
+    let cashierAutoCloseTimer = null;
+
     socket.on("payment_success", (data) => {
         playSuccessSound();
         showPaymentSuccessOverlay(data);
-        setTimeout(() => {
+
+        const barContainer = document.getElementById("successCountdownBarContainer");
+        const bar = document.getElementById("successCountdownBar");
+        if (barContainer && bar) {
+            barContainer.style.display = "block";
+            bar.style.transition = "none";
+            bar.style.width = "100%";
+            void bar.offsetWidth; // Force layout reflow
+            bar.style.transition = "width 8s linear";
+            bar.style.width = "0%";
+        }
+
+        if (cashierAutoCloseTimer) clearTimeout(cashierAutoCloseTimer);
+        cashierAutoCloseTimer = setTimeout(() => {
             clearCart();
             hideOverlay();
-        }, 3500);
+        }, 8000);
     });
 
     socket.on("payment_error", (data) => {
@@ -419,6 +434,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function hideOverlay() {
+        if (cashierAutoCloseTimer) {
+            clearTimeout(cashierAutoCloseTimer);
+            cashierAutoCloseTimer = null;
+        }
+        const barContainer = document.getElementById("successCountdownBarContainer");
+        if (barContainer) barContainer.style.display = "none";
+
         paymentOverlay.classList.add("hidden");
         if (receiptActions) receiptActions.style.display = "none";
         cancelPayBtn.textContent = "Abbrechen ❌";
