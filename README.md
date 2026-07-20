@@ -17,8 +17,12 @@ Bestehend aus einer **Kassen-App auf dem Tablet**, einem **Raspberry Pi Server**
   - Sound-Effekte über Web Audio API (Kassen-Piep beim Tippen, Sieges-Fanfaren bei Bezahlung, Fehler-Buzz).
   - Minimaler Text, intuitive Bedienung für kleine Kinder.
 
-- **💳 NFC-Zahlungsterminal mit Touchscreen (Raspberry Pi #2)**:
-  - Läuft im Kiosk-Modus mit visuellen Live-Animationen (*Pulsierendes Lesegerät, Grünes Häkchen, Kundenfoto des Kindes*).
+- **💳 NFC-Zahlungsterminal mit Touchscreen-PIN-Pad (Raspberry Pi #2)**:
+  - Läuft im Kiosk-Modus mit visuellen Live-Animationen (*Pulsierendes Lesegerät, Touchscreen-PIN-Eingabe, Grünes Häkchen, Kundenfoto des Kindes*).
+  - **3 Konfigurierbare PIN-Modi** (im Admin-Panel einstellbar):
+    1. **Deaktiviert**: Sofortige Bezahlung nach Auflegen der Karte.
+    2. **Spielgeld-Modus (`any_4_digits`)**: Terminal verlangt 4-stellige PIN, akzeptiert jede Zahlenkombination für echtes EC-Karten-Spielgefühl.
+    3. **Sicherheits-Modus (`exact_match`)**: Terminal prüft exakte 4-stellige PIN der Kundenkarte (Standard: `1234`).
   - Eigenständiger Python-Dienst liest PN532 NFC-Karten/Chips aus und kommuniziert in Echtzeit über WebSockets mit dem Server.
 
 - **🧾 Echter Thermobon-Druck & PDF-Bon-Export**:
@@ -29,12 +33,12 @@ Bestehend aus einer **Kassen-App auf dem Tablet**, einem **Raspberry Pi Server**
 - **🔐 Touchscreen PIN-Pad Admin-Panel (`/admin`)**:
   - Großes 3x4 Touchscreen PIN-Pad zur Eltern-Authentifizierung (Standard-PIN: `1234`).
   - Produkt-Verwaltung (CRUD mit Bild-Upload & Preisen in Euro/Cent).
-  - NFC-Kundenkarten Registrierung: Karte an den Pi #2 halten, Name & Foto des Kindes zuweisen.
+  - NFC-Kundenkarten Registrierung: Karte an den Pi #2 halten, Name, optionale PIN & Foto des Kindes zuweisen.
   - Transaktions-Historie aller getätigten Einkäufe.
 
 - **🧪 Entwicklungs- & Simulations-Modus (`DEV_MODE=true`)**:
   - Testen des gesamten Systems auf einem normalen Laptop ohne physischen Raspberry Pi oder NFC-Leser.
-  - Einblenden einer **DEV SIMULATOR** Toolbar zum 1-Klick Auslösen von Test-Karten (*👧 Lena, 👨 Papa, ❓ Unbekannt*) sowie Schnelllinks zum Terminal und PDF-Bon.
+  - Einblenden einer **DEV SIMULATOR** Toolbar zum 1-Klick Auslösen von Test-Karten (*👧 Lena, 👨 Papa, ❓ Unbekannt*), PIN-Simulation (*PIN 1234 🔢*) sowie Schnelllinks zum Terminal und PDF-Bon.
 
 ---
 
