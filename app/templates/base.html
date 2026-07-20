@@ -9,6 +9,8 @@
     <meta name="apple-mobile-web-app-title" content="Kinder-Supermarkt">
     <meta name="theme-color" content="#1e3c72">
     <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/icon-192.png') }}">
     <title>{% block title %}Kinder-Supermarkt{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
