@@ -3,7 +3,7 @@
   "short_name": "Kinder-Terminal",
   "description": "Zahlungsterminal und Kassensystem für den Kinder-Supermarkt",
   "start_url": "/terminal",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "any",
   "background_color": "#1e3c72",
   "theme_color": "#1e3c72",

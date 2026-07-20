@@ -716,8 +716,19 @@ document.addEventListener("DOMContentLoaded", () => {
         resetIdleTimer();
     }
 
+    function requestAutoFullscreen() {
+        if (!document.fullscreenElement) {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else if (document.documentElement.webkitRequestFullscreen) {
+                document.documentElement.webkitRequestFullscreen();
+            }
+        }
+    }
+
     document.addEventListener("pointerdown", () => {
         wakeUp();
+        requestAutoFullscreen();
         if (!webNfcScanning && 'NDEFReader' in window) {
             initWebNFC(true);
         }
