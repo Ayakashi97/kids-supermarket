@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Zahlungsterminal — Kinder-Supermarkt{% endblock %}
+
+{% block head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        font-family: 'Outfit', sans-serif;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        user-select: none;
+    }
+
+    .terminal-header {
+        position: absolute;
+        top: 20px;
+        left: 30px;
+        font-size: 1.5rem;
+        font-weight: 800;
+        opacity: 0.8;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .terminal-container {
+        text-align: center;
+        max-width: 700px;
+        padding: 2rem;
+        width: 90%;
+    }
+
+    /* Card Reader Pulsing Animation */
+    .terminal-card-icon {
+        font-size: 9rem;
+        margin-bottom: 1rem;
+        display: inline-block;
+        filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+    }
+
+    .pulse-animation {
+        animation: cardPulse 1.4s infinite ease-in-out;
+    }
+
+    @keyframes cardPulse {
+        0% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(255,230,109,0)); }
+        50% { transform: scale(1.18); filter: drop-shadow(0 0 40px rgba(255,230,109,0.9)); }
+        100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(255,230,109,0)); }
+    }
+
+    .terminal-title {
+        font-size: 3rem;
+        font-weight: 900;
+        margin-bottom: 0.8rem;
+    }
+
+    .terminal-subtitle {
+        font-size: 1.8rem;
+        opacity: 0.9;
+        margin-bottom: 1.5rem;
+    }
+
+    .amount-badge {
+        display: inline-block;
+        background: #00b894;
+        color: white;
+        font-size: 2.8rem;
+        font-weight: 900;
+        padding: 0.5rem 2rem;
+        border-radius: 50px;
+        box-shadow: 0 10px 25px rgba(0,184,148,0.4);
+        margin-top: 1rem;
+    }
+
+    /* Customer Photo Display */
+    .customer-photo-box {
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 8px solid #00b894;
+        margin: 0 auto 1.5rem auto;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        animation: photoPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes photoPop {
+        0% { transform: scale(0); }
+        80% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    .customer-photo-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="terminal-header">
+    <span>💳 Karten-Lesegerät</span>
+</div>
+
+<div class="terminal-container">
+    <!-- State 1: IDLE -->
+    <div id="stateIdle">
+        <div class="terminal-card-icon">🛒</div>
+        <div class="terminal-title">Kinder-Supermarkt</div>
+        <div class="terminal-subtitle">Bereit für die nächste Bestellung!</div>
+    </div>
+
+    <!-- State 2: WAITING FOR PAYMENT -->
+    <div id="stateWaiting" class="hidden">
+        <div class="terminal-card-icon pulse-animation">💳</div>
+        <div class="terminal-title">Karte jetzt anhalten!</div>
+        <div class="terminal-subtitle">Halte deine Supermarkt-Karte an den Sensor</div>
+        <div class="amount-badge" id="payAmountDisplay">0,00 €</div>
+    </div>
+
+    <!-- State 3: PAYMENT SUCCESS -->
+    <div id="stateSuccess" class="hidden">
+        <div class="customer-photo-box" id="photoBox" style="display: none;">
+            <img id="terminalPhoto" src="" alt="Kundenfoto">
+        </div>
+        <div class="terminal-card-icon" id="successIcon" style="display: none;">🎉</div>
+        <div class="terminal-title" id="successGreeting">Hallo! 🎉</div>
+        <div class="terminal-subtitle">Zahlung erfolgreich! Vielen Dank!</div>
+    </div>
+
+    <!-- State 4: PAYMENT ERROR -->
+    <div id="stateError" class="hidden">
+        <div class="terminal-card-icon">😕</div>
+        <div class="terminal-title">Hoppla!</div>
+        <div class="terminal-subtitle" id="errorMessageDisplay">Unbekannte Karte</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const socket = io();
+
+    const stateIdle = document.getElementById("stateIdle");
+    const stateWaiting = document.getElementById("stateWaiting");
+    const stateSuccess = document.getElementById("stateSuccess");
+    const stateError = document.getElementById("stateError");
+
+    const payAmountDisplay = document.getElementById("payAmountDisplay");
+    const photoBox = document.getElementById("photoBox");
+    const terminalPhoto = document.getElementById("terminalPhoto");
+    const successIcon = document.getElementById("successIcon");
+    const successGreeting = document.getElementById("successGreeting");
+    const errorMessageDisplay = document.getElementById("errorMessageDisplay");
+
+    function showState(el) {
+        [stateIdle, stateWaiting, stateSuccess, stateError].forEach(s => s.classList.add("hidden"));
+        el.classList.remove("hidden");
+    }
+
+    socket.on("connect", () => {
+        console.log("Terminal connected to server!");
+    });
+
+    socket.on("waiting_for_payment", (data) => {
+        if (data && data.total_formatted) {
+            payAmountDisplay.textContent = data.total_formatted;
+        }
+        showState(stateWaiting);
+    });
+
+    socket.on("payment_success", (data) => {
+        if (data.card_image_url) {
+            terminalPhoto.src = data.card_image_url;
+            photoBox.style.display = "block";
+            successIcon.style.display = "none";
+        } else {
+            photoBox.style.display = "none";
+            successIcon.style.display = "block";
+        }
+
+        successGreeting.textContent = data.card_name ? `Hallo ${data.card_name}! 🎉` : "Bezahlt! 🎉";
+        showState(stateSuccess);
+
+        setTimeout(() => {
+            showState(stateIdle);
+        }, 3500);
+    });
+
+    socket.on("payment_error", (data) => {
+        errorMessageDisplay.textContent = data.message || "Unbekannte Karte 😕";
+        showState(stateError);
+        setTimeout(() => {
+            showState(stateIdle);
+        }, 2500);
+    });
+
+    socket.on("payment_cancelled", () => {
+        showState(stateIdle);
+    });
+});
+</script>
+{% endblock %}

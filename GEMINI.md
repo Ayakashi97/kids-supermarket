@@ -165,6 +165,7 @@ Detailed documentation and progress checklists are maintained in the [`docs/`](f
 - **[Phase 2 Documentation](file:///Users/jan/projects/supermarket/docs/PHASE_2.md)** — Cashier UI Tablet Frontend (COMPLETED)
 - **[Phase 3 Documentation](file:///Users/jan/projects/supermarket/docs/PHASE_3.md)** — Payment Flow & Card Lookup (COMPLETED)
 - **[Phase 4 Documentation](file:///Users/jan/projects/supermarket/docs/PHASE_4.md)** — Receipt Printing USB ESC/POS (COMPLETED)
+- **[Phase 5 Documentation](file:///Users/jan/projects/supermarket/docs/PHASE_5.md)** — NFC Reader Service & Touchscreen Terminal (COMPLETED)
 - **[Master Checklist](file:///Users/jan/projects/supermarket/docs/CHECKLIST.md)** — Overall project checklist per phase
 
 ### Phase Progress Summary
@@ -172,7 +173,7 @@ Detailed documentation and progress checklists are maintained in the [`docs/`](f
 - [x] **Phase 2: Cashier UI (Tablet Frontend)** (Product grid, cart logic, Web Audio API sounds, category filtering)
 - [x] **Phase 3: Payment Flow (WebSocket & Card Lookup)** (Server state machine, card DB lookup, transaction saving)
 - [x] **Phase 4: Receipt Printing (USB ESC/POS)** (Thermal printer integration, admin configuration support)
-- [ ] **Phase 5: NFC Reader Service & Touchscreen Terminal (Pi #2)**
+- [x] **Phase 5: NFC Reader Service & Touchscreen Terminal (Pi #2)** (Touchscreen animations, PN532 polling service)
 - [ ] **Phase 6: Admin Panel (Product & Card Management)**
 - [ ] **Phase 7: Polish & Kid Experience**
 
