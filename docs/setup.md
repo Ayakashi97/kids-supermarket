@@ -97,13 +97,17 @@ A 3.5" SPI display plugs directly onto the 40-pin GPIO header. Here is how to co
 ### Why there is NO GPIO pin conflict:
 - **3.5" SPI Display** uses: SPI bus (Pins 19, 21, 23, 24, 26) + Touch IRQ/CS (Pins 11, 18, 22).
 - **PN532 NFC Module** uses: **I2C bus (Pins 3 & 5)**.
-- Pins 3 (SDA) and 5 (SCL) are **completely unused** by 3.5" SPI touchscreen displays!
+- Pins 3 (SDA) and 5 (SCL) are **completely unused** by 3.5" SPI displays!
+
+![Raspberry Pi 40-Pin GPIO Wiring Diagram](images/pi_gpio_wiring_diagram.jpg)
 
 ---
 
 ### Method A: I2C Mode Wiring (Shared GPIO Header)
 
-Set PN532 DIP Switches to **I2C Mode**: `SEL0 = 1 (HIGH)`, `SEL1 = 0 (LOW)`.
+Set PN532 DIP Switches to **I2C Mode**: `SEL0 = 1 (HIGH / ON)`, `SEL1 = 0 (LOW / OFF)`.
+
+![PN532 DIP Switches Configuration for I2C Mode](images/pn532_dip_switches.jpg)
 
 | PN532 Pin | Raspberry Pi #2 GPIO Pin | Function | Notes |
 |---|---|---|---|
