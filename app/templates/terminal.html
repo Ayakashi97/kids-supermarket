@@ -1110,7 +1110,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showState(stateSuccess);
 
         setTimeout(() => {
-            showState(stateIdle);
+            resetTerminalToIdle();
         }, 5000);
     });
 
@@ -1120,13 +1120,13 @@ document.addEventListener("DOMContentLoaded", () => {
         errorMessageDisplay.textContent = data.message || "Unbekannte Karte 😕";
         showState(stateError);
         setTimeout(() => {
-            showState(stateIdle);
+            resetTerminalToIdle();
         }, 2500);
     });
 
     socket.on("payment_cancelled", () => {
         termPin = "";
-        showState(stateIdle);
+        resetTerminalToIdle();
     });
 
     resetIdleTimer();
