@@ -811,6 +811,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         successGreeting.textContent = data.card_name ? `Hallo ${data.card_name}! 🎉` : "Bezahlt! 🎉";
         showState(stateSuccess);
+
+        setTimeout(() => {
+            showState(stateIdle);
+        }, 5000);
     });
 
     socket.on("payment_error", (data) => {
