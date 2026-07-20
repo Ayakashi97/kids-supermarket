@@ -24,7 +24,7 @@ def get_setting(key: str, default_val: str) -> str:
 
 def check_rate_limit() -> tuple[bool, str]:
     """
-    Ensures no more than 20 receipts are printed per 60 minutes.
+    Ensures no more than configurable receipts are printed per 60 minutes.
     Returns (allowed: bool, reason: str).
     """
     global PRINT_HISTORY
@@ -34,12 +34,19 @@ def check_rate_limit() -> tuple[bool, str]:
     # Keep only prints from the last 1 hour
     PRINT_HISTORY = [t for t in PRINT_HISTORY if t > cutoff]
     
-    if len(PRINT_HISTORY) >= MAX_PRINTS_PER_HOUR:
-        msg = f"Limit erreicht: Maximal {MAX_PRINTS_PER_HOUR} Bons pro Stunde erlaubt! (Schutz vor Papier-Spam) ⏳"
+    max_limit_str = get_setting("max_prints_per_hour", "20")
+    try:
+        max_limit = int(max_limit_str)
+    except ValueError:
+        max_limit = 20
+
+    if len(PRINT_HISTORY) >= max_limit:
+        msg = f"Limit erreicht: Maximal {max_limit} Bons pro Stunde erlaubt! (Schutz vor Papier-Spam) ⏳"
         logger.warning(msg)
         return False, msg
 
     return True, ""
+
 
 
 def print_receipt(transaction_data: dict, check_enabled: bool = True) -> tuple[bool, str]:

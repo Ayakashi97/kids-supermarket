@@ -104,8 +104,14 @@
                     <option value="always" {% if settings.print_mode == 'always' %}selected{% endif %}>Immer automatisch drucken (sofern Drucker aktiv)</option>
                     <option value="never" {% if settings.print_mode == 'never' %}selected{% endif %}>Nie automatisch drucken (Nur PDF-Bon anzeigen)</option>
                 </select>
-                <small>Schützt vor Papierverschwendung. Es gilt automatisch ein <strong>Limit von maximal 20 Bons pro Stunde</strong>!</small>
             </div>
+
+            <div class="form-group">
+                <label for="max_prints_per_hour">Max. gedruckte Bons pro Stunde (Spam-Schutz Limit):</label>
+                <input type="number" id="max_prints_per_hour" name="max_prints_per_hour" value="{{ settings.max_prints_per_hour }}" min="1" max="500" required>
+                <small>Schützt vor Papierverschwendung. Einstellbares Stunden-Limit (Standard: 20 Bons/Std).</small>
+            </div>
+
 
             <div class="form-group">
                 <label for="printer_device">USB Drucker-Gerätepfad:</label>
