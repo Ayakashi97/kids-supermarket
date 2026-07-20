@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Zahlungsterminal — Kinder-Supermarkt{% endblock %}
+{% block title %}{{ shop_name }} — Terminal{% endblock %}
 
 {% block head %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -363,7 +363,7 @@
 <!-- Header Bar Shifted Below Notch -->
 <div class="terminal-header">
     <div class="terminal-brand">
-        <span>🛒 Kinder-Terminal</span>
+        <span>🛒 {{ shop_name }}</span>
     </div>
 </div>
 
@@ -381,7 +381,7 @@
                 <div class="card-halo-ring"></div>
                 <div class="terminal-card-icon">🛒</div>
             </div>
-            <div class="terminal-title">Kinder-Supermarkt</div>
+            <div class="terminal-title">{{ shop_name }}</div>
             <div class="terminal-subtitle">Bereit für die nächste Bestellung!</div>
 
             <button type="button" id="btnNfcActivate" class="btn-nfc-activate" onclick="initWebNFC(true)">

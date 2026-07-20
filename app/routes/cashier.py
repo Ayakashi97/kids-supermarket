@@ -4,23 +4,25 @@ from app.models import Product
 cashier_bp = Blueprint("cashier", __name__)
 
 
-@cashier_bp.route("/")
-def index():
-    products = Product.query.filter_by(is_active=True).all()
-    return render_template("cashier.html", products=products)
-
-
-@cashier_bp.route("/terminal")
-def terminal():
-    """Touchscreen terminal view for Raspberry Pi #2."""
-    screen_timeout = get_setting("screen_timeout", "30")
-    return render_template("terminal.html", screen_timeout=screen_timeout)
-
-
 def get_setting(key: str, default_val: str) -> str:
     from app.models import Setting
     setting = Setting.query.get(key)
     return setting.value if setting and setting.value is not None else default_val
+
+
+@cashier_bp.route("/")
+def index():
+    products = Product.query.filter_by(is_active=True).all()
+    shop_name = get_setting("shop_name", "Kinder-Supermarkt")
+    return render_template("cashier.html", products=products, shop_name=shop_name)
+
+
+@cashier_bp.route("/terminal")
+def terminal():
+    """Touchscreen terminal view for Raspberry Pi #2 or Smartphone."""
+    screen_timeout = get_setting("screen_timeout", "30")
+    shop_name = get_setting("shop_name", "Kinder-Supermarkt")
+    return render_template("terminal.html", screen_timeout=screen_timeout, shop_name=shop_name)
 
 
 @cashier_bp.route("/receipt/<int:tx_id>")

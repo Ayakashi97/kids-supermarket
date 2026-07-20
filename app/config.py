@@ -17,7 +17,7 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    SHOP_NAME = os.getenv("SHOP_NAME", "Kinder-Markt")
+    SHOP_NAME = os.getenv("SHOP_NAME", "Kinder-Supermarkt")
     ADMIN_PIN = os.getenv("ADMIN_PIN", "1234")
     PRINTER_DEVICE = os.getenv("PRINTER_DEVICE", "/dev/usb/lp0")
     PORT = int(os.getenv("PORT", 5050))

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Kasse — Kinder-Supermarkt{% endblock %}
+{% block title %}{{ shop_name }} — Kasse{% endblock %}
 
 {% block head %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10,8 +10,7 @@
 
 {% block content %}
 <header class="cashier-header">
-    <h1>🛒 Kinder-Supermarkt</h1>
-    <span class="shop-badge">{{ config.SHOP_NAME or 'Kinder-Markt' }}</span>
+    <h1>🛒 {{ shop_name }}</h1>
 </header>
 
 <div class="cashier-layout">
