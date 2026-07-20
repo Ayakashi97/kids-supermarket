@@ -48,13 +48,13 @@
                 <div class="form-group">
                     <label for="nfc_uid">NFC UID (Automatisch oder Manuell):</label>
                     <div style="display: flex; gap: 0.5rem;">
-                        <input type="text" id="nfc_uid" name="nfc_uid" placeholder="UID z.B. 4A8F91C2" required readonly>
+                        <input type="text" id="nfc_uid" name="nfc_uid" placeholder="UID z.B. 4A8F91C2 oder Lena123" required>
                         <button type="button" class="btn btn-primary" id="scanBtn">Scan 💳</button>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="name">Name des Kindes / Anhabers:</label>
+                    <label for="name">Name des Kindes / Inhabers:</label>
                     <input type="text" id="name" name="name" placeholder="z.B. Lena" required>
                 </div>
 
@@ -134,27 +134,58 @@ document.addEventListener("DOMContentLoaded", () => {
 
     scanBtn.addEventListener("click", async () => {
         scanBtn.disabled = true;
-        scanBtn.textContent = "Warte auf Karte...";
-        uidInput.value = "";
+        scanBtn.textContent = "Warte auf Karte... 📱";
+        
         socket.emit("start_registration");
 
-        // Web NFC Scanner for Smartphones
+        // Web NFC Scanner for Smartphone Admin
         if ('NDEFReader' in window) {
             try {
                 const ndef = new NDEFReader();
                 await ndef.scan();
+                
+                ndef.onreadingerror = () => {
+                    console.warn("NFC Read Error in Admin");
+                };
+
                 ndef.onreading = (event) => {
-                    if (event.serialNumber) {
-                        uidInput.value = event.serialNumber;
+                    let rawUid = event.serialNumber || "";
+
+                    if (!rawUid && event.message && event.message.records) {
+                        const decoder = new TextDecoder();
+                        for (const record of event.message.records) {
+                            if (record.data) {
+                                try {
+                                    const textContent = decoder.decode(record.data).trim();
+                                    if (textContent) {
+                                        rawUid = textContent;
+                                        break;
+                                    }
+                                } catch(e){}
+                            }
+                        }
+                    }
+
+                    if (rawUid) {
+                        uidInput.value = rawUid;
                         scanBtn.disabled = false;
                         scanBtn.textContent = "Erfasst! ✅";
-                        socket.emit("card_tapped", { uid: event.serialNumber });
-                        setTimeout(() => { scanBtn.textContent = "Scan 💳"; }, 2000);
+                        socket.emit("card_tapped", { uid: rawUid });
+                        setTimeout(() => { scanBtn.textContent = "Scan 💳"; }, 3000);
                     }
                 };
             } catch (err) {
                 console.warn("Web NFC scan error in admin:", err);
+                scanBtn.disabled = false;
+                scanBtn.textContent = "Scan 💳";
             }
+        } else {
+            setTimeout(() => {
+                if (scanBtn.disabled && !uidInput.value) {
+                    scanBtn.disabled = false;
+                    scanBtn.textContent = "Scan 💳";
+                }
+            }, 6000);
         }
     });
 
@@ -163,14 +194,12 @@ document.addEventListener("DOMContentLoaded", () => {
             uidInput.value = data.uid;
             scanBtn.disabled = false;
             scanBtn.textContent = "Erfasst! ✅";
-            setTimeout(() => { scanBtn.textContent = "Scan 💳"; }, 2000);
+            setTimeout(() => { scanBtn.textContent = "Scan 💳"; }, 3000);
         }
     });
 
     socket.on("waiting_for_registration", (data) => {
-        if (!('NDEFReader' in window)) {
-            alert(data.message || "Bitte Karte jetzt an das Lesegerät halten...");
-        }
+        console.log("Server in registration mode");
     });
 });
 </script>
