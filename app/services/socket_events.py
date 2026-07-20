@@ -119,10 +119,23 @@ def register_socket_events(socket_io: SocketIO):
         logger.info("Payment started with %d items. Waiting for card tap...", len(cart))
         total_cents = sum(item.get("price_cents", 0) * item.get("quantity", 1) for item in cart)
 
+        active_cards = Card.query.filter_by(is_active=True).order_by(Card.name).all()
+        cards_payload = [
+            {
+                "id": c.id,
+                "name": c.name,
+                "uid": c.nfc_uid,
+                "image_url": f"/static/{c.image_path}" if c.image_path else None,
+            }
+            for c in active_cards
+        ]
+
         socket_io.emit("waiting_for_payment", {
             "item_count": len(cart),
             "total_cents": total_cents,
             "total_formatted": f"{total_cents / 100:.2f}".replace(".", ",") + " €",
+            "nfc_mode": get_setting("nfc_mode", "hardware"),
+            "cards": cards_payload,
         })
 
     @socket_io.on("cancel_payment")

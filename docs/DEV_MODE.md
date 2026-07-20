@@ -1,45 +1,40 @@
-# 🧪 Development & Testing Emulation Mode (`DEV_MODE`)
+# 🧪 Development, Emulation & Touchscreen Simulator Guide
 
-## Overview
-The **Kinder-Supermarkt** system includes a built-in development and testing mode enabled via the `DEV_MODE=true` environment variable. This allows developers and parents to test the entire multi-device workflow (Tablet ↔ Backend ↔ Touchscreen Terminal ↔ Thermal Printer) without requiring physical hardware (such as Raspberry Pi #2 or physical PN532 NFC readers).
+This guide explains how to test and run the full **Kinder-Supermarkt** application without physical Raspberry Pi hardware, thermal printers, or NFC reader boards.
 
 ---
 
-## 🚀 How to Enable Development Mode
+## 🚀 Overview of Emulation Features
 
-In your `.env` file (or Docker Compose environment):
+The system includes built-in emulation modes so you can develop and play on any computer or tablet:
 
-```env
-DEV_MODE=true
-```
+1. **🧪 DEV SIMULATOR Bar** (Visible on top of the Cashier UI):
+   - Simulated NFC Card Taps (`Tap 👧 Lena`, `Tap 👨 Papa`, `Tap ❓ Unbekannt`).
+   - Terminal PIN Entry Simulation (`PIN 1234 🔢`).
+   - Immediate Bon PDF Receipt view (`📄 Bon (PDF)`).
+2. **📱 Touchscreen Card Selector Mode (`nfc_mode="touchscreen_simulation"`)**:
+   - In Admin Panel under **`/admin/settings`**, switch **NFC-Lesegerät Modus** to **"Touchscreen-Kartenwahl auf Terminal (Keine Hardware erforderlich)"**.
+   - When a transaction is started on the tablet cashier view, the terminal screen at `/terminal` presents large touchable customer card buttons directly on screen!
+   - Children or testers tap their photo/name directly on the touchscreen terminal to simulate tapping a physical NFC card.
+3. **📄 Virtual PDF Receipt Engine (`/receipt/<tx_id>`)**:
+   - Generates exact 58mm / 80mm printable thermal receipts in your browser with print/PDF support.
 
-When enabled:
-1. **Automatic Test Data Seeding**:
-   - Seeds 12 default German products (*Brezel, Apfel, Banane, etc.*).
-   - Seeds 2 test customer cards:
-     - **Lena 👧** (UID: `TEST_LENA_123`)
-     - **Papa 👨** (UID: `TEST_PAPA_456`)
+---
 
-2. **Browser-Based NFC & PIN Emulation Toolbar**:
-   - Displays a floating **DEV SIMULATOR** bar at the bottom right of the browser pages.
-   - Includes 1-click test buttons:
-     - `👧 Lena` (Simulates tapping Lena's NFC card)
-     - `👨 Papa` (Simulates tapping Papa's NFC card)
-     - `❓ Unbekannt` (Simulates tapping an unregistered NFC card)
-     - Custom UID input box + `Tap 💳` button.
-     - `PIN 1234 🔢` (Simulates submitting PIN '1234' over WebSockets).
-   - **`📄 Bon (PDF)`**: 1-click button to open, view, and print/download the generated PDF receipt of the latest transaction.
-   - **`📺 Terminal`**: Opens the Pi #2 Touchscreen Terminal UI in a separate browser tab for side-by-side real-time synchronization testing.
+## 🛠️ Step-by-Step Testing Guide
 
-3. **Configurable Terminal PIN Modes (`pin_mode`)**:
-   - Admin panel (`/admin/settings`) supports 3 Terminal PIN modes:
-     - **Deaktiviert (`disabled`)**: Payment completes immediately after card tap.
-     - **Spielgeld-Modus (`any_4_digits`)**: Terminal prompts for a 4-digit PIN, accepts ANY 4 numbers for a fun play-money checkout experience.
-     - **Sicherheits-Modus (`exact_match`)**: Terminal prompts for PIN and verifies it matches the card holder's assigned 4-digit PIN (or default `1234`).
+### 1. Enable Touchscreen Card Selector Mode in Admin Settings
+1. Navigate to `http://localhost:5050/admin/settings`.
+2. Login with PIN `1234`.
+3. Under **NFC-Lesegerät Modus**, select **"Touchscreen-Kartenwahl auf Terminal (Keine Hardware erforderlich)"**.
+4. Save settings.
 
-4. **PDF Receipt Generator & Web Preview**:
-   - Route `/receipt/<tx_id>` and `/receipt/latest` render a printable thermal receipt matching the configured paper width (58mm or 80mm).
-   - Click "Drucken / als PDF speichern 📄" to open the browser print dialog and save receipts as PDF files directly on your computer!
-
-5. **Mock Thermal Printer Output**:
-   - If a physical USB thermal printer is not connected to `/dev/usb/lp0`, the receipt printing service formats the receipt and logs the output directly to stdout without failing or interrupting the checkout flow.
+### 2. Test Checkout Flow on Terminal Display
+1. Open Cashier UI: `http://localhost:5050`
+2. Open Terminal Display: `http://localhost:5050/terminal`
+3. Add products to cart on Cashier UI and click **"Jetzt Bezahlen (💳 Karte)"**.
+4. Watch the Terminal Display at `/terminal`:
+   - It shows a friendly card selection grid with buttons for each active child/customer card!
+   - Tap **"Lena"** on the touchscreen terminal.
+   - If PIN protection is enabled, enter PIN `1234` on the terminal's touchscreen PIN-Pad.
+   - Payment completes instantly with success fanfare and customer photo animation!

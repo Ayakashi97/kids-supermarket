@@ -1,39 +1,37 @@
-# Phase 5 Documentation — Touchscreen Terminal & PN532 NFC Reader (Pi #2)
+# Phase 5 Documentation — NFC Reader Service & Touchscreen Terminal (Pi #2)
 
 ## Summary of Completed Work
-Phase 5 implements the standalone touchscreen terminal interface served at `/terminal` and the standalone Python service running on Raspberry Pi #2.
+Phase 5 implements the second Raspberry Pi (#2) terminal system, combining real-time NFC tag polling, touchscreen display animations, PIN-Pad overlays, and a fallback **Touchscreen Card Selector Mode** when physical NFC hardware is not connected.
 
 ### Key Features Implemented:
-1. **Touchscreen Terminal View (`/terminal`)**:
-   - Designed specifically for Raspberry Pi #2 connected to a touchscreen display in Chromium Kiosk Mode.
-   - States & Animations:
-     - **IDLE**: Welcome screen (*"Kinder-Supermarkt — Bereit für die nächste Bestellung"*).
-     - **WAITING FOR PAYMENT**: Pulsing card reader graphic with gold drop-shadow glow and total amount display (*"Karte jetzt anhalten! 💳"*).
-     - **PROMPT PIN**: Interactive 3x4 Touchscreen PIN-Pad (`1-9`, `C`, `0`, `✓`) with masked PIN dots (`••••`).
-     - **PAYMENT SUCCESS**: Celebratory greeting with green photo frame display of child's customer picture or party emoji 🎉.
-     - **PAYMENT ERROR**: Friendly error display (*"Unbekannte Karte 😕"* / *"Falsche PIN ❌"*).
+1. **NFC Reader Python Service (`nfc_reader/reader.py`)**:
+   - Polling loop for PN532 NFC reader module (I2C bus or USB Serial FT232/AZDelivery adapter).
+   - Emits `card_tapped` WebSocket event to Pi #1 backend server upon tag detection.
+   - Includes systemd auto-start service (`supermarkt-nfc.service`).
 
-2. **Configurable Terminal PIN Request Modes (`pin_mode`)**:
-   - Three modes configurable via Admin Settings (`/admin/settings`):
-     - `disabled`: Immediate payment processing upon card tap (no PIN prompt).
-     - `any_4_digits`: Displays PIN-Pad on touchscreen, accepts any 4-digit input (play money experience for kids).
-     - `exact_match`: Displays PIN-Pad on touchscreen, verifies PIN against the card's assigned 4-digit PIN (or default `1234`).
+2. **Touchscreen Terminal Display UI (`/terminal`)**:
+   - Full-screen animated cashier state machine:
+     - **IDLE**: Welcome screen with shop logo.
+     - **WAITING FOR PAYMENT**: Animated pulsing card reader graphic + order total.
+     - **TOUCHSCREEN CARD SELECTOR**: If hardware NFC is disabled in settings (`nfc_mode="touchscreen_simulation"`), renders big touchable customer card buttons directly on screen!
+     - **PIN PROMPT**: Touchscreen PIN-Pad overlay (`1-9`, `C`, `0`, `✓`) for PIN verification.
+     - **SUCCESS**: Green checkmark + customer child photo animation + success sound.
+     - **ERROR**: Friendly error display for unknown cards or wrong PINs.
+     - **STANDBY**: Automatic screen standby / sleep mode after 30s inactivity (configurable).
 
-3. **Standalone NFC Reader Service (`nfc_reader/reader.py`)**:
-   - Connects to PN532 NFC module via I2C (`/dev/i2c-1`) or SPI.
-   - 3-second debounce rate-limiting to prevent duplicate card reads.
-   - Emits `card_tapped` WebSocket event to Pi #1 Flask server.
-   - Includes systemd service template `nfc_reader/supermarkt-nfc.service` for automatic start on boot.
+3. **Configurable NFC Modes (`/admin/settings`)**:
+   - **Hardware NFC-Lesegerät (`hardware`)**: Listens for physical NFC tag taps via PN532.
+   - **Touchscreen-Kartenwahl (`touchscreen_simulation`)**: Allows children to tap their card photo/name directly on the touchscreen terminal screen without any NFC hardware!
 
 ---
 
 ## Phase 5 Checklist
 
-- [x] Dedicated terminal route `/terminal` for Pi #2 touchscreen (browser kiosk mode)
-- [x] Real-time payment animations on Pi #2 display (waiting pulse, touchscreen PIN-Pad, success photo overlay)
-- [x] Configurable Terminal PIN-Pad modes (`disabled`, `any_4_digits`, `exact_match`)
-- [x] Standalone Python script `nfc_reader/reader.py`
-- [x] PN532 module connection (SPI/I2C via `adafruit-circuitpython-pn532` / `nfcpy`)
-- [x] Connect to Pi #1 Flask-SocketIO server and emit `card_tapped`
-- [x] Rate-limit repeated taps (3s debounce)
-- [x] Systemd service script for Pi #2 auto-start
+- [x] PN532 NFC Reader service script (`nfc_reader/reader.py`)
+- [x] WebSocket client connection to Pi #1 server
+- [x] Touchscreen terminal view (`/terminal`)
+- [x] Card tap animations, success checkmark, customer photo display
+- [x] Touchscreen PIN-Pad prompt overlay
+- [x] Touchscreen Card Selector Mode (`nfc_mode="touchscreen_simulation"`)
+- [x] Configurable display standby / sleep timeout (30s default)
+- [x] Systemd auto-start setup guide (`supermarkt-nfc.service`)

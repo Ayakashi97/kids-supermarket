@@ -242,6 +242,7 @@ def settings():
         shop_name = request.form.get("shop_name", Config.SHOP_NAME)
         admin_pin = request.form.get("admin_pin", Config.ADMIN_PIN)
         pin_mode = request.form.get("pin_mode", "disabled")
+        nfc_mode = request.form.get("nfc_mode", "hardware")
         printer_enabled = request.form.get("printer_enabled", "false")
         printer_device = request.form.get("printer_device", Config.PRINTER_DEVICE)
         receipt_header = request.form.get("receipt_header", "")
@@ -254,6 +255,7 @@ def settings():
         set_setting("shop_name", shop_name)
         set_setting("admin_pin", admin_pin)
         set_setting("pin_mode", pin_mode)
+        set_setting("nfc_mode", nfc_mode)
         set_setting("printer_enabled", printer_enabled)
         set_setting("printer_device", printer_device)
         set_setting("receipt_header", receipt_header)
@@ -263,13 +265,14 @@ def settings():
         set_setting("paper_width", paper_width)
         set_setting("screen_timeout", screen_timeout)
 
-        flash("Einstellungen & Bildschirm-Standby erfolgreich gespeichert!", "success")
+        flash("Einstellungen & NFC-Modus erfolgreich gespeichert!", "success")
         return redirect(url_for("admin.settings"))
 
     current_settings = {
         "shop_name": get_setting("shop_name", Config.SHOP_NAME),
         "admin_pin": get_setting("admin_pin", Config.ADMIN_PIN),
         "pin_mode": get_setting("pin_mode", "disabled"),
+        "nfc_mode": get_setting("nfc_mode", "hardware"),
         "printer_enabled": get_setting("printer_enabled", "false"),
         "printer_device": get_setting("printer_device", Config.PRINTER_DEVICE),
         "receipt_header": get_setting("receipt_header", "🛒 WILLKOMMEN IM KINDER-MARKT 🛒"),
