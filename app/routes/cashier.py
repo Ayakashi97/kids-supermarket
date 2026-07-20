@@ -23,7 +23,8 @@ def terminal():
     """Touchscreen terminal view for Raspberry Pi #2 or Smartphone."""
     screen_timeout = get_setting("screen_timeout", "30")
     shop_name = get_setting("shop_name", "Kinder-Supermarkt")
-    return render_template("terminal.html", screen_timeout=screen_timeout, shop_name=shop_name)
+    show_nfc_toast = get_setting("show_nfc_toast", "true")
+    return render_template("terminal.html", screen_timeout=screen_timeout, shop_name=shop_name, show_nfc_toast=show_nfc_toast)
 
 
 @cashier_bp.route("/receipt/<int:tx_id>")

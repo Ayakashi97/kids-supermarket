@@ -509,6 +509,7 @@
 <script>
 let termPin = "";
 const screenTimeoutSec = parseInt("{{ screen_timeout or 30 }}");
+const showNfcToastSetting = "{{ show_nfc_toast or 'true' }}" === "true";
 let idleTimer = null;
 let webNfcScanning = false;
 let ndefReaderInstance = null;
@@ -563,6 +564,7 @@ function playSound(type) {
 }
 
 function showNfcFeedbackToast(message) {
+    if (!showNfcToastSetting) return;
     const toast = document.getElementById("liveNfcFeedback");
     if (!toast) return;
     toast.textContent = message;

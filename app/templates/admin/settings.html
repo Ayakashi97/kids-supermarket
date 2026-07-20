@@ -82,6 +82,15 @@
                     </select>
                     <small>Schaltet das Terminal-Display im Leerlauf automatisch ab/dunkel. Bei Karte auflegen oder Tippen wird es sofort wieder wach.</small>
                 </div>
+
+                <div class="form-group">
+                    <label for="show_nfc_toast">NFC-Karte Toast-Benachrichtigung auf Terminal:</label>
+                    <select id="show_nfc_toast" name="show_nfc_toast">
+                        <option value="true" {% if settings.show_nfc_toast == 'true' or not settings.show_nfc_toast %}selected{% endif %}>Aktiviert („✅ NFC Karte erfasst!“ Banner anzeigen)</option>
+                        <option value="false" {% if settings.show_nfc_toast == 'false' %}selected{% endif %}>Deaktiviert (Stumm verarbeiten — Kein Hinweisbanner)</option>
+                    </select>
+                    <small>Bestimmt, ob beim Scannen einer Karte das Banner „NFC Karte erfasst (ID: ...)“ auf dem Terminal auftaucht.</small>
+                </div>
             </div>
         </div>
 

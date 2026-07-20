@@ -382,6 +382,7 @@ def settings():
         show_date_time = request.form.get("show_date_time", "true")
         paper_width = request.form.get("paper_width", "58mm")
         screen_timeout = request.form.get("screen_timeout", "30")
+        show_nfc_toast = request.form.get("show_nfc_toast", "true")
 
         set_setting("shop_name", shop_name)
         set_setting("admin_pin", admin_pin)
@@ -396,6 +397,7 @@ def settings():
         set_setting("show_date_time", show_date_time)
         set_setting("paper_width", paper_width)
         set_setting("screen_timeout", screen_timeout)
+        set_setting("show_nfc_toast", show_nfc_toast)
 
         flash("Einstellungen & NFC-Modus erfolgreich gespeichert!", "success")
         return redirect(url_for("admin.settings"))
@@ -414,6 +416,7 @@ def settings():
         "show_date_time": get_setting("show_date_time", "true"),
         "paper_width": get_setting("paper_width", "58mm"),
         "screen_timeout": get_setting("screen_timeout", "30"),
+        "show_nfc_toast": get_setting("show_nfc_toast", "true"),
     }
     return render_template("admin/settings.html", settings=current_settings)
 
