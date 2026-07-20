@@ -162,14 +162,15 @@ supermarket/
 Detailed documentation and progress checklists are maintained in the [`docs/`](file:///Users/jan/projects/supermarket/docs) directory:
 
 - **[Phase 1 Documentation](file:///Users/jan/projects/supermarket/docs/PHASE_1.md)** — Foundation & Project Scaffold (COMPLETED)
+- **[Phase 2 Documentation](file:///Users/jan/projects/supermarket/docs/PHASE_2.md)** — Cashier UI Tablet Frontend (COMPLETED)
 - **[Master Checklist](file:///Users/jan/projects/supermarket/docs/CHECKLIST.md)** — Overall project checklist per phase
 
 ### Phase Progress Summary
 - [x] **Phase 1: Foundation & Project Scaffold** (Docker, Flask, SQLite, Models, Seed Data)
-- [ ] **Phase 2: Cashier UI (Tablet Frontend)**
+- [x] **Phase 2: Cashier UI (Tablet Frontend)** (Product grid, cart logic, Web Audio API sounds, category filtering)
 - [ ] **Phase 3: Payment Flow (WebSocket & Card Lookup)**
 - [ ] **Phase 4: Receipt Printing (USB ESC/POS)**
-- [ ] **Phase 5: NFC Reader Service (Pi #2)**
+- [ ] **Phase 5: NFC Reader Service & Touchscreen Terminal (Pi #2)**
 - [ ] **Phase 6: Admin Panel (Product & Card Management)**
 - [ ] **Phase 7: Polish & Kid Experience**
 

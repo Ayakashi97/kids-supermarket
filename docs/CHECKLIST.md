@@ -12,13 +12,13 @@
 - [x] Seed default German products on first run
 
 ## Phase 2 — Cashier UI (Tablet Frontend)
-- [ ] Design and implement `cashier.html` with product grid + cart panel
-- [ ] Kid-friendly CSS (big rounded buttons, bright colors, large emojis)
-- [ ] Implement `cashier.js`: add item to cart, update totals, remove items
-- [ ] Add "beep" sound on item add (Web Audio API)
-- [ ] Cart shows: item list, quantities, individual prices, total
-- [ ] "Bezahlen 💳" button — triggers payment flow
-- [ ] "Warenkorb leeren 🗑️" button — clears cart with confirmation
+- [x] Design and implement `cashier.html` with product grid + cart panel
+- [x] Kid-friendly CSS (big rounded buttons, bright colors, large emojis)
+- [x] Implement `cashier.js`: add item to cart, update totals, remove items
+- [x] Add "beep" sound on item add (Web Audio API)
+- [x] Cart shows: item list, quantities, individual prices, total
+- [x] "Bezahlen 💳" button — triggers payment flow
+- [x] "Warenkorb leeren 🗑️" button — clears cart with confirmation
 
 ## Phase 3 — Payment Flow (WebSocket)
 - [ ] Implement Flask-SocketIO event handlers (`start_payment`, `card_tapped`, `payment_success`, `payment_error`, `card_registered`)

@@ -2,17 +2,103 @@
 
 {% block title %}Kasse — Kinder-Supermarkt{% endblock %}
 
+{% block head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
-<div class="cashier-container">
-    <h2>Willkommen an der Kasse!</h2>
-    <div class="product-grid">
-        {% for product in products %}
-        <div class="product-card">
-            <span class="emoji">{{ product.emoji or '🛒' }}</span>
-            <span class="name">{{ product.name }}</span>
-            <span class="price">{{ (product.price_cents / 100) | round(2) }} €</span>
+<header class="cashier-header">
+    <h1>🛒 Kinder-Supermarkt</h1>
+    <span class="shop-badge">{{ config.SHOP_NAME or 'Kinder-Markt' }}</span>
+</header>
+
+<div class="cashier-layout">
+    <!-- Left Section: Products & Category Tabs -->
+    <section class="products-section">
+        <!-- Category Filter Tabs -->
+        <nav class="category-tabs">
+            <button class="tab-btn active" data-category="all">Alle 🌟</button>
+            <button class="tab-btn" data-category="Obst & Gemüse">Obst & Gemüse 🍎</button>
+            <button class="tab-btn" data-category="Backwaren">Backwaren 🥨</button>
+            <button class="tab-btn" data-category="Milchprodukte">Milchprodukte 🥛</button>
+            <button class="tab-btn" data-category="Getränke">Getränke 🧃</button>
+            <button class="tab-btn" data-category="Süßes">Süßes 🍫</button>
+        </nav>
+
+        <!-- Product Grid Scrollable Area -->
+        <div class="product-grid-scroll">
+            <div class="product-grid" id="productGrid">
+                {% for product in products %}
+                <div class="product-card" 
+                     data-id="{{ product.id }}" 
+                     data-name="{{ product.name }}" 
+                     data-price="{{ product.price_cents }}" 
+                     data-emoji="{{ product.emoji or '🛒' }}"
+                     data-category="{{ product.category }}">
+                    
+                    {% if product.image_path %}
+                        <img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.name }}" class="img-thumb">
+                    {% else %}
+                        <span class="emoji">{{ product.emoji or '🛒' }}</span>
+                    {% endif %}
+                    
+                    <span class="name">{{ product.name }}</span>
+                    <span class="price">{{ (product.price_cents / 100) | round(2) }} €</span>
+                </div>
+                {% endfor %}
+            </div>
         </div>
-        {% endfor %}
+    </section>
+
+    <!-- Right Section: Shopping Cart Sidebar -->
+    <aside class="cart-panel">
+        <div class="cart-header">
+            <h2>🛍️ Einkaufskorb</h2>
+            <button class="clear-btn" id="clearCartBtn" title="Warenkorb leeren">Leeren 🗑️</button>
+        </div>
+
+        <div class="cart-items" id="cartItemsContainer">
+            <div class="empty-cart-msg" id="emptyCartMsg">
+                <span class="big-emoji">🛒</span>
+                <p>Tippe auf ein Produkt, um es hinzuzufügen!</p>
+            </div>
+        </div>
+
+        <div class="cart-footer">
+            <div class="total-row">
+                <span>Summe:</span>
+                <span class="total-amount" id="totalAmount">0,00 €</span>
+            </div>
+            <button class="pay-btn" id="payBtn" disabled>
+                <span>Bezahlen</span>
+                <span>💳</span>
+            </button>
+        </div>
+    </aside>
+</div>
+
+<!-- Fullscreen Payment Overlay -->
+<div class="overlay hidden" id="paymentOverlay">
+    <div class="overlay-content">
+        <!-- Pulse Card / Emoji / Error Icon -->
+        <div class="card-animation-icon" id="overlayIcon">💳</div>
+
+        <!-- Optional Card Holder Photo -->
+        <div class="card-photo-container" id="photoContainer" style="display: none;">
+            <img id="cardPhoto" src="" alt="Kundenfoto">
+        </div>
+
+        <h2 id="overlayTitle">Karte hinhalten! 💳</h2>
+        <p id="overlaySubtitle">Halte deine Supermarkt-Karte an das Lesegerät...</p>
+
+        <button class="cancel-payment-btn" id="cancelPayBtn">Abbrechen ❌</button>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/cashier.js') }}"></script>
 {% endblock %}
