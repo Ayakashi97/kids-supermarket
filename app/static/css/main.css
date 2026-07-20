@@ -532,15 +532,18 @@ body {
 
 .cart-item {
     background: #f8fafc;
-    border-radius: 20px;
-    padding: 1rem 1.2rem;
+    border-radius: 18px;
+    padding: 0.8rem 0.9rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 0.6rem;
     border: 2px solid #edf2f7;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     animation: popIn 0.25s ease-out;
+    box-sizing: border-box;
+    width: 100%;
+    overflow: hidden;
 }
 
 @keyframes popIn {
@@ -551,29 +554,39 @@ body {
 .cart-item-info {
     display: flex;
     align-items: center;
-    gap: 0.8rem;
+    gap: 0.6rem;
     flex: 1;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .cart-item-emoji {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     line-height: 1;
+    flex-shrink: 0;
 }
 
 .cart-item-details {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .cart-item-name {
     font-weight: 800;
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
 }
 
 .cart-item-price {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     color: #00b894;
     font-weight: 800;
 }
@@ -582,7 +595,8 @@ body {
 .qty-controls {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.35rem;
+    flex-shrink: 0;
 }
 
 .qty-btn {
