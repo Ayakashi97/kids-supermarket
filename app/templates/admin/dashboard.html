@@ -65,7 +65,7 @@
                         <td>#{{ tx.id }}</td>
                         <td>{{ tx.created_at.strftime('%d.%m.%Y %H:%M') if tx.created_at else '-' }}</td>
                         <td>{{ tx.card.name if tx.card else 'Gast' }}</td>
-                        <td><strong>{{ (tx.total_cents / 100) | round(2) }} €</strong></td>
+                        <td><strong>{{ "%.2f"|format(tx.total_cents / 100)|replace('.', ',') }} €</strong></td>
                     </tr>
                     {% else %}
                     <tr>

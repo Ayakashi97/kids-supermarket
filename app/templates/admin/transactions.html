@@ -68,11 +68,11 @@
                         <td>
                             <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.95rem;">
                                 {% for item in tx.items %}
-                                <li>{{ item.quantity }}x {{ item.product_name }} ({{ (item.price_cents / 100) | round(2) }} €)</li>
+                                <li>{{ item.quantity }}x {{ item.product_name }} ({{ "%.2f"|format(item.price_cents / 100)|replace('.', ',') }} €)</li>
                                 {% endfor %}
                             </ul>
                         </td>
-                        <td><strong style="color: var(--admin-accent); font-size: 1.1rem;">{{ (tx.total_cents / 100) | round(2) }} €</strong></td>
+                        <td><strong style="color: var(--admin-accent); font-size: 1.1rem;">{{ "%.2f"|format(tx.total_cents / 100)|replace('.', ',') }} €</strong></td>
                         <td>
                             <div class="action-buttons">
                                 <a href="/receipt/{{ tx.id }}" target="_blank" class="btn btn-sm btn-primary">Bon / PDF 📄</a>

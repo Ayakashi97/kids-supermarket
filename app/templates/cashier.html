@@ -77,7 +77,7 @@
                     {% endif %}
                     
                     <span class="name">{{ product.name }}</span>
-                    <span class="price">{{ (product.price_cents / 100) | round(2) }} €</span>
+                    <span class="price">{{ "%.2f"|format(product.price_cents / 100)|replace('.', ',') }} €</span>
                 </div>
                 {% endfor %}
             </div>

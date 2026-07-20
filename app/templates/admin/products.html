@@ -108,7 +108,7 @@
                             {% endif %}
                         </td>
                         <td><strong>{{ p.name }}</strong></td>
-                        <td>{{ (p.price_cents / 100) | round(2) }} €</td>
+                        <td>{{ "%.2f"|format(p.price_cents / 100)|replace('.', ',') }} €</td>
                         <td>{{ p.category }}</td>
                         <td>
                             {% if p.is_active %}

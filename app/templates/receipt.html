@@ -130,7 +130,7 @@
         <tr>
             <td style="text-align: left;">{{ item.product_name }}</td>
             <td style="text-align: center;">{{ item.quantity }}x</td>
-            <td style="text-align: right;">{{ (item.price_cents * item.quantity / 100) | round(2) }} €</td>
+            <td style="text-align: right;">{{ "%.2f"|format(item.price_cents * item.quantity / 100)|replace('.', ',') }} €</td>
         </tr>
         {% endfor %}
     </table>
