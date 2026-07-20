@@ -88,6 +88,26 @@
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
+    /* Expanded Full-Width Landscape Container for Signature Mode */
+    body.signature-mode-active .terminal-viewport-wrapper {
+        max-width: 96vw;
+        width: 96vw;
+        margin-top: max(10px, env(safe-area-inset-top));
+        margin-bottom: max(10px, env(safe-area-inset-bottom));
+        padding: 0.2rem;
+    }
+
+    body.signature-mode-active .terminal-glass-card {
+        padding: 1rem 1.5rem;
+        max-width: 100%;
+        border-radius: 28px;
+    }
+
+    body.signature-mode-active #signatureCanvas {
+        height: min(220px, calc(100vh - 170px));
+        min-height: 160px;
+    }
+
     /* Pulsing Glowing Aura around NFC Icon */
     .card-icon-halo-wrapper {
         position: relative;
@@ -866,8 +886,10 @@ document.addEventListener("DOMContentLoaded", () => {
         sigCtx = sigCanvas.getContext("2d");
 
         const container = sigCanvas.parentElement;
-        if (container && container.clientWidth > 0) {
-            sigCanvas.width = container.clientWidth;
+        if (container) {
+            const rect = container.getBoundingClientRect();
+            sigCanvas.width = Math.max(300, rect.width || container.clientWidth || 600);
+            sigCanvas.height = Math.max(150, sigCanvas.clientHeight || 180);
         }
 
         sigCtx.lineWidth = 4;
