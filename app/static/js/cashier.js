@@ -157,6 +157,56 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Sound: Soft descending tone when removing an item
+    function playRemoveSound() {
+        initAudio();
+        try {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime); // D5
+            osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.12); // D4
+
+            gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.12);
+        } catch (e) {
+            console.warn("Remove sound error:", e);
+        }
+    }
+
+    // Sound: Whoosh/sweep sound when emptying the entire cart
+    function playClearSound() {
+        initAudio();
+        try {
+            const notes = [440, 330, 220]; // A4, E4, A3
+            notes.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.06);
+
+                gain.gain.setValueAtTime(0.25, audioCtx.currentTime + idx * 0.06);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + idx * 0.06 + 0.1);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(audioCtx.currentTime + idx * 0.06);
+                osc.stop(audioCtx.currentTime + idx * 0.06 + 0.1);
+            });
+        } catch (e) {
+            console.warn("Clear sound error:", e);
+        }
+    }
+
     // --- State & DOM Elements ---
     let cart = []; // Array of { id, name, price_cents, emoji, quantity }
     
@@ -252,6 +302,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const item = cart.find(i => i.id === productId);
         if (!item) return;
 
+        if (delta < 0) {
+            playRemoveSound();
+        } else if (delta > 0) {
+            playBeepSound();
+        }
+
         item.quantity += delta;
         if (item.quantity <= 0) {
             cart = cart.filter(i => i.id !== productId);
@@ -304,11 +360,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             `;
 
-            itemEl.querySelector(".minus").addEventListener("click", () => changeQuantity(item.id, -1));
-            itemEl.querySelector(".plus").addEventListener("click", () => {
-                playBeepSound();
-                changeQuantity(item.id, 1);
-            });
+            const minusBtn = itemEl.querySelector(".minus");
+            const plusBtn = itemEl.querySelector(".plus");
+
+            attachKidTouchHandler(minusBtn, () => changeQuantity(item.id, -1));
+            attachKidTouchHandler(plusBtn, () => changeQuantity(item.id, 1));
 
             cartContainer.appendChild(itemEl);
         });
@@ -579,11 +635,14 @@ document.addEventListener("DOMContentLoaded", () => {
     renderPage();
 
     // Clear cart button
-    clearCartBtn.addEventListener("click", () => {
-        if (cart.length > 0) {
-            clearCart();
-        }
-    });
+    if (clearCartBtn) {
+        attachKidTouchHandler(clearCartBtn, () => {
+            if (cart.length > 0) {
+                playClearSound();
+                clearCart();
+            }
+        });
+    }
 
     // Pay button handler
     payBtn.addEventListener("click", () => {
