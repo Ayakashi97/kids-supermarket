@@ -3,6 +3,20 @@
  * Plain JavaScript (Vanilla JS) + Web Audio API + Socket.IO
  */
 
+window.toggleFullscreen = function() {
+    if (!document.fullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(err => console.warn(err));
+        } else if (document.documentElement.webkitRequestFullscreen) {
+            document.documentElement.webkitRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen().catch(err => console.warn(err));
+        }
+    }
+};
+
 document.addEventListener("DOMContentLoaded", () => {
     // --- Audio Context for Kid Sounds ---
     let audioCtx = null;

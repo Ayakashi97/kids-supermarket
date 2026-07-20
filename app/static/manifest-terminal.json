@@ -1,12 +1,12 @@
 {
-  "name": "Kinder-Supermarkt Kasse",
-  "short_name": "Kasse",
-  "description": "Kassensystem Dashboard für den Kinder-Supermarkt",
-  "start_url": "/",
+  "name": "Kinder-Supermarkt Terminal",
+  "short_name": "Terminal",
+  "description": "Zahlungsterminal und NFC-Reader für den Kinder-Supermarkt",
+  "start_url": "/terminal",
   "display": "fullscreen",
   "orientation": "any",
-  "background_color": "#ffffff",
-  "theme_color": "#34ace0",
+  "background_color": "#0f2027",
+  "theme_color": "#0f2027",
   "icons": [
     {
       "src": "/static/images/icon-192.png",

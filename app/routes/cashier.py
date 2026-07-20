@@ -118,6 +118,14 @@ def manifest():
     return send_from_directory(static_dir, "manifest.json", mimetype="application/manifest+json")
 
 
+@cashier_bp.route("/manifest-terminal.json")
+def terminal_manifest():
+    from flask import send_from_directory, current_app
+    import os
+    static_dir = os.path.join(current_app.root_path, "static")
+    return send_from_directory(static_dir, "manifest-terminal.json", mimetype="application/manifest+json")
+
+
 @cashier_bp.route("/sw.js")
 def service_worker():
     from flask import send_from_directory, current_app
