@@ -1,215 +1,188 @@
-{% extends "base.html" %}
+{% extends "admin/base_admin.html" %}
+{% set active_page = "settings" %}
 
-{% block title %}Einstellungen — Admin Panel{% endblock %}
-{% block manifest_url %}/manifest-admin.json{% endblock %}
+{% block admin_title %}Einstellungen — Admin Panel{% endblock %}
 
-{% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% block admin_head %}
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 {% endblock %}
 
-{% block content %}
-<nav class="admin-nav">
-    <div class="admin-nav-container">
-        <a href="{{ url_for('admin.dashboard') }}" class="admin-brand">🛒 Supermarkt Admin</a>
-        <button type="button" class="admin-nav-toggle" onclick="document.querySelector('.admin-menu').classList.toggle('open')">☰</button>
-        <div class="admin-menu">
-            <a href="{{ url_for('admin.dashboard') }}">📊 Dashboard</a>
-            <a href="{{ url_for('admin.categories') }}">🏷️ Kategorien</a>
-            <a href="{{ url_for('admin.products') }}">🍎 Produkte</a>
-            <a href="{{ url_for('admin.cards') }}">💳 Kundenkarten</a>
-            <a href="{{ url_for('admin.transactions') }}">🛍️ Einkäufe</a>
-            <a href="{{ url_for('admin.settings') }}" class="active">⚙️ Einstellungen</a>
-            <a href="{{ url_for('admin.logout') }}" class="logout-link">🚪 Abmelden</a>
-        </div>
-    </div>
-</nav>
-
-<div class="admin-container">
-    <div class="page-title-row">
-        <h2>System-Einstellungen & Bon-Layout ⚙️</h2>
-    </div>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="badge badge-{{ category }}" style="font-size: 1rem; margin-bottom: 1.4rem; width: 100%; display: flex; justify-content: center; padding: 0.8rem 1.2rem;">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    <form method="POST">
-        <div class="admin-card">
-            <h3>Supermarkt-Einstellungen</h3>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="shop_name">Name des Supermarkts:</label>
-                    <input type="text" id="shop_name" name="shop_name" value="{{ settings.shop_name }}" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="admin_pin">Admin PIN (Zugangsschutz):</label>
-                    <input type="password" id="admin_pin" name="admin_pin" value="{{ settings.admin_pin }}" required>
-                </div>
-
-                <div class="form-group span-full" style="grid-column: span 2;">
-                    <label for="base_url">Server Base-URL / IP-Adresse (für QR-Codes):</label>
-                    <input type="text" id="base_url" name="base_url" value="{{ settings.base_url }}" placeholder="z.B. http://192.168.1.100:5050 (leer lassen für automatische Erkennung)">
-                    <small>Wird in QR-Codes auf Kassenbons gedruckt, damit Smartphone-Kameras beim Scannen direkt den Bon öffnen.</small>
-                </div>
-
-                <div class="form-group span-full" style="grid-column: span 2;">
-                    <label for="nfc_mode">NFC-Lesegerät Modus (Smartphone Web NFC vs Touchscreen vs Legacy Hardware):</label>
-                    <select id="nfc_mode" name="nfc_mode">
-                        <option value="web_nfc" {% if settings.nfc_mode == 'web_nfc' or not settings.nfc_mode %}selected{% endif %}>📱 Smartphone Web NFC (NFC-Chip im Handy z.B. Android Chrome)</option>
-                        <option value="touchscreen_simulation" {% if settings.nfc_mode == 'touchscreen_simulation' %}selected{% endif %}>👆 Touchscreen-Kartenwahl auf Terminal (Ideal für iOS Safari / ohne NFC)</option>
-                        <option value="hardware" {% if settings.nfc_mode == 'hardware' %}selected{% endif %}>🔌 Legacy Hardware NFC-Lesegerät (PN532 Modul via Pi #2)</option>
-                    </select>
-                    <small>Bei 'Smartphone Web NFC' scannt das alte Smartphone direkt über seinen eingebauten NFC-Chip im Browser!</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="pin_mode">Terminal PIN-Abfrage (Zahlungsschutz / Spiel-PIN):</label>
-                    <select id="pin_mode" name="pin_mode">
-                        <option value="disabled" {% if settings.pin_mode == 'disabled' %}selected{% endif %}>Deaktiviert (Sofort bezahlen bei Auflegen)</option>
-                        <option value="signature" {% if settings.pin_mode == 'signature' %}selected{% endif %}>🖋️ Unterschrift auf Terminal (Signature Pad mit Finger zeichen)</option>
-                        <option value="any_4_digits" {% if settings.pin_mode == 'any_4_digits' %}selected{% endif %}>Beliebige 4 Zahlen akzeptieren (Spielgeld-Erlebnis)</option>
-                        <option value="exact_match" {% if settings.pin_mode == 'exact_match' %}selected{% endif %}>Exakte PIN prüfen (Sicherheits-Modus)</option>
-                    </select>
-                    <small>Bestimmt, ob das Touchscreen-Terminal nach dem Auflegen eine PIN abfragt oder ein Unterschriftenfeld zeigt.</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="screen_timeout">Terminal Bildschirm-Standby (Display ausschalten / dimmen):</label>
-                    <select id="screen_timeout" name="screen_timeout">
-                        <option value="15" {% if settings.screen_timeout == '15' %}selected{% endif %}>Nach 15 Sekunden Inaktivität</option>
-                        <option value="30" {% if settings.screen_timeout == '30' %}selected{% endif %}>Nach 30 Sekunden Inaktivität (Standard)</option>
-                        <option value="60" {% if settings.screen_timeout == '60' %}selected{% endif %}>Nach 1 Minute Inaktivität</option>
-                        <option value="120" {% if settings.screen_timeout == '120' %}selected{% endif %}>Nach 2 Minuten Inaktivität</option>
-                        <option value="300" {% if settings.screen_timeout == '300' %}selected{% endif %}>Nach 5 Minuten Inaktivität</option>
-                        <option value="0" {% if settings.screen_timeout == '0' %}selected{% endif %}>Nie (Bildschirm bleibt dauerhaft an)</option>
-                    </select>
-                    <small>Schaltet das Terminal-Display im Leerlauf automatisch ab/dunkel. Bei Karte auflegen oder Tippen wird es sofort wieder wach.</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="show_nfc_toast">NFC-Karte Toast-Benachrichtigung auf Terminal:</label>
-                    <select id="show_nfc_toast" name="show_nfc_toast">
-                        <option value="true" {% if settings.show_nfc_toast == 'true' or not settings.show_nfc_toast %}selected{% endif %}>Aktiviert („✅ NFC Karte erfasst!“ Banner anzeigen)</option>
-                        <option value="false" {% if settings.show_nfc_toast == 'false' %}selected{% endif %}>Deaktiviert (Stumm verarbeiten — Kein Hinweisbanner)</option>
-                    </select>
-                    <small>Bestimmt, ob beim Scannen einer Karte das Banner „NFC Karte erfasst (ID: ...)“ auf dem Terminal auftaucht.</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="admin-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.4rem;">
-                <h3>🧾 Kassenbon-Layout & Druckereinstellungen</h3>
-                <a href="/receipt/preview" target="_blank" class="btn btn-primary btn-sm">Bon Vorschau / PDF 📄</a>
-            </div>
-            
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="printer_enabled">Hardware Bon-Drucker aktivieren:</label>
-                    <select id="printer_enabled" name="printer_enabled">
-                        <option value="false" {% if settings.printer_enabled == 'false' %}selected{% endif %}>Nein (Deaktiviert — Keine Fehler wenn kein Drucker angeschlossen ist)</option>
-                        <option value="true" {% if settings.printer_enabled == 'true' %}selected{% endif %}>Ja (Aktiviert — USB Thermodrucker an /dev/usb/lp0)</option>
-                    </select>
-                    <small>HINWEIS: Auch wenn der Hardware-Drucker deaktiviert ist, steht der Bon jederzeit als <strong>PDF / Ansicht</strong> im Browser zur Verfügung!</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="print_mode">Bon-Druckverhalten nach der Zahlung:</label>
-                    <select id="print_mode" name="print_mode">
-                        <option value="ask_cashier" {% if settings.print_mode == 'ask_cashier' or not settings.print_mode %}selected{% endif %}>Kassierer nach Zahlung fragen (Button "Bon drucken" auf der Kasse)</option>
-                        <option value="always" {% if settings.print_mode == 'always' %}selected{% endif %}>Immer automatisch drucken (sofern Drucker aktiv)</option>
-                        <option value="never" {% if settings.print_mode == 'never' %}selected{% endif %}>Nie automatisch drucken (Nur PDF-Bon anzeigen)</option>
-                    </select>
-                    <small>Schützt vor Papierverschwendung. Es gilt automatisch ein <strong>Limit von maximal 20 Bons pro Stunde</strong>!</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="printer_device">USB Drucker-Gerätepfad:</label>
-                    <input type="text" id="printer_device" name="printer_device" value="{{ settings.printer_device }}">
-                    <small>Standard für Raspberry Pi USB-Drucker: <code>/dev/usb/lp0</code></small>
-                </div>
-
-                <div class="form-group">
-                    <label for="paper_width">Papierbreite:</label>
-                    <select id="paper_width" name="paper_width">
-                        <option value="58mm" {% if settings.paper_width == '58mm' %}selected{% endif %}>58 mm (Standard Thermo-Bon)</option>
-                        <option value="80mm" {% if settings.paper_width == '80mm' %}selected{% endif %}>80 mm (Breit Bon)</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="receipt_header">Kopfzeile auf dem Kassenbon:</label>
-                    <input type="text" id="receipt_header" name="receipt_header" value="{{ settings.receipt_header }}">
-                </div>
-
-                <div class="form-group">
-                    <label for="receipt_footer">Fußzeile auf dem Kassenbon:</label>
-                    <input type="text" id="receipt_footer" name="receipt_footer" value="{{ settings.receipt_footer }}">
-                </div>
-
-                <div class="form-group">
-                    <label for="show_card_name">Kundenname auf Bon drucken:</label>
-                    <select id="show_card_name" name="show_card_name">
-                        <option value="true" {% if settings.show_card_name == 'true' %}selected{% endif %}>Ja (z.B. Kunde: Lena 💳)</option>
-                        <option value="false" {% if settings.show_card_name == 'false' %}selected{% endif %}>Nein (Anonym drucken)</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="show_date_time">Datum & Uhrzeit drucken:</label>
-                    <select id="show_date_time" name="show_date_time">
-                        <option value="true" {% if settings.show_date_time == 'true' %}selected{% endif %}>Ja</option>
-                        <option value="false" {% if settings.show_date_time == 'false' %}selected{% endif %}>Nein</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- Visueller Drag & Drop Bon-Template Builder -->
-        <div class="admin-card">
-            <h3>🧾 Visueller Kassenbon Template-Builder</h3>
-            <p style="color: var(--admin-muted); margin-bottom: 1.4rem; font-weight: 600;">
-                Stelle hier per Drag & Drop oder Pfeiltasten deinen Kassenbon zusammen. Alle Änderungen werden in Echtzeit simuliert!
-            </p>
-
-            <input type="hidden" id="receipt_layout_json_input" name="receipt_layout_json" value='{{ settings.receipt_layout_json }}'>
-
-            <div class="builder-side-by-side">
-                <!-- Left Column: Draggable Block Controls & Ordering -->
-                <div class="builder-controls-col">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h4 style="margin: 0; font-size: 1.1rem; color: #0f172a;">🧱 Bausteine & Reihenfolge</h4>
-                        <button type="button" class="btn btn-sm btn-primary" id="btnAddReceiptBlock">➕ Baustein hinzufügen</button>
-                    </div>
-
-                    <div id="receiptBlocksContainer" class="builder-blocks-list">
-                        <!-- Rendered via JS -->
-                    </div>
-
-                    <div style="margin-top: 1.4rem; display: flex; gap: 0.8rem;">
-                        <button type="button" class="btn btn-sm btn-secondary" id="btnResetReceiptLayout">
-                            🔄 Auf Standard-Layout zurücksetzen
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Right Column: Realtime Thermal Receipt Live Preview -->
-                <div class="builder-preview-col">
-                    <h4 style="margin-bottom: 1rem; text-align: center; font-size: 1.1rem; color: #0f172a;">📄 Live-Bon Vorschau</h4>
-                    <div class="receipt-paper-preview" id="receiptLivePreview">
-                        <!-- Rendered via JS -->
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <button type="submit" class="btn btn-success" style="font-size: 1.1rem; padding: 0.9rem 2.2rem; margin-top: 1.2rem;">Einstellungen speichern 💾</button>
-    </form>
+{% block admin_content %}
+<div class="page-title-row">
+    <h2>System-Einstellungen & Bon-Layout ⚙️</h2>
 </div>
+
+<form method="POST">
+    <div class="admin-card">
+        <h3>Supermarkt-Einstellungen</h3>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="shop_name">Name des Supermarkts:</label>
+                <input type="text" id="shop_name" name="shop_name" value="{{ settings.shop_name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="admin_pin">Admin PIN (Zugangsschutz):</label>
+                <input type="password" id="admin_pin" name="admin_pin" value="{{ settings.admin_pin }}" required>
+            </div>
+
+            <div class="form-group span-full" style="grid-column: span 2;">
+                <label for="base_url">Server Base-URL / IP-Adresse (für QR-Codes):</label>
+                <input type="text" id="base_url" name="base_url" value="{{ settings.base_url }}" placeholder="z.B. http://192.168.1.100:5050 (leer lassen für automatische Erkennung)">
+                <small>Wird in QR-Codes auf Kassenbons gedruckt, damit Smartphone-Kameras beim Scannen direkt den Bon öffnen.</small>
+            </div>
+
+            <div class="form-group span-full" style="grid-column: span 2;">
+                <label for="nfc_mode">NFC-Lesegerät Modus (Smartphone Web NFC vs Touchscreen vs Legacy Hardware):</label>
+                <select id="nfc_mode" name="nfc_mode">
+                    <option value="web_nfc" {% if settings.nfc_mode == 'web_nfc' or not settings.nfc_mode %}selected{% endif %}>📱 Smartphone Web NFC (NFC-Chip im Handy z.B. Android Chrome)</option>
+                    <option value="touchscreen_simulation" {% if settings.nfc_mode == 'touchscreen_simulation' %}selected{% endif %}>👆 Touchscreen-Kartenwahl auf Terminal (Ideal für iOS Safari / ohne NFC)</option>
+                    <option value="hardware" {% if settings.nfc_mode == 'hardware' %}selected{% endif %}>🔌 Legacy Hardware NFC-Lesegerät (PN532 Modul via Pi #2)</option>
+                </select>
+                <small>Bei 'Smartphone Web NFC' scannt das alte Smartphone direkt über seinen eingebauten NFC-Chip im Browser!</small>
+            </div>
+
+            <div class="form-group">
+                <label for="pin_mode">Terminal PIN-Abfrage (Zahlungsschutz / Spiel-PIN):</label>
+                <select id="pin_mode" name="pin_mode">
+                    <option value="disabled" {% if settings.pin_mode == 'disabled' %}selected{% endif %}>Deaktiviert (Sofort bezahlen bei Auflegen)</option>
+                    <option value="signature" {% if settings.pin_mode == 'signature' %}selected{% endif %}>🖋️ Unterschrift auf Terminal (Signature Pad mit Finger zeichen)</option>
+                    <option value="any_4_digits" {% if settings.pin_mode == 'any_4_digits' %}selected{% endif %}>Beliebige 4 Zahlen akzeptieren (Spielgeld-Erlebnis)</option>
+                    <option value="exact_match" {% if settings.pin_mode == 'exact_match' %}selected{% endif %}>Exakte PIN prüfen (Sicherheits-Modus)</option>
+                </select>
+                <small>Bestimmt, ob das Touchscreen-Terminal nach dem Auflegen eine PIN abfragt oder ein Unterschriftenfeld zeigt.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="screen_timeout">Terminal Bildschirm-Standby (Display ausschalten / dimmen):</label>
+                <select id="screen_timeout" name="screen_timeout">
+                    <option value="15" {% if settings.screen_timeout == '15' %}selected{% endif %}>Nach 15 Sekunden Inaktivität</option>
+                    <option value="30" {% if settings.screen_timeout == '30' %}selected{% endif %}>Nach 30 Sekunden Inaktivität (Standard)</option>
+                    <option value="60" {% if settings.screen_timeout == '60' %}selected{% endif %}>Nach 1 Minute Inaktivität</option>
+                    <option value="120" {% if settings.screen_timeout == '120' %}selected{% endif %}>Nach 2 Minuten Inaktivität</option>
+                    <option value="300" {% if settings.screen_timeout == '300' %}selected{% endif %}>Nach 5 Minuten Inaktivität</option>
+                    <option value="0" {% if settings.screen_timeout == '0' %}selected{% endif %}>Nie (Bildschirm bleibt dauerhaft an)</option>
+                </select>
+                <small>Schaltet das Terminal-Display im Leerlauf automatisch ab/dunkel. Bei Karte auflegen oder Tippen wird es sofort wieder wach.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="show_nfc_toast">NFC-Karte Toast-Benachrichtigung auf Terminal:</label>
+                <select id="show_nfc_toast" name="show_nfc_toast">
+                    <option value="true" {% if settings.show_nfc_toast == 'true' or not settings.show_nfc_toast %}selected{% endif %}>Aktiviert („✅ NFC Karte erfasst!“ Banner anzeigen)</option>
+                    <option value="false" {% if settings.show_nfc_toast == 'false' %}selected{% endif %}>Deaktiviert (Stumm verarbeiten — Kein Hinweisbanner)</option>
+                </select>
+                <small>Bestimmt, ob beim Scannen einer Karte das Banner „NFC Karte erfasst (ID: ...)“ auf dem Terminal auftaucht.</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.4rem;">
+            <h3>🧾 Kassenbon-Layout & Druckereinstellungen</h3>
+            <a href="/receipt/preview" target="_blank" class="btn btn-primary btn-sm">Bon Vorschau / PDF 📄</a>
+        </div>
+        
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="printer_enabled">Hardware Bon-Drucker aktivieren:</label>
+                <select id="printer_enabled" name="printer_enabled">
+                    <option value="false" {% if settings.printer_enabled == 'false' %}selected{% endif %}>Nein (Deaktiviert — Keine Fehler wenn kein Drucker angeschlossen ist)</option>
+                    <option value="true" {% if settings.printer_enabled == 'true' %}selected{% endif %}>Ja (Aktiviert — USB Thermodrucker an /dev/usb/lp0)</option>
+                </select>
+                <small>HINWEIS: Auch wenn der Hardware-Drucker deaktiviert ist, steht der Bon jederzeit als <strong>PDF / Ansicht</strong> im Browser zur Verfügung!</small>
+            </div>
+
+            <div class="form-group">
+                <label for="print_mode">Bon-Druckverhalten nach der Zahlung:</label>
+                <select id="print_mode" name="print_mode">
+                    <option value="ask_cashier" {% if settings.print_mode == 'ask_cashier' or not settings.print_mode %}selected{% endif %}>Kassierer nach Zahlung fragen (Button "Bon drucken" auf der Kasse)</option>
+                    <option value="always" {% if settings.print_mode == 'always' %}selected{% endif %}>Immer automatisch drucken (sofern Drucker aktiv)</option>
+                    <option value="never" {% if settings.print_mode == 'never' %}selected{% endif %}>Nie automatisch drucken (Nur PDF-Bon anzeigen)</option>
+                </select>
+                <small>Schützt vor Papierverschwendung. Es gilt automatisch ein <strong>Limit von maximal 20 Bons pro Stunde</strong>!</small>
+            </div>
+
+            <div class="form-group">
+                <label for="printer_device">USB Drucker-Gerätepfad:</label>
+                <input type="text" id="printer_device" name="printer_device" value="{{ settings.printer_device }}">
+                <small>Standard für Raspberry Pi USB-Drucker: <code>/dev/usb/lp0</code></small>
+            </div>
+
+            <div class="form-group">
+                <label for="paper_width">Papierbreite:</label>
+                <select id="paper_width" name="paper_width">
+                    <option value="58mm" {% if settings.paper_width == '58mm' %}selected{% endif %}>58 mm (Standard Thermo-Bon)</option>
+                    <option value="80mm" {% if settings.paper_width == '80mm' %}selected{% endif %}>80 mm (Breit Bon)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="receipt_header">Kopfzeile auf dem Kassenbon:</label>
+                <input type="text" id="receipt_header" name="receipt_header" value="{{ settings.receipt_header }}">
+            </div>
+
+            <div class="form-group">
+                <label for="receipt_footer">Fußzeile auf dem Kassenbon:</label>
+                <input type="text" id="receipt_footer" name="receipt_footer" value="{{ settings.receipt_footer }}">
+            </div>
+
+            <div class="form-group">
+                <label for="show_card_name">Kundenname auf Bon drucken:</label>
+                <select id="show_card_name" name="show_card_name">
+                    <option value="true" {% if settings.show_card_name == 'true' %}selected{% endif %}>Ja (z.B. Kunde: Lena 💳)</option>
+                    <option value="false" {% if settings.show_card_name == 'false' %}selected{% endif %}>Nein (Anonym drucken)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="show_date_time">Datum & Uhrzeit drucken:</label>
+                <select id="show_date_time" name="show_date_time">
+                    <option value="true" {% if settings.show_date_time == 'true' %}selected{% endif %}>Ja</option>
+                    <option value="false" {% if settings.show_date_time == 'false' %}selected{% endif %}>Nein</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visueller Drag & Drop Bon-Template Builder -->
+    <div class="admin-card">
+        <h3>🧾 Visueller Kassenbon Template-Builder</h3>
+        <p style="color: var(--admin-muted); margin-bottom: 1.4rem; font-weight: 600;">
+            Stelle hier per Drag & Drop oder Pfeiltasten deinen Kassenbon zusammen. Alle Änderungen werden in Echtzeit simuliert!
+        </p>
+
+        <input type="hidden" id="receipt_layout_json_input" name="receipt_layout_json" value='{{ settings.receipt_layout_json }}'>
+
+        <div class="builder-side-by-side">
+            <!-- Left Column: Draggable Block Controls & Ordering -->
+            <div class="builder-controls-col">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h4 style="margin: 0; font-size: 1.1rem; color: #0f172a;">🧱 Bausteine & Reihenfolge</h4>
+                    <button type="button" class="btn btn-sm btn-primary" id="btnAddReceiptBlock">➕ Baustein hinzufügen</button>
+                </div>
+
+                <div id="receiptBlocksContainer" class="builder-blocks-list">
+                    <!-- Rendered via JS -->
+                </div>
+
+                <div style="margin-top: 1.4rem; display: flex; gap: 0.8rem;">
+                    <button type="button" class="btn btn-sm btn-secondary" id="btnResetReceiptLayout">
+                        🔄 Auf Standard-Layout zurücksetzen
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column: Realtime Thermal Receipt Live Preview -->
+            <div class="builder-preview-col">
+                <h4 style="margin-bottom: 1rem; text-align: center; font-size: 1.1rem; color: #0f172a;">📄 Live-Bon Vorschau</h4>
+                <div class="receipt-paper-preview" id="receiptLivePreview">
+                    <!-- Rendered via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-success" style="font-size: 1.1rem; padding: 0.9rem 2.2rem; margin-top: 1.2rem;">Einstellungen speichern 💾</button>
+</form>
 {% endblock %}

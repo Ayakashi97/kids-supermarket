@@ -1,94 +1,64 @@
-{% extends "base.html" %}
+{% extends "admin/base_admin.html" %}
+{% set active_page = "transactions" %}
 
-{% block title %}Einkäufe & Bon-Historie — Admin Panel{% endblock %}
-{% block manifest_url %}/manifest-admin.json{% endblock %}
+{% block admin_title %}Einkäufe & Bon-Historie — Admin Panel{% endblock %}
 
-{% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
-{% endblock %}
+{% block admin_content %}
+<div class="page-title-row">
+    <h2>Einkaufshistorie 🧾</h2>
+    {% if transactions %}
+    <a href="{{ url_for('admin.clear_transactions') }}" class="btn btn-sm btn-danger" onclick="return confirm('Wirklich ALLE Transaktionen löschen?');">Historie leeren 🗑️</a>
+    {% endif %}
+</div>
 
-{% block content %}
-<nav class="admin-nav">
-    <div class="admin-nav-container">
-        <a href="{{ url_for('admin.dashboard') }}" class="admin-brand">🛒 Supermarkt Admin</a>
-        <button type="button" class="admin-nav-toggle" onclick="document.querySelector('.admin-menu').classList.toggle('open')">☰</button>
-        <div class="admin-menu">
-            <a href="{{ url_for('admin.dashboard') }}">📊 Dashboard</a>
-            <a href="{{ url_for('admin.categories') }}">🏷️ Kategorien</a>
-            <a href="{{ url_for('admin.products') }}">🍎 Produkte</a>
-            <a href="{{ url_for('admin.cards') }}">💳 Kundenkarten</a>
-            <a href="{{ url_for('admin.transactions') }}" class="active">🛍️ Einkäufe</a>
-            <a href="{{ url_for('admin.settings') }}">⚙️ Einstellungen</a>
-            <a href="{{ url_for('admin.logout') }}" class="logout-link">🚪 Abmelden</a>
-        </div>
-    </div>
-</nav>
-
-<div class="admin-container">
-    <div class="page-title-row">
-        <h2>Einkaufshistorie 🧾</h2>
-        {% if transactions %}
-        <a href="{{ url_for('admin.clear_transactions') }}" class="btn btn-sm btn-danger" onclick="return confirm('Wirklich ALLE Transaktionen löschen?');">Historie leeren 🗑️</a>
-        {% endif %}
-    </div>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="badge badge-{{ category }}" style="font-size: 1rem; margin-bottom: 1.4rem; width: 100%; display: flex; justify-content: center; padding: 0.8rem 1.2rem;">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    <div class="admin-card">
-        <h3>Alle Transaktionen</h3>
-        <div class="table-responsive">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Bon-Nr.</th>
-                        <th>Datum & Zeit</th>
-                        <th>Kunde / Karte</th>
-                        <th>Artikel</th>
-                        <th>Gesamtsumme</th>
-                        <th>Aktionen</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for tx in transactions %}
-                    <tr>
-                        <td><span class="badge badge-secondary">#{{ tx.id }}</span></td>
-                        <td>{{ tx.created_at.strftime('%d.%m.%Y %H:%M') if tx.created_at else '-' }}</td>
-                        <td>
-                            {% if tx.card %}
-                                <strong>{{ tx.card.name }}</strong> 💳
-                            {% else %}
-                                <em>Gast</em>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.9rem; color: #334155;">
-                                {% for item in tx.items %}
-                                <li>{{ item.quantity }}x {{ item.product_name }} ({{ "%.2f"|format(item.price_cents / 100)|replace('.', ',') }} €)</li>
-                                {% endfor %}
-                            </ul>
-                        </td>
-                        <td><strong style="color: var(--admin-accent); font-size: 1.15rem;">{{ "%.2f"|format(tx.total_cents / 100)|replace('.', ',') }} €</strong></td>
-                        <td>
-                            <div class="action-buttons">
-                                <a href="/receipt/{{ tx.id }}" target="_blank" class="btn btn-sm btn-primary">Bon / PDF 📄</a>
-                                <a href="{{ url_for('admin.delete_transaction', tx_id=tx.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Transaktion löschen?');">Löschen 🗑️</a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="6" style="text-align: center; color: var(--admin-muted); padding: 2rem;">Noch keine Transaktionen vorhanden.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+<div class="admin-card">
+    <h3>Alle Transaktionen</h3>
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Bon-Nr.</th>
+                    <th>Datum & Zeit</th>
+                    <th>Kunde / Karte</th>
+                    <th>Artikel</th>
+                    <th>Gesamtsumme</th>
+                    <th>Aktionen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in transactions %}
+                <tr>
+                    <td><span class="badge badge-secondary">#{{ tx.id }}</span></td>
+                    <td>{{ tx.created_at.strftime('%d.%m.%Y %H:%M') if tx.created_at else '-' }}</td>
+                    <td>
+                        {% if tx.card %}
+                            <strong>{{ tx.card.name }}</strong> 💳
+                        {% else %}
+                            <em>Gast</em>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.9rem; color: #334155;">
+                            {% for item in tx.items %}
+                            <li>{{ item.quantity }}x {{ item.product_name }} ({{ "%.2f"|format(item.price_cents / 100)|replace('.', ',') }} €)</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td><strong style="color: var(--admin-accent); font-size: 1.15rem;">{{ "%.2f"|format(tx.total_cents / 100)|replace('.', ',') }} €</strong></td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="/receipt/{{ tx.id }}" target="_blank" class="btn btn-sm btn-primary">Bon / PDF 📄</a>
+                            <a href="{{ url_for('admin.delete_transaction', tx_id=tx.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Transaktion löschen?');">Löschen 🗑️</a>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--admin-muted); padding: 2rem;">Noch keine Transaktionen vorhanden.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}
