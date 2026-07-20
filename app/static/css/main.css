@@ -721,8 +721,12 @@ body.cashier-page, body.terminal-page {
     animation: fadeIn 0.3s ease;
 }
 
+.hidden {
+    display: none !important;
+}
+
 .overlay.hidden {
-    display: none;
+    display: none !important;
 }
 
 @keyframes fadeIn {
