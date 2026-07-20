@@ -75,6 +75,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 card.style.opacity = "0.5";
             }
 
+            const eyeIcon = block.enabled 
+                ? `<svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`
+                : `<svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+
             card.innerHTML = `
                 <div class="builder-block-header">
                     <span class="drag-handle" title="Ziehen zum Sortieren">⠿</span>
@@ -84,18 +88,25 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                     <div class="block-actions">
                         <button type="button" class="btn-toggle" title="${block.enabled ? 'Deaktivieren' : 'Aktivieren'}">
-                            ${block.enabled ? '👁️' : '🙈'}
+                            ${eyeIcon}
                         </button>
-                        <button type="button" class="btn-up" ${index === 0 ? 'disabled' : ''} title="Nach oben">⬆️</button>
-                        <button type="button" class="btn-down" ${index === layoutBlocks.length - 1 ? 'disabled' : ''} title="Nach unten">⬇️</button>
-                        <button type="button" class="btn-opt" title="Optionen">⚙️</button>
-                        ${block.type !== 'items' ? '<button type="button" class="btn-del" title="Entfernen">🗑️</button>' : ''}
+                        <button type="button" class="btn-up" ${index === 0 ? 'disabled' : ''} title="Nach oben">
+                            <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+                        </button>
+                        <button type="button" class="btn-down" ${index === layoutBlocks.length - 1 ? 'disabled' : ''} title="Nach unten">
+                            <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+                        </button>
+                        <button type="button" class="btn-opt" title="Optionen">
+                            <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        </button>
+                        ${block.type !== 'items' ? `<button type="button" class="btn-del" title="Entfernen"><svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>` : ''}
                     </div>
                 </div>
                 <div class="block-options-panel" id="options_panel_${index}" style="display: none;">
                     ${renderBlockOptionsHTML(block, index)}
                 </div>
             `;
+
 
             // HTML5 Drag & Drop Listeners
             card.addEventListener("dragstart", (e) => {
