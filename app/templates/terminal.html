@@ -548,12 +548,28 @@ let webNfcScanning = false;
 let ndefReaderInstance = null;
 let currentScannerMode = "disabled"; // updated from server status event
 
+let termAudioCtx = null;
+function initTermAudio() {
+    if (!termAudioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+            termAudioCtx = new AudioContextClass();
+        }
+    }
+    if (termAudioCtx && termAudioCtx.state === "suspended") {
+        termAudioCtx.resume().catch(err => console.warn("AudioContext resume error:", err));
+    }
+    return termAudioCtx;
+}
+
 // Sound synthesis using Web Audio API
 function playSound(type) {
     try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-        const ctx = new AudioContext();
+        const ctx = initTermAudio();
+        if (!ctx) return;
+        if (ctx.state === "suspended") {
+            ctx.resume();
+        }
 
         if (type === 'beep') {
             const osc = ctx.createOscillator();
@@ -765,7 +781,7 @@ async function initWebNFC(isUserClick = false) {
             ndefReaderInstance.onreading = (event) => {
                 console.log("NFC Tag detected! Serial number:", event.serialNumber);
                 resetIdleTimer();
-                playSound('beep');
+                initTermAudio();
 
                 let rawUid = event.serialNumber || "";
 
