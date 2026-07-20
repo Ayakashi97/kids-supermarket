@@ -16,10 +16,10 @@ and an old smartphone (Android/iPhone) acting as the NFC card reader terminal an
 - **Database**: SQLite via SQLAlchemy (for products, categories, transactions, customer cards, settings)
 - **Orientation**: Terminal locked to **Portrait** (`portrait`); Cashier UI locked to **Landscape** (`landscape`) with kid-friendly **Pagination** (no scrolling)
 - **Printer**: Epson TM-series USB thermal receipt printer (via `python-escpos`) + Printable PDF Exporter
-- **NFC Reader**: Smartphone Web NFC API (`window.NDEFReader` on Android Chrome with `localStorage` activation persistence) OR Touchscreen Card Selector (iOS Safari / Fallback) OR optional PN532 hardware
+- **NFC Reader**: Smartphone Web NFC API (`window.NDEFReader` on Android Chrome with `localStorage` activation persistence) OR Touchscreen Card Selector (iOS Safari / Fallback) OR optional PN532 hardware. Also supports **Hand-Scanner Mode** in idle state to scan NFC tags assigned to products into the cart.
 - **PWA**: Dual Web App Manifests (`manifest.json` for Cashier App, `manifest-terminal.json` for Terminal App) + Service Worker (`sw.js`) for full-screen "Add to Home Screen" on iOS & Android
 - **Containerization**: Docker + Docker Compose (multi-service)
-- **Configuration**: Dynamic Shop Name (`shop_name`), categories, card photos, receipt layouts, and settings via admin panel (stored in SQLite)
+- **Configuration**: Dynamic Shop Name (`shop_name`), categories, card photos, receipt layouts, scanner mode, and settings via admin panel (stored in SQLite)
 
 ## Hardware Architecture
 ```

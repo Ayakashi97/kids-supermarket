@@ -10,6 +10,18 @@ def get_products():
     return jsonify([p.to_dict() for p in products])
 
 
+@api_bp.route("/products/by_nfc/<uid>", methods=["GET"])
+def product_by_nfc(uid):
+    """Lookup a product by its assigned NFC tag UID (normalized match)."""
+    from app.services.socket_events import find_product_by_nfc_uid
+    if not uid:
+        return jsonify({"found": False}), 400
+    product = find_product_by_nfc_uid(uid)
+    if not product:
+        return jsonify({"found": False, "uid": uid}), 404
+    return jsonify({"found": True, "product": product.to_dict()})
+
+
 @api_bp.route("/cards", methods=["GET"])
 def get_cards():
     cards = Card.query.filter_by(is_active=True).all()

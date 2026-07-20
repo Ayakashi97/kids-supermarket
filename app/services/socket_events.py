@@ -49,6 +49,21 @@ def find_card_by_uid(uid: str) -> Card:
     return None
 
 
+def find_product_by_nfc_uid(uid: str):
+    """Find an active product by its NFC tag UID (normalized match)."""
+    from app.models import Product
+    if not uid:
+        return None
+    clean_uid = uid.replace(":", "").replace("-", "").replace(" ", "").strip().lower()
+    if not clean_uid:
+        return None
+    for p in Product.query.filter_by(is_active=True).all():
+        if p.nfc_uid:
+            p_clean = p.nfc_uid.replace(":", "").replace("-", "").replace(" ", "").strip().lower()
+            if p_clean == clean_uid:
+                return p
+    return None
+
 
 def process_completed_payment(card: Card, cart: list, socket_io: SocketIO, signature_data: str = None):
     """Saves completed transaction to DB, prints thermal receipt, and broadcasts payment_success."""
@@ -121,6 +136,7 @@ def register_socket_events(socket_io: SocketIO):
         emit("status", {
             "mode": server_state["mode"],
             "pending_cart_count": len(server_state["pending_cart"]),
+            "scanner_mode": get_setting("scanner_mode", "disabled"),
         })
 
     @socket_io.on("disconnect")
@@ -196,6 +212,24 @@ def register_socket_events(socket_io: SocketIO):
 
         logger.info("NFC Card tapped with UID: %s (Current Server Mode: %s)", uid, server_state["mode"])
         current_mode = server_state["mode"]
+
+        # CASE 0: Produkt-Scanner Modus (only in idle mode, when feature enabled)
+        if current_mode == "idle":
+            scanner_mode = get_setting("scanner_mode", "disabled")
+            if scanner_mode == "enabled":
+                product = find_product_by_nfc_uid(uid)
+                if product:
+                    logger.info("Product NFC tag scanned in scanner mode: %s (%s)", product.name, uid)
+                    socket_io.emit("product_scanned", {
+                        "id": product.id,
+                        "name": product.name,
+                        "price_cents": product.price_cents,
+                        "price_formatted": product.to_dict()["price_formatted"],
+                        "emoji": product.emoji or "🛒",
+                        "category": product.category,
+                    })
+                    return
+                # No product found with this tag — fall through to card lookup (CASE 3)
 
         # CASE 1: Card Registration Mode (Admin)
         if current_mode == "waiting_for_registration":

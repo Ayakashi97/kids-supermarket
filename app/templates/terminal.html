@@ -398,7 +398,7 @@
         <!-- Live Scan Toast Banner -->
         <div id="liveNfcFeedback" class="nfc-feedback-toast hidden"></div>
 
-        <!-- State 1: IDLE -->
+        <!-- State 1: IDLE (Standard) -->
         <div id="stateIdle">
             <div class="card-icon-halo-wrapper">
                 <div class="card-halo-ring"></div>
@@ -410,6 +410,24 @@
             <button type="button" id="btnNfcActivate" class="btn-nfc-activate" onclick="initWebNFC(true)">
                 <span>📱</span> <span>NFC-Leser auf Handy aktivieren</span>
             </button>
+        </div>
+
+        <!-- State 1b: IDLE (Scanner-Modus aktiv) -->
+        <div id="stateScannerIdle" class="hidden">
+            <div class="card-icon-halo-wrapper">
+                <div class="card-halo-ring" style="background: radial-gradient(circle, rgba(251,191,36,0.45) 0%, rgba(245,158,11,0.12) 60%, transparent 100%);"></div>
+                <div class="terminal-card-icon" style="animation: cardPulse 1.8s infinite ease-in-out;">&#x1F3F7;&#xFE0F;</div>
+            </div>
+            <div class="terminal-title">Scanner bereit!</div>
+            <div class="terminal-subtitle">Halte ein Produkt mit NFC-Tag ans Handy</div>
+
+            <!-- Last scanned product feedback -->
+            <div id="lastScannedProduct" class="hidden" style="margin-top:1.2rem; background:rgba(251,191,36,0.18); border:1.5px solid rgba(251,191,36,0.5); border-radius:20px; padding:0.9rem 1.4rem; text-align:center; animation: toastPop 0.35s cubic-bezier(0.175,0.885,0.32,1.275);">
+                <div id="lastScannedEmoji" style="font-size:2.8rem; margin-bottom:0.2rem;"></div>
+                <div id="lastScannedName" style="font-size:1.25rem; font-weight:800;"></div>
+                <div id="lastScannedPrice" style="font-size:1.4rem; font-weight:900; color:#fbbf24; margin-top:0.2rem;"></div>
+                <div style="font-size:0.95rem; opacity:0.75; margin-top:0.3rem;">&#x2705; Hinzugefügt!</div>
+            </div>
         </div>
 
         <!-- State 2: WAITING FOR PAYMENT -->
@@ -528,6 +546,7 @@ const showNfcToastSetting = "{{ show_nfc_toast or 'true' }}" === "true";
 let idleTimer = null;
 let webNfcScanning = false;
 let ndefReaderInstance = null;
+let currentScannerMode = "disabled"; // updated from server status event
 
 // Sound synthesis using Web Audio API
 function playSound(type) {
@@ -547,6 +566,18 @@ function playSound(type) {
             gain.connect(ctx.destination);
             osc.start();
             osc.stop(ctx.currentTime + 0.15);
+        } else if (type === 'scanner') {
+            // Classic supermarket barcode scanner beep: sharp, high, short
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(1900, ctx.currentTime);
+            gain.gain.setValueAtTime(0.18, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.08);
         } else if (type === 'success') {
             const notes = [523.25, 659.25, 783.99, 1046.50];
             notes.forEach((freq, i) => {
@@ -819,7 +850,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function showState(el) {
         wakeUp();
-        [stateIdle, stateWaiting, statePin, stateSignature, stateSuccess, stateError, stateSleep].forEach(s => {
+        const stateScannerIdle = document.getElementById("stateScannerIdle");
+        [stateIdle, stateScannerIdle, stateWaiting, statePin, stateSignature, stateSuccess, stateError, stateSleep].forEach(s => {
             if (s) s.classList.add("hidden");
         });
         if (el) el.classList.remove("hidden");
@@ -928,7 +960,12 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     window.resetTerminalToIdle = function() {
-        if (stateIdle) showState(stateIdle);
+        const stateScannerIdle = document.getElementById("stateScannerIdle");
+        if (currentScannerMode === "enabled" && stateScannerIdle) {
+            showState(stateScannerIdle);
+        } else if (stateIdle) {
+            showState(stateIdle);
+        }
     };
 
     document.addEventListener("pointerdown", () => {
@@ -953,6 +990,43 @@ document.addEventListener("DOMContentLoaded", () => {
         requestScreenWakeLock();
         lockTerminalOrientation();
         initWebNFC();
+    });
+
+    socket.on("status", (data) => {
+        currentScannerMode = data.scanner_mode || "disabled";
+        const stateScannerIdle = document.getElementById("stateScannerIdle");
+        if (currentScannerMode === "enabled") {
+            // Auto-activate NFC in scanner mode without requiring a button click
+            initWebNFC(false);
+            if (data.mode === "idle" && stateScannerIdle) {
+                showState(stateScannerIdle);
+            }
+        }
+    });
+
+    socket.on("product_scanned", (data) => {
+        resetIdleTimer();
+        playSound('scanner');
+        if ('vibrate' in navigator) navigator.vibrate([50, 30, 50]);
+        showNfcFeedbackToast(`🏷️ ${data.emoji || ''} ${data.name} — ${data.price_formatted}`);
+
+        // Show last-scanned product card in scanner idle state
+        const lastEl = document.getElementById('lastScannedProduct');
+        const emojiEl = document.getElementById('lastScannedEmoji');
+        const nameEl = document.getElementById('lastScannedName');
+        const priceEl = document.getElementById('lastScannedPrice');
+        if (emojiEl) emojiEl.textContent = data.emoji || '🛒';
+        if (nameEl) nameEl.textContent = data.name;
+        if (priceEl) priceEl.textContent = data.price_formatted;
+        if (lastEl) {
+            lastEl.classList.remove('hidden');
+            // Force restart animation
+            lastEl.style.animation = 'none';
+            void lastEl.offsetWidth;
+            lastEl.style.animation = '';
+            clearTimeout(window._lastScannedTimer);
+            window._lastScannedTimer = setTimeout(() => lastEl.classList.add('hidden'), 3500);
+        }
     });
 
     socket.on("waiting_for_payment", (data) => {

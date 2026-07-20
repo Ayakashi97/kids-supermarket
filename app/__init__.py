@@ -65,6 +65,13 @@ def create_app(config_class=Config):
         except Exception:
             db.session.rollback()
 
+        try:
+            db.session.execute(db.text("ALTER TABLE products ADD COLUMN nfc_uid VARCHAR(50)"))
+            db.session.commit()
+            logger.info("Migrated SQLite schema: added products.nfc_uid column.")
+        except Exception:
+            db.session.rollback()
+
         seed_default_products()
 
     logger.info("Kinder-Supermarkt app initialized successfully.")

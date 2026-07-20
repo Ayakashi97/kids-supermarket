@@ -31,6 +31,7 @@ class Product(db.Model):
     image_path = db.Column(db.String(255), nullable=True)
     category = db.Column(db.String(50), nullable=False, default="Sonstiges")
     is_active = db.Column(db.Boolean, default=True, nullable=False)
+    nfc_uid = db.Column(db.String(50), unique=True, nullable=True, index=True)  # Optional NFC tag UID for product scanner mode
 
     def to_dict(self):
         return {
@@ -42,6 +43,7 @@ class Product(db.Model):
             "image_path": self.image_path,
             "category": self.category,
             "is_active": self.is_active,
+            "nfc_uid": self.nfc_uid,
         }
 
 

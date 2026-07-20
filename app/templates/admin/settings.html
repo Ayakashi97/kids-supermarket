@@ -43,6 +43,19 @@
                 <small>Bei 'Smartphone Web NFC' scannt das alte Smartphone direkt über seinen eingebauten NFC-Chip im Browser!</small>
             </div>
 
+            <div class="form-group span-full" style="grid-column: span 2;">
+                <label for="scanner_mode">🔍 Terminal Hand-Scanner Modus (Produkt-NFC-Tags scannen):</label>
+                <select id="scanner_mode" name="scanner_mode">
+                    <option value="disabled" {% if settings.scanner_mode == 'disabled' or not settings.scanner_mode %}selected{% endif %}>❌ Deaktiviert — Terminal nur für Kundenkarten-Zahlung</option>
+                    <option value="enabled" {% if settings.scanner_mode == 'enabled' %}selected{% endif %}>✅ Aktiviert — Terminal scannt im Leerlauf Produkt-Tags und fügt sie dem Warenkorb hinzu</option>
+                </select>
+                <small>
+                    Wenn aktiviert: Im Leerlauf (kein Bezahlvorgang aktiv) scannt das Terminal-Smartphone NFC-Tags von Produkten
+                    und fügt sie automatisch dem Warenkorb auf der Kasse hinzu. Produkte benötigen dafür einen zugewiesenen NFC-Tag
+                    (einstellbar bei jedem Produkt). Bei aktivem Bezahlvorgang verhält sich das Terminal weiterhin wie gewohnt.
+                </small>
+            </div>
+
             <div class="form-group">
                 <label for="pin_mode">Terminal PIN-Abfrage (Zahlungsschutz / Spiel-PIN):</label>
                 <select id="pin_mode" name="pin_mode">

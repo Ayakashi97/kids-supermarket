@@ -91,12 +91,21 @@ def products():
                 file.save(os.path.join(save_dir, filename))
                 image_path = f"images/products/{filename}"
 
+        nfc_uid = request.form.get("nfc_uid", "").strip() or None
+
+        if nfc_uid:
+            existing_nfc = Product.query.filter_by(nfc_uid=nfc_uid).first()
+            if existing_nfc:
+                flash(f"NFC-Tag '{nfc_uid}' ist bereits dem Produkt '{existing_nfc.name}' zugewiesen!", "danger")
+                return redirect(url_for("admin.products"))
+
         product = Product(
             name=name,
             price_cents=price_cents,
             category=category,
             emoji=emoji,
             image_path=image_path,
+            nfc_uid=nfc_uid,
             is_active=True,
         )
         db.session.add(product)
@@ -213,9 +222,20 @@ def edit_product(product_id):
         category = request.form.get("category", "Sonstiges")
         emoji = request.form.get("emoji", "🛒").strip()
 
+        nfc_uid = request.form.get("nfc_uid", "").strip() or None
+
         if not name:
             flash("Bitte Produktname angeben!", "danger")
             return redirect(url_for("admin.edit_product", product_id=product.id))
+
+        if nfc_uid:
+            existing_nfc = Product.query.filter(
+                Product.nfc_uid == nfc_uid,
+                Product.id != product.id
+            ).first()
+            if existing_nfc:
+                flash(f"NFC-Tag '{nfc_uid}' ist bereits dem Produkt '{existing_nfc.name}' zugewiesen!", "danger")
+                return redirect(url_for("admin.edit_product", product_id=product.id))
 
         if "image_file" in request.files:
             file = request.files["image_file"]
@@ -230,6 +250,7 @@ def edit_product(product_id):
         product.price_cents = price_cents
         product.category = category
         product.emoji = emoji
+        product.nfc_uid = nfc_uid
         db.session.commit()
         flash(f"Produkt '{product.name}' erfolgreich aktualisiert! 🎉", "success")
         return redirect(url_for("admin.products"))
@@ -257,6 +278,18 @@ def delete_product(product_id):
     db.session.commit()
     flash("Produkt gelöscht!", "info")
     return redirect(url_for("admin.products"))
+
+
+@admin_bp.route("/products/clear_nfc/<int:product_id>")
+def clear_product_nfc(product_id):
+    """Remove the NFC tag assignment from a product."""
+    if not is_logged_in():
+        return redirect(url_for("admin.login"))
+    product = Product.query.get_or_404(product_id)
+    product.nfc_uid = None
+    db.session.commit()
+    flash(f"NFC-Tag von '{product.name}' entfernt.", "info")
+    return redirect(url_for("admin.edit_product", product_id=product_id))
 
 
 # --- Card Management (NFC Registration & Photos) ---
@@ -391,6 +424,7 @@ def settings():
         set_setting("admin_pin", admin_pin)
         set_setting("pin_mode", pin_mode)
         set_setting("nfc_mode", nfc_mode)
+        set_setting("scanner_mode", request.form.get("scanner_mode", "disabled"))
         set_setting("printer_enabled", printer_enabled)
         set_setting("print_mode", print_mode)
         set_setting("max_prints_per_hour", max_prints_per_hour)
@@ -418,6 +452,7 @@ def settings():
         "admin_pin": get_setting("admin_pin", Config.ADMIN_PIN),
         "pin_mode": get_setting("pin_mode", "disabled"),
         "nfc_mode": get_setting("nfc_mode", "web_nfc"),
+        "scanner_mode": get_setting("scanner_mode", "disabled"),
         "printer_enabled": get_setting("printer_enabled", "false"),
         "print_mode": get_setting("print_mode", "ask_cashier"),
         "max_prints_per_hour": get_setting("max_prints_per_hour", "20"),

@@ -38,6 +38,27 @@
         </div>
 
         <div class="form-group">
+            <label for="nfc_uid">🏷️ Produkt-NFC-Tag (optional, für Hand-Scanner Modus):</label>
+            {% if product.nfc_uid %}
+            <div style="margin-bottom: 0.8rem; padding: 0.6rem 1rem; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; color: #166534; font-weight: 700; font-size: 0.95rem;">
+                ✅ Zugewiesener Tag: <code style="background: #dcfce7; padding: 2px 6px; border-radius: 6px;">{{ product.nfc_uid }}</code>
+                <a href="{{ url_for('admin.clear_product_nfc', product_id=product.id) }}"
+                   onclick="return confirm('NFC-Tag von diesem Produkt entfernen?');"
+                   style="margin-left: 1rem; color: #dc2626; font-weight: 700; text-decoration: none; font-size: 0.9rem;">❌ Entfernen</a>
+            </div>
+            {% endif %}
+            <input type="text" id="nfc_uid" name="nfc_uid"
+                   value="{{ product.nfc_uid or '' }}"
+                   placeholder="z.B. 04:A3:22:B1:C4:5D:80 (leer lassen = kein Tag)">
+            <button type="button" id="btnScanProductTag"
+                    style="margin-top: 0.5rem; padding: 0.5rem 1rem; background: linear-gradient(135deg,#6366f1,#8b5cf6); color:white; border:none; border-radius:10px; font-weight:700; cursor:pointer; font-size:0.95rem;"
+                    onclick="startProductTagScan()">
+                📱 NFC-Tag jetzt einscannen
+            </button>
+            <small id="scanProductStatus" style="display:block; margin-top:0.4rem; color: var(--admin-muted);">Nur benötigt wenn Hand-Scanner Modus in den Einstellungen aktiviert ist.</small>
+        </div>
+
+        <div class="form-group">
             <label for="image_file">Neues Foto hochladen (optional):</label>
             {% if product.image_path %}
             <div style="margin-bottom: 0.8rem;">
@@ -57,4 +78,49 @@
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function startProductTagScan() {
+    const btn = document.getElementById('btnScanProductTag');
+    const status = document.getElementById('scanProductStatus');
+    const uidInput = document.getElementById('nfc_uid');
+
+    if (!('NDEFReader' in window)) {
+        status.textContent = '❌ Web NFC nicht unterstützt (nur Android Chrome)';
+        status.style.color = '#dc2626';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Warte auf NFC-Tag...';
+    status.textContent = 'Halte jetzt einen NFC-Tag ans Gerät...';
+    status.style.color = '#2563eb';
+
+    try {
+        const reader = new NDEFReader();
+        await reader.scan();
+        reader.onreading = (event) => {
+            const uid = event.serialNumber;
+            uidInput.value = uid;
+            status.textContent = `✅ Tag erkannt: ${uid}`;
+            status.style.color = '#16a34a';
+            btn.disabled = false;
+            btn.textContent = '📱 Erneut scannen';
+        };
+        reader.onreadingerror = () => {
+            status.textContent = '⚠️ Lesefehler — Tag nochmal anhalten';
+            status.style.color = '#f59e0b';
+            btn.disabled = false;
+            btn.textContent = '📱 NFC-Tag jetzt einscannen';
+        };
+    } catch (e) {
+        status.textContent = '❌ Scan fehlgeschlagen: ' + e.message;
+        status.style.color = '#dc2626';
+        btn.disabled = false;
+        btn.textContent = '📱 NFC-Tag jetzt einscannen';
+    }
+}
+</script>
 {% endblock %}

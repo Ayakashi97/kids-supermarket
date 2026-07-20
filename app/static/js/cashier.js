@@ -233,6 +233,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Sound: Classic supermarket barcode scanner beep (sharp, high-pitched, short)
+    function playScannerSound() {
+        initAudio();
+        try {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = "square";
+            osc.frequency.setValueAtTime(1900, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.08);
+        } catch (e) {
+            console.warn("Scanner sound error:", e);
+        }
+    }
+
     // --- State & DOM Elements ---
     let cart = []; // Array of { id, name, price_cents, emoji, quantity }
     
@@ -303,6 +322,23 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => {
             hideOverlay();
         }, 2500);
+    });
+
+    socket.on("product_scanned", (data) => {
+        // Only handle when no payment process is active (overlay hidden)
+        if (!paymentOverlay.classList.contains("hidden")) return;
+
+        playScannerSound();
+        addToCart(data.id, data.name, data.price_cents, data.emoji);
+
+        // Brief NFC scan banner at top of cashier UI
+        const banner = document.getElementById('nfcScanBanner');
+        if (banner) {
+            banner.textContent = `🏷️ ${data.emoji || ''} ${data.name} — ${data.price_formatted} hinzugefügt!`;
+            banner.classList.remove('hidden');
+            clearTimeout(window._bannerTimer);
+            window._bannerTimer = setTimeout(() => banner.classList.add('hidden'), 3000);
+        }
     });
 
     // --- Cart Actions ---

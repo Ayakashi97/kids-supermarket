@@ -18,8 +18,9 @@ Bestehend aus einer **Kassen-App auf dem Tablet**, einem **Raspberry Pi Server**
   - Sound-Effekte über Web Audio API (Kassen-Piep beim Tippen, Sieges-Fanfaren bei Bezahlung, Fehler-Buzz).
   - Ergonomischer Einkaufskorb ohne Abschneiden von Knöpfen, mit Touch-Schaltflächen für Kinderhände.
 
-- **📲 Altes Smartphone als NFC-Zahlungsterminal (Web NFC & PWA Fullscreen)**:
+- **📲 Altes Smartphone als NFC-Zahlungsterminal & Hand-Scanner (Web NFC & PWA Fullscreen)**:
   - Benutze einfach ein **altes Smartphone (Android mit NFC oder iPhone)** statt eines zweiten Raspberry Pis!
+  - **Hand-Scanner Modus (Optional & Konfigurierbar)**: Im Leerlauf fungiert das Smartphone als Hand-Scanner. Beim Halten an einen Produkt-NFC-Tag wird das Produkt mit einem realistischen Supermarkt-Scanner-Ton (1900 Hz) direkt dem Warenkorb hinzugefügt.
   - **Android Chrome**: Liest NFC-Karten/Sticker direkt über den eingebauten NFC-Chip im Smartphone aus (`window.NDEFReader`).
   - **Dauerhafte Berechtigung**: Nach der ersten NFC-Aktivierung merkt sich die App die Erlaubnis im `localStorage` – der grüne Aktivierungsbutton verschwindet danach dauerhaft.
   - **iOS Safari / PWA**: Funktioniert als installierbare App ("Zum Home-Bildschirm hinzufügen") im 100% Vollbildmodus mit visuellen Live-Animationen, Touchscreen-Kartenwahl und PIN-Eingabe.
