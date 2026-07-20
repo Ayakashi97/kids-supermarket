@@ -2,20 +2,147 @@
 
 {% block title %}Admin Login — Kinder-Supermarkt{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+<style>
+    .pinpad-container {
+        max-width: 400px;
+        margin: 3rem auto;
+        background: white;
+        padding: 2.5rem;
+        border-radius: 24px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        border: 3px solid #e1e8ed;
+    }
+
+    .pin-display {
+        background: #f8f9fa;
+        border: 2px solid #3867d6;
+        border-radius: 16px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        font-size: 2.5rem;
+        letter-spacing: 0.8rem;
+        min-height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #2c3e50;
+    }
+
+    .pin-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+
+    .pin-btn {
+        background: #f1f2f6;
+        border: 2px solid #dcdde1;
+        border-radius: 16px;
+        font-size: 2rem;
+        font-weight: 800;
+        color: #2f3640;
+        padding: 1.2rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        user-select: none;
+    }
+
+    .pin-btn:active {
+        transform: scale(0.92);
+        background: #3867d6;
+        color: white;
+    }
+
+    .pin-btn.btn-clear {
+        background: #ffeaa7;
+        color: #d63031;
+    }
+
+    .pin-btn.btn-submit {
+        background: #55efc4;
+        color: #00b894;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="admin-login-container">
-    <h2>Admin Login</h2>
+<div class="pinpad-container">
+    <h2>🔐 Admin Login</h2>
+    <p style="color: #7f8c8d; margin-bottom: 1.5rem;">PIN eingeben (Standard: 1234)</p>
+
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
+                <div class="badge badge-{{ category }}" style="font-size: 1.1rem; margin-bottom: 1rem; padding: 0.5rem 1rem;">{{ message }}</div>
             {% endfor %}
         {% endif %}
     {% endwith %}
-    <form method="POST">
-        <label for="pin">PIN eingeben:</label>
-        <input type="password" id="pin" name="pin" required autocomplete="off">
-        <button type="submit">Anmelden</button>
+
+    <form method="POST" id="pinForm">
+        <input type="hidden" name="pin" id="pinInput">
+        <div class="pin-display" id="pinDisplay">••••</div>
+
+        <div class="pin-grid">
+            <button type="button" class="pin-btn" onclick="pressNum('1')">1</button>
+            <button type="button" class="pin-btn" onclick="pressNum('2')">2</button>
+            <button type="button" class="pin-btn" onclick="pressNum('3')">3</button>
+            
+            <button type="button" class="pin-btn" onclick="pressNum('4')">4</button>
+            <button type="button" class="pin-btn" onclick="pressNum('5')">5</button>
+            <button type="button" class="pin-btn" onclick="pressNum('6')">6</button>
+
+            <button type="button" class="pin-btn" onclick="pressNum('7')">7</button>
+            <button type="button" class="pin-btn" onclick="pressNum('8')">8</button>
+            <button type="button" class="pin-btn" onclick="pressNum('9')">9</button>
+
+            <button type="button" class="pin-btn btn-clear" onclick="clearPin()">C</button>
+            <button type="button" class="pin-btn" onclick="pressNum('0')">0</button>
+            <button type="submit" class="pin-btn btn-submit">✓</button>
+        </div>
     </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPin = "";
+
+function updateDisplay() {
+    const display = document.getElementById("pinDisplay");
+    const input = document.getElementById("pinInput");
+    
+    if (currentPin.length === 0) {
+        display.textContent = "••••";
+    } else {
+        display.textContent = "•".repeat(currentPin.length);
+    }
+    input.value = currentPin;
+}
+
+function pressNum(num) {
+    if (currentPin.length < 8) {
+        currentPin += num;
+        updateDisplay();
+    }
+}
+
+function clearPin() {
+    currentPin = "";
+    updateDisplay();
+}
+
+// Allow keyboard input too
+document.addEventListener("keydown", (e) => {
+    if (e.key >= "0" && e.key <= "9") {
+        pressNum(e.key);
+    } else if (e.key === "Backspace" || e.key === "Delete") {
+        clearPin();
+    } else if (e.key === "Enter") {
+        document.getElementById("pinForm").submit();
+    }
+});
+</script>
 {% endblock %}

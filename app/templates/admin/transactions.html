@@ -57,7 +57,9 @@
                         </ul>
                     </td>
                     <td><strong style="color: #27ae60;">{{ (tx.total_cents / 100) | round(2) }} €</strong></td>
-                    <td><span class="badge badge-success">{{ tx.status }}</span></td>
+                    <td>
+                        <a href="/receipt/{{ tx.id }}" target="_blank" class="btn btn-sm btn-primary">Bon / PDF 📄</a>
+                    </td>
                 </tr>
                 {% else %}
                 <tr>

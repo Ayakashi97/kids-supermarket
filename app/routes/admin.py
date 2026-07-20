@@ -209,6 +209,9 @@ def settings():
         printer_device = request.form.get("printer_device", Config.PRINTER_DEVICE)
         receipt_header = request.form.get("receipt_header", "")
         receipt_footer = request.form.get("receipt_footer", "")
+        show_card_name = request.form.get("show_card_name", "true")
+        show_date_time = request.form.get("show_date_time", "true")
+        paper_width = request.form.get("paper_width", "58mm")
 
         set_setting("shop_name", shop_name)
         set_setting("admin_pin", admin_pin)
@@ -216,8 +219,11 @@ def settings():
         set_setting("printer_device", printer_device)
         set_setting("receipt_header", receipt_header)
         set_setting("receipt_footer", receipt_footer)
+        set_setting("show_card_name", show_card_name)
+        set_setting("show_date_time", show_date_time)
+        set_setting("paper_width", paper_width)
 
-        flash("Einstellungen erfolgreich gespeichert!", "success")
+        flash("Einstellungen & Bon-Layout erfolgreich gespeichert!", "success")
         return redirect(url_for("admin.settings"))
 
     current_settings = {
@@ -225,10 +231,14 @@ def settings():
         "admin_pin": get_setting("admin_pin", Config.ADMIN_PIN),
         "printer_enabled": get_setting("printer_enabled", "true"),
         "printer_device": get_setting("printer_device", Config.PRINTER_DEVICE),
-        "receipt_header": get_setting("receipt_header", "🛒 KINDER-MARKT 🛒"),
+        "receipt_header": get_setting("receipt_header", "🛒 WILLKOMMEN IM KINDER-MARKT 🛒"),
         "receipt_footer": get_setting("receipt_footer", "Vielen Dank für deinen Einkauf! 😊"),
+        "show_card_name": get_setting("show_card_name", "true"),
+        "show_date_time": get_setting("show_date_time", "true"),
+        "paper_width": get_setting("paper_width", "58mm"),
     }
     return render_template("admin/settings.html", settings=current_settings)
+
 
 
 # --- Transaction History Route ---
