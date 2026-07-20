@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Login — Kinder-Supermarkt{% endblock %}
+
+{% block content %}
+<div class="admin-login-container">
+    <h2>Admin Login</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <form method="POST">
+        <label for="pin">PIN eingeben:</label>
+        <input type="password" id="pin" name="pin" required autocomplete="off">
+        <button type="submit">Anmelden</button>
+    </form>
+</div>
+{% endblock %}
