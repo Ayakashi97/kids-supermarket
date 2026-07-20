@@ -7,8 +7,8 @@ services:
     ports:
       - "${PORT:-5050}:5050"
     volumes:
-      - db_data:/app/data
-      - ./app/static/images:/app/static/images
+      - db_data:/app_root/app/data
+      - ./app:/app_root/app
     # Pass through USB thermal printer if available
     # devices:
     #   - "/dev/usb/lp0:/dev/usb/lp0"

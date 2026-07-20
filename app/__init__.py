@@ -1,5 +1,6 @@
 import os
 import logging
+from pathlib import Path
 from flask import Flask
 from app.config import Config
 from app.db import db
@@ -21,9 +22,17 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
 
     # Ensure required directories exist
-    os.makedirs(os.path.join(app.root_path, "data"), exist_ok=True)
+    data_dir = os.path.join(app.root_path, "data")
+    os.makedirs(data_dir, exist_ok=True)
     os.makedirs(os.path.join(app.root_path, "static", "images", "products"), exist_ok=True)
     os.makedirs(os.path.join(app.root_path, "static", "images", "cards"), exist_ok=True)
+
+    # Also parse database file path from URI if sqlite
+    db_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
+    if db_uri.startswith("sqlite:///"):
+        db_path_str = db_uri.replace("sqlite:///", "")
+        db_file = Path(db_path_str)
+        db_file.parent.mkdir(parents=True, exist_ok=True)
 
     # Initialize extensions
     db.init_app(app)
