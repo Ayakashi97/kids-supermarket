@@ -62,6 +62,13 @@ document.addEventListener("visibilitychange", () => {
     }
 });
 
+// Prevent rubberband dragging & page scrolling when kids tap/swipe on cashier UI
+document.addEventListener("touchmove", (e) => {
+    if (!e.target.closest("#cartItemsContainer") && !e.target.closest(".category-tabs")) {
+        e.preventDefault();
+    }
+}, { passive: false });
+
 document.addEventListener("DOMContentLoaded", () => {
     requestCashierWakeLock();
     // --- Audio Context for Kid Sounds ---
