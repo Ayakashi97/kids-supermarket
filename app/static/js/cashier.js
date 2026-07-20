@@ -368,8 +368,54 @@ document.addEventListener("DOMContentLoaded", () => {
         if (nextPageBtn) nextPageBtn.disabled = (currentPage >= totalPages - 1);
     }
 
+    // --- Kid-Friendly Reusable Touch Handler ---
+    function attachKidTouchHandler(btn, onAction) {
+        if (!btn) return;
+        let isTouching = false;
+        let lastActionTime = 0;
+
+        function triggerAction() {
+            const now = Date.now();
+            if (now - lastActionTime < 300) return;
+            lastActionTime = now;
+            onAction();
+        }
+
+        btn.addEventListener("pointerdown", () => {
+            if (btn.disabled) return;
+            isTouching = true;
+            btn.classList.add("pressed");
+        });
+
+        btn.addEventListener("pointermove", () => {
+            if (isTouching) {
+                btn.classList.add("pressed");
+            }
+        });
+
+        window.addEventListener("pointerup", () => {
+            if (isTouching) {
+                isTouching = false;
+                btn.classList.remove("pressed");
+                if (!btn.disabled) triggerAction();
+            }
+        });
+
+        btn.addEventListener("pointercancel", () => {
+            if (isTouching) {
+                isTouching = false;
+                btn.classList.remove("pressed");
+                if (!btn.disabled) triggerAction();
+            }
+        });
+
+        btn.addEventListener("click", () => {
+            if (!btn.disabled) triggerAction();
+        });
+    }
+
     if (prevPageBtn) {
-        prevPageBtn.addEventListener("click", () => {
+        attachKidTouchHandler(prevPageBtn, () => {
             if (currentPage > 0) {
                 currentPage--;
                 renderPage();
@@ -379,7 +425,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (nextPageBtn) {
-        nextPageBtn.addEventListener("click", () => {
+        attachKidTouchHandler(nextPageBtn, () => {
             const visibleCards = getVisibleCards();
             const itemsPerPage = calculateItemsPerPage();
             const totalPages = Math.max(1, Math.ceil(visibleCards.length / itemsPerPage));
@@ -426,7 +472,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        // Whenever finger is lifted anywhere on screen, select the initial touched product!
         window.addEventListener("pointerup", () => {
             if (isTouching) {
                 isTouching = false;
@@ -502,27 +547,27 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     catSidebarBtns.forEach(btn => {
-        btn.addEventListener("click", () => {
+        attachKidTouchHandler(btn, () => {
             selectCategory(btn.getAttribute("data-category"));
         });
     });
 
     catModalBtns.forEach(btn => {
-        btn.addEventListener("click", () => {
+        attachKidTouchHandler(btn, () => {
             selectCategory(btn.getAttribute("data-category"));
             if (categoryMoreOverlay) categoryMoreOverlay.classList.add("hidden");
         });
     });
 
     if (btnCategoryMore) {
-        btnCategoryMore.addEventListener("click", () => {
+        attachKidTouchHandler(btnCategoryMore, () => {
             playBeepSound();
             if (categoryMoreOverlay) categoryMoreOverlay.classList.remove("hidden");
         });
     }
 
     if (closeCategoryModalBtn) {
-        closeCategoryModalBtn.addEventListener("click", () => {
+        attachKidTouchHandler(closeCategoryModalBtn, () => {
             if (categoryMoreOverlay) categoryMoreOverlay.classList.add("hidden");
         });
     }
