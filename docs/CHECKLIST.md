@@ -31,7 +31,8 @@
 ## Phase 4 — Receipt Printing
 - [x] ESC/POS USB thermal printer service implementation (`python-escpos`)
 - [x] Format receipt in German (Shop name, date, time, card holder name, items, total, thank-you message)
-- [x] Dynamic admin settings support (`printer_enabled`, `printer_device`, `shop_name`, `receipt_header`, `receipt_footer`)
+- [x] Dynamic admin settings support (`printer_enabled`, `printer_device`, `shop_name`, `receipt_header`, `receipt_footer`, `paper_width`, `show_card_name`, `show_date_time`)
+- [x] PDF & Printable Web Receipt generator (`/receipt/<tx_id>` & `/receipt/preview`)
 - [x] Device passthrough via Docker (`/dev/usb/lp0`)
 - [x] Fallback logging if printer disconnected
 
@@ -45,12 +46,12 @@
 - [x] Systemd service script for Pi #2 auto-start
 
 ## Phase 6 — Admin Panel
-- [x] Admin login `/admin` with PIN authentication
+- [x] Touchscreen PIN-Pad admin login `/admin/login`
 - [x] Dashboard stats (products count, cards count, total transactions, play money total)
 - [x] Product CRUD (name, price in cents, category, emoji/image upload)
 - [x] Card Management (`/admin/cards`): register new card by NFC tap, name, photo upload, toggle active, delete
-- [x] Settings UI (`/admin/settings`): Shop name, admin PIN, printer enable toggle, device path, header & footer customization
-- [x] Transaction history viewer (`/admin/transactions`)
+- [x] Settings UI (`/admin/settings`): Shop name, admin PIN, printer enable toggle, device path, paper width, header & footer customization, show/hide card name
+- [x] Transaction history viewer (`/admin/transactions`) with PDF export links
 
 ## Phase 7 — Polish & Kid Experience
 - [x] Development & Emulation Testing Mode (`DEV_MODE=true`, floating NFC simulator bar, test card seeding)
