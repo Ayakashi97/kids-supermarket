@@ -32,8 +32,8 @@ and a second Raspberry Pi acting as the NFC card reader terminal.
 
 - **Raspberry Pi #1**: Runs the Flask backend + Docker Compose stack
 - **Tablet**: Browser pointing to `http://<pi1-ip>:5000` — acts as the cashier display
-- **Raspberry Pi #2**: Runs the NFC reader service (standalone Python script/systemd service),
-  connects back to Pi #1 via WebSocket to signal "card tapped"
+- **Raspberry Pi #2**: Connected to PN532 NFC reader AND a touchscreen display.
+  Opens `http://<pi1-ip>:5000/terminal` in kiosk mode to display real-time payment animations (pulsing card reader graphic, green checkmark, card holder photo), while running the Python NFC reader service.
 - **USB Thermal Printer**: Connected to Raspberry Pi #1 via USB
 
 ## Services (Docker Compose on Pi #1)
@@ -99,6 +99,7 @@ supermarket/
 │   └── templates/
 │       ├── base.html
 │       ├── cashier.html       ← Main cashier view
+│       ├── terminal.html      ← Pi #2 Touchscreen Terminal UI (card animations)
 │       ├── admin/
 │       │   ├── login.html
 │       │   ├── dashboard.html

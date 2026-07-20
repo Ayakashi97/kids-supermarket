@@ -34,8 +34,10 @@
 - [ ] Device passthrough via Docker (`/dev/usb/lp0`)
 - [ ] Fallback logging if printer disconnected
 
-## Phase 5 — NFC Reader Service (Pi #2)
-- [ ] Standalone script `nfc_reader/reader.py`
+## Phase 5 — NFC Reader Service & Touchscreen Terminal (Pi #2)
+- [ ] Dedicated terminal route `/terminal` for Pi #2 touchscreen (browser kiosk mode)
+- [ ] Real-time payment animations on Pi #2 display (waiting pulse, card tapping animation, success photo overlay)
+- [ ] Standalone Python script `nfc_reader/reader.py`
 - [ ] PN532 module connection (SPI/I2C via `nfcpy`/`pn532`)
 - [ ] Connect to Pi #1 Flask-SocketIO server and emit `card_tapped`
 - [ ] Rate-limit repeated taps
