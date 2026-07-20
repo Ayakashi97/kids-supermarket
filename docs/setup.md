@@ -110,10 +110,6 @@ If your Raspberry Pi touchscreen turns on but stays **solid white** or shows **n
    
    # For Official Raspberry Pi 7" Touchscreen DSI:
    dtoverlay=vc4-kms-dsi-7inch
-   ```
-3. **GPU Memory**:
-   Ensure GPU memory is allocated:
-   ```ini
    gpu_mem=128
    ```
 
@@ -133,10 +129,7 @@ If using a 5-inch or 7-inch HDMI touchscreen connected via HDMI adapter:
 #### C. 3.5-inch SPI GPIO Touchscreen Displays (XPT2046 Touch Controller / ILI9486)
 If using a 3.5" display plugged directly into the 40-pin GPIO header (SPI bus instead of HDMI/DSI):
 
-> ⚠️ **Why is the screen white?**
-> By default, Raspberry Pi OS sends display output to HDMI (`/dev/fb0`). A 3.5" SPI display runs over GPIO SPI (`/dev/fb1`) and stays **solid white** until the SPI LCD driver and framebuffer mapping are installed!
-
-**1-Click Installation Driver (Recommended)**:
+**1-Click Installation Driver**:
 SSH into Pi #2 (`ssh pi@supermarket-terminal.local`) and run:
 
 ```bash
@@ -147,15 +140,6 @@ cd LCD-show/
 
 # Run setup script for 3.5" XPT2046 SPI display (auto-configures SPI, overlays & reboots)
 sudo ./LCD35-show
-```
-
-*(After automatic reboot, the desktop and Chromium kiosk terminal UI will display on the 3.5" touchscreen!).*
-
-**To rotate display (if upside down)**:
-```bash
-cd LCD-show/
-# Options: 0, 90, 180, 270 degrees
-sudo ./rotate.py 90
 ```
 
 ---
@@ -236,26 +220,43 @@ sudo systemctl enable --now supermarkt-nfc
 
 ---
 
-### 5. Setup Touchscreen Kiosk Mode & Automatic Display Standby (30s Timeout)
+### 5. Setup Touchscreen Chromium Kiosk Mode (Auto-Launch Terminal on Boot)
 
-The Kinder-Supermarkt system includes **software-level screen standby** (configurable in Admin Panel at `/admin/settings` to 15s, 30s, 60s, 2m, 5m, or Never).
+Now that the desktop is working, configure Chromium to launch full-screen in Kiosk mode on boot:
 
-To configure Chromium Kiosk mode on boot:
+#### Method A: Raspberry Pi OS Bookworm (Labwc / Wayland - Default on Pi 4 / Pi 5)
+Create autostart config file:
+```bash
+mkdir -p ~/.config/labwc
+nano ~/.config/labwc/autostart
+```
 
-1. Install unclutter (hides mouse cursor):
-   ```bash
-   sudo apt install -y chromium-browser unclutter
-   ```
+Paste the following line (replace IP with your Pi #1 IP if needed):
+```bash
+chromium-browser --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://supermarket-server.local:5050/terminal &
+```
 
-2. Edit autostart configuration for X11 (`~/.config/lxsession/LXDE-pi/autostart`):
-   ```bash
-   @xset s 30
-   @xset dpms 30 30 30
-   @unclutter -idle 0.1 -root
-   @chromium-browser --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://supermarket-server.local:5050/terminal
-   ```
+#### Method B: Raspberry Pi OS Bullseye / X11 (Default on Pi 3 / Zero)
+Create/edit LXDE autostart file:
+```bash
+mkdir -p ~/.config/lxsession/LXDE-pi
+nano ~/.config/lxsession/LXDE-pi/autostart
+```
 
-3. Reboot Pi #2. The screen will automatically boot into the animated terminal view and dim after 30 seconds of inactivity!
+Paste:
+```bash
+@xset s 30
+@xset dpms 30 30 30
+@unclutter -idle 0.1 -root
+@chromium-browser --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://supermarket-server.local:5050/terminal
+```
+
+#### Test Immediately from Command Line:
+```bash
+chromium-browser --kiosk http://supermarket-server.local:5050/terminal
+```
+
+Reboot Pi #2 (`sudo reboot`). It will now boot straight into the full-screen animated **Kinder-Supermarkt Terminal** view!
 
 ---
 
