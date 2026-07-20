@@ -15,6 +15,8 @@ window.toggleFullscreen = function() {
             document.exitFullscreen().catch(err => console.warn(err));
         }
     }
+};
+
 // 10-Minute Screen Wake Lock to prevent phone/tablet screen timeout during play
 let cashierWakeLock = null;
 let cashierWakeLockTimer = null;
