@@ -328,8 +328,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // Only handle when no payment process is active (overlay hidden)
         if (!paymentOverlay.classList.contains("hidden")) return;
 
-        playScannerSound();
-        addToCart(data.id, data.name, data.price_cents, data.emoji);
+        // Quietly add product to cart (sound is played on the terminal device)
+        addToCart(data.id, data.name, data.price_cents, data.emoji, true);
 
         // Brief NFC scan banner at top of cashier UI
         const banner = document.getElementById('nfcScanBanner');
@@ -342,8 +342,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // --- Cart Actions ---
-    function addToCart(productId, name, priceCents, emoji) {
-        playBeepSound();
+    function addToCart(productId, name, priceCents, emoji, silent = false) {
+        if (!silent) playBeepSound();
 
         const existing = cart.find(item => item.id === productId);
         if (existing) {
