@@ -15,9 +15,53 @@ window.toggleFullscreen = function() {
             document.exitFullscreen().catch(err => console.warn(err));
         }
     }
-};
+// 10-Minute Screen Wake Lock to prevent phone/tablet screen timeout during play
+let cashierWakeLock = null;
+let cashierWakeLockTimer = null;
+const TEN_MINUTES_MS = 10 * 60 * 1000;
+
+async function requestCashierWakeLock() {
+    if ('wakeLock' in navigator) {
+        try {
+            if (!cashierWakeLock) {
+                cashierWakeLock = await navigator.wakeLock.request('screen');
+                console.log("Cashier 10-Minute Screen Wake Lock active!");
+            }
+            if (cashierWakeLockTimer) clearTimeout(cashierWakeLockTimer);
+            cashierWakeLockTimer = setTimeout(() => {
+                releaseCashierWakeLock();
+            }, TEN_MINUTES_MS);
+        } catch (err) {
+            console.warn("Cashier Wake Lock request error:", err);
+        }
+    }
+}
+
+function releaseCashierWakeLock() {
+    if (cashierWakeLock) {
+        cashierWakeLock.release().then(() => {
+            cashierWakeLock = null;
+            console.log("Cashier Wake Lock released after 10 minutes.");
+        }).catch(err => console.warn(err));
+    }
+    if (cashierWakeLockTimer) {
+        clearTimeout(cashierWakeLockTimer);
+        cashierWakeLockTimer = null;
+    }
+}
+
+document.addEventListener("pointerdown", () => {
+    requestCashierWakeLock();
+});
+
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+        requestCashierWakeLock();
+    }
+});
 
 document.addEventListener("DOMContentLoaded", () => {
+    requestCashierWakeLock();
     // --- Audio Context for Kid Sounds ---
     let audioCtx = null;
 

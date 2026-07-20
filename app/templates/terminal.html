@@ -596,12 +596,47 @@ function enterSleepMode() {
     }
 }
 
+let screenWakeLock = null;
+let wakeLockTimeoutTimer = null;
+const TEN_MINUTES_MS = 10 * 60 * 1000;
+
+async function requestScreenWakeLock() {
+    if ('wakeLock' in navigator) {
+        try {
+            if (!screenWakeLock) {
+                screenWakeLock = await navigator.wakeLock.request('screen');
+                console.log("10-Minute Screen Wake Lock active!");
+            }
+            if (wakeLockTimeoutTimer) clearTimeout(wakeLockTimeoutTimer);
+            wakeLockTimeoutTimer = setTimeout(() => {
+                releaseScreenWakeLock();
+            }, TEN_MINUTES_MS);
+        } catch (err) {
+            console.warn("Screen Wake Lock request error:", err);
+        }
+    }
+}
+
+function releaseScreenWakeLock() {
+    if (screenWakeLock) {
+        screenWakeLock.release().then(() => {
+            screenWakeLock = null;
+            console.log("Screen Wake Lock released after 10 minutes.");
+        }).catch(err => console.warn(err));
+    }
+    if (wakeLockTimeoutTimer) {
+        clearTimeout(wakeLockTimeoutTimer);
+        wakeLockTimeoutTimer = null;
+    }
+}
+
 function wakeUp() {
     const stateSleep = document.getElementById("stateSleep");
     if (stateSleep) {
         stateSleep.classList.add("hidden");
     }
     resetIdleTimer();
+    requestScreenWakeLock();
 }
 
 // Check if NFC permission was previously granted and hide button right away
@@ -730,14 +765,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.addEventListener("pointerdown", () => {
         wakeUp();
+        requestScreenWakeLock();
         if (!webNfcScanning && 'NDEFReader' in window) {
             initWebNFC(true);
+        }
+    });
+
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+            requestScreenWakeLock();
         }
     });
 
     socket.on("connect", () => {
         console.log("Terminal connected to server!");
         resetIdleTimer();
+        requestScreenWakeLock();
         initWebNFC();
     });
 
