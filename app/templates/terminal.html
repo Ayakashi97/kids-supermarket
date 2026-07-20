@@ -697,13 +697,9 @@ document.addEventListener("DOMContentLoaded", () => {
             hwWaitingView.classList.add("hidden");
             simWaitingView.classList.remove("hidden");
         } else {
-            // Web NFC or Hardware Mode: show NFC pulse graphic, but keep touchCardGrid available below if needed
+            // Web NFC or Hardware Mode: ALWAYS show NFC card pulsing graphic!
             hwWaitingView.classList.remove("hidden");
-            if (!webNfcScanning) {
-                simWaitingView.classList.remove("hidden");
-            } else {
-                simWaitingView.classList.add("hidden");
-            }
+            simWaitingView.classList.add("hidden");
         }
 
         showState(stateWaiting);
