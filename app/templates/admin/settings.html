@@ -5,6 +5,7 @@
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 {% endblock %}
 
 {% block content %}
@@ -164,7 +165,45 @@
             </div>
         </div>
 
-        <button type="submit" class="btn btn-success" style="font-size: 1.1rem; padding: 0.8rem 2rem;">Einstellungen speichern 💾</button>
+        <!-- Visueller Drag & Drop Bon-Template Builder -->
+        <div class="admin-card">
+            <h3>🧾 Visueller Kassenbon Template-Builder</h3>
+            <p style="color: var(--admin-muted); margin-bottom: 1.2rem;">
+                Stelle hier per Drag & Drop oder Pfeiltasten deinen Kassenbon zusammen. Alle Änderungen werden in Echtzeit simuliert!
+            </p>
+
+            <input type="hidden" id="receipt_layout_json_input" name="receipt_layout_json" value='{{ settings.receipt_layout_json }}'>
+
+            <div class="builder-side-by-side">
+                <!-- Left Column: Draggable Block Controls & Ordering -->
+                <div class="builder-controls-col">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                        <h4 style="margin: 0;">🧱 Bausteine & Reihenfolge</h4>
+                        <button type="button" class="btn btn-sm btn-primary" id="btnAddReceiptBlock">➕ Baustein hinzufügen</button>
+                    </div>
+
+                    <div id="receiptBlocksContainer" class="builder-blocks-list">
+                        <!-- Rendered via JS -->
+                    </div>
+
+                    <div style="margin-top: 1.2rem; display: flex; gap: 0.8rem;">
+                        <button type="button" class="btn btn-sm btn-secondary" id="btnResetReceiptLayout">
+                            🔄 Auf Standard-Layout zurücksetzen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Column: Realtime Thermal Receipt Live Preview -->
+                <div class="builder-preview-col">
+                    <h4 style="margin-bottom: 0.8rem; text-align: center;">📄 Live-Bon Vorschau</h4>
+                    <div class="receipt-paper-preview" id="receiptLivePreview">
+                        <!-- Rendered via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-success" style="font-size: 1.1rem; padding: 0.8rem 2rem; margin-top: 1rem;">Einstellungen speichern 💾</button>
     </form>
 </div>
 {% endblock %}

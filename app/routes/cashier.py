@@ -45,6 +45,12 @@ def view_receipt(tx_id):
     date_str = dt.strftime("%d.%m.%Y")
     time_str = dt.strftime("%H:%M Uhr")
 
+    raw_layout = get_setting("receipt_layout_json", "")
+    try:
+        receipt_layout = json.loads(raw_layout) if raw_layout else DEFAULT_RECEIPT_LAYOUT
+    except Exception:
+        receipt_layout = DEFAULT_RECEIPT_LAYOUT
+
     items = [item.to_dict() for item in tx.items]
     card_name = tx.card.name if tx.card else "Gast"
     total_formatted = f"{tx.total_cents / 100:.2f}".replace(".", ",") + " €"
@@ -65,12 +71,15 @@ def view_receipt(tx_id):
         items=items,
         total_formatted=total_formatted,
         signature_data=tx.signature_data,
+        receipt_layout=receipt_layout,
     )
 
 
 @cashier_bp.route("/receipt/preview")
 def preview_receipt():
     from datetime import datetime
+    import json
+    from app.seed import DEFAULT_RECEIPT_LAYOUT
 
     shop_name = get_setting("shop_name", "Kinder-Markt")
     receipt_header = get_setting("receipt_header", f"🛒 {shop_name.upper()} 🛒")
@@ -78,6 +87,12 @@ def preview_receipt():
     show_card_name = get_setting("show_card_name", "true")
     show_date_time = get_setting("show_date_time", "true")
     paper_width = get_setting("paper_width", "58mm")
+
+    raw_layout = get_setting("receipt_layout_json", "")
+    try:
+        receipt_layout = json.loads(raw_layout) if raw_layout else DEFAULT_RECEIPT_LAYOUT
+    except Exception:
+        receipt_layout = DEFAULT_RECEIPT_LAYOUT
 
     dt = datetime.now()
     date_str = dt.strftime("%d.%m.%Y")
@@ -101,9 +116,10 @@ def preview_receipt():
         paper_width=paper_width,
         date_str=date_str,
         time_str=time_str,
-        card_name="Lena",
+        card_name="Lena 👧",
         items=dummy_items,
         total_formatted=total_formatted,
+        receipt_layout=receipt_layout,
     )
 
 

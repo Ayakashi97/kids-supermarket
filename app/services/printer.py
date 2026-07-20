@@ -93,46 +93,70 @@ def print_receipt(transaction_data: dict, check_enabled: bool = True) -> tuple[b
         return False, msg
 
     try:
+        import json
         from escpos.printer import File
+        from app.seed import DEFAULT_RECEIPT_LAYOUT
 
         printer = File(device_path)
 
-        # Print Header
-        printer.set(align="center", font="a", width=2, height=2, bold=True)
-        printer.text(f"{shop_name}\n")
-        printer.set(align="center", font="a", width=1, height=1, bold=False)
-        printer.text(f"{receipt_header}\n")
-        printer.text("=" * 32 + "\n")
+        raw_layout = get_setting("receipt_layout_json", "")
+        try:
+            receipt_layout = json.loads(raw_layout) if raw_layout else DEFAULT_RECEIPT_LAYOUT
+        except Exception:
+            receipt_layout = DEFAULT_RECEIPT_LAYOUT
 
-        # Print Details
-        printer.set(align="left")
-        printer.text(f"Bon-Nr: #{tx_id}\n")
-        printer.text(f"Datum:  {date_str}\n")
-        printer.text(f"Zeit:   {time_str}\n")
-        printer.text(f"Kunde:  {card_name} 💳\n")
-        printer.text("-" * 32 + "\n")
+        for block in receipt_layout:
+            if not block.get("enabled", True):
+                continue
 
-        # Print Items
-        for item in items:
-            p_name = item.get("product_name", "Artikel")[:16]
-            qty = item.get("quantity", 1)
-            p_cents = item.get("price_cents", 0) * qty
-            p_price = f"{p_cents / 100:.2f}".replace(".", ",") + " €"
-            
-            line = f"{p_name:<16} {qty:>2}x {p_price:>10}\n"
-            printer.text(line)
+            b_type = block.get("type")
+            if b_type == "shop_name":
+                printer.set(align="center", font="a", width=2, height=2, bold=True)
+                printer.text(f"{shop_name}\n")
+            elif b_type == "text":
+                align = block.get("align", "center")
+                printer.set(align=align, font="a", width=1, height=1, bold=False)
+                printer.text(f"{block.get('content', '')}\n")
+            elif b_type == "separator":
+                style = block.get("style", "dashed")
+                if style == "solid":
+                    printer.text("=" * 32 + "\n")
+                elif style == "blank":
+                    printer.text("\n")
+                else:
+                    printer.text("-" * 32 + "\n")
+            elif b_type == "meta":
+                printer.set(align="left", font="a", width=1, height=1, bold=False)
+                printer.text(f"Bon-Nr: #{tx_id}\n")
+                printer.text(f"Datum:  {date_str}\n")
+                printer.text(f"Zeit:   {time_str}\n")
+            elif b_type == "customer":
+                printer.set(align="left", font="a", width=1, height=1, bold=False)
+                printer.text(f"Kunde:  {card_name} 💳\n")
+            elif b_type == "items":
+                printer.set(align="left", font="a", width=1, height=1, bold=False)
+                for item in items:
+                    p_name = item.get("product_name", "Artikel")[:16]
+                    qty = item.get("quantity", 1)
+                    p_cents = item.get("price_cents", 0) * qty
+                    p_price = f"{p_cents / 100:.2f}".replace(".", ",") + " €"
+                    line = f"{p_name:<16} {qty:>2}x {p_price:>10}\n"
+                    printer.text(line)
+                printer.text("-" * 32 + "\n")
+                printer.set(align="right", font="a", width=2, height=2, bold=True)
+                printer.text(f"SUMME: {formatted_total}\n")
+            elif b_type == "signature":
+                title = block.get("title", "UNTERSCHRIFT KUNDE")
+                printer.set(align="center", font="a", width=1, height=1, bold=True)
+                printer.text(f"{title}\n\n\n")
+                printer.text("--------------------------------\n")
+            elif b_type == "qrcode":
+                try:
+                    printer.qr(str(tx_id))
+                except Exception:
+                    printer.set(align="center", font="a", width=1, height=1, bold=False)
+                    printer.text(f"[ Bon #{tx_id} ]\n")
 
-        printer.text("-" * 32 + "\n")
-
-        # Print Total
-        printer.set(align="right", font="a", width=2, height=2, bold=True)
-        printer.text(f"SUMME: {formatted_total}\n")
-        printer.set(align="center", font="a", width=1, height=1, bold=False)
-        printer.text("=" * 32 + "\n")
-
-        # Print Footer
-        printer.text(f"Vielen Dank, {card_name}! 😊\n")
-        printer.text(f"{receipt_footer}\n")
         printer.text("\n\n\n")
         printer.cut()
         printer.close()

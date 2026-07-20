@@ -1,8 +1,23 @@
+import json
 import logging
 from app.db import db
-from app.models import Product, Card, Category
+from app.models import Product, Card, Category, Setting
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_RECEIPT_LAYOUT = [
+    {"id": "shop_name", "type": "shop_name", "enabled": True, "align": "center", "size": "large"},
+    {"id": "header_text", "type": "text", "enabled": True, "align": "center", "content": "Vielen Dank für deinen Einkauf!"},
+    {"id": "sep_1", "type": "separator", "enabled": True, "style": "dashed"},
+    {"id": "meta_info", "type": "meta", "enabled": True, "show_tx_id": True, "show_datetime": True},
+    {"id": "card_info", "type": "customer", "enabled": True, "show_card_name": True},
+    {"id": "sep_2", "type": "separator", "enabled": True, "style": "dashed"},
+    {"id": "items_table", "type": "items", "enabled": True},
+    {"id": "sep_3", "type": "separator", "enabled": True, "style": "solid"},
+    {"id": "signature", "type": "signature", "enabled": True, "title": "UNTERSCHRIFT KUNDE"},
+    {"id": "footer_text", "type": "text", "enabled": True, "align": "center", "content": "Bis zum nächsten Mal!"},
+    {"id": "qr_code", "type": "qrcode", "enabled": True, "content": "tx_id"}
+]
 
 DEFAULT_CATEGORIES = [
     {"name": "Obst & Gemüse", "emoji": "🍎", "sort_order": 1},
@@ -35,7 +50,7 @@ DEFAULT_TEST_CARDS = [
 
 
 def seed_default_products():
-    """Seeds default German supermarket categories & products if database is empty."""
+    """Seeds default German supermarket categories, products & settings if empty."""
     if Category.query.first() is None:
         logger.info("Seeding default categories...")
         for cat in DEFAULT_CATEGORIES:
@@ -69,3 +84,11 @@ def seed_default_products():
             db.session.add(card)
         db.session.commit()
         logger.info("Successfully seeded test customer cards.")
+
+    # Seed default receipt layout setting if not present
+    if Setting.query.filter_by(key="receipt_layout_json").first() is None:
+        logger.info("Seeding default receipt_layout_json setting...")
+        s = Setting(key="receipt_layout_json", value=json.dumps(DEFAULT_RECEIPT_LAYOUT))
+        db.session.add(s)
+        db.session.commit()
+        logger.info("Successfully seeded default receipt layout.")

@@ -110,54 +110,111 @@
 <body>
 
 <div class="receipt-paper" id="receiptPaper">
-    <div class="header">{{ shop_name }}</div>
-    <div class="subheader">{{ receipt_header }}</div>
-    <div class="divider"></div>
-
-    <div class="row"><span>Bon-Nr:</span><span>#{{ tx_id }}</span></div>
-    {% if show_date_time == 'true' %}
-    <div class="row"><span>Datum:</span><span>{{ date_str }}</span></div>
-    <div class="row"><span>Zeit:</span><span>{{ time_str }}</span></div>
-    {% endif %}
-    {% if show_card_name == 'true' %}
-    <div class="row"><span>Kunde:</span><span>{{ card_name }} 💳</span></div>
-    {% endif %}
-
-    <div class="divider"></div>
-
-    <table class="items-table">
-        {% for item in items %}
-        <tr>
-            <td style="text-align: left;">{{ item.product_name }}</td>
-            <td style="text-align: center;">{{ item.quantity }}x</td>
-            <td style="text-align: right;">{{ "%.2f"|format(item.price_cents * item.quantity / 100)|replace('.', ',') }} €</td>
-        </tr>
+    {% if receipt_layout %}
+        {% for block in receipt_layout %}
+            {% if block.enabled %}
+                {% if block.type == 'shop_name' %}
+                    <div class="header" style="text-align: {{ block.align or 'center' }};">🛒 {{ shop_name }} 🛒</div>
+                {% elif block.type == 'text' %}
+                    <div class="subheader" style="text-align: {{ block.align or 'center' }};">{{ block.content or '' }}</div>
+                {% elif block.type == 'separator' %}
+                    {% if block.style == 'solid' %}
+                        <div class="divider" style="border-top: 2px solid #000;"></div>
+                    {% elif block.style == 'blank' %}
+                        <div style="height: 0.8rem;"></div>
+                    {% else %}
+                        <div class="divider"></div>
+                    {% endif %}
+                {% elif block.type == 'meta' %}
+                    <div class="row"><span>Bon-Nr:</span><span>#{{ tx_id }}</span></div>
+                    {% if show_date_time == 'true' %}
+                    <div class="row"><span>Datum:</span><span>{{ date_str }}</span></div>
+                    <div class="row"><span>Zeit:</span><span>{{ time_str }}</span></div>
+                    {% endif %}
+                {% elif block.type == 'customer' %}
+                    {% if show_card_name == 'true' %}
+                    <div class="row"><span>Kunde:</span><span>{{ card_name }} 💳</span></div>
+                    {% endif %}
+                {% elif block.type == 'items' %}
+                    <table class="items-table">
+                        {% for item in items %}
+                        <tr>
+                            <td style="text-align: left;">{{ item.product_name }}</td>
+                            <td style="text-align: center;">{{ item.quantity }}x</td>
+                            <td style="text-align: right;">{{ "%.2f"|format(item.price_cents * item.quantity / 100)|replace('.', ',') }} €</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                    <div class="divider"></div>
+                    <div class="total-row">
+                        <span>SUMME:</span>
+                        <span>{{ total_formatted }}</span>
+                    </div>
+                {% elif block.type == 'signature' %}
+                    {% if (tx and tx.signature_data) or signature_data %}
+                    <div style="text-align: center; margin: 0.8rem 0;">
+                        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.2rem;">{{ block.title or 'UNTERSCHRIFT KUNDE' }}</div>
+                        <img src="{{ tx.signature_data if tx else signature_data }}" alt="Unterschrift" style="max-width: 180px; max-height: 70px; border-bottom: 1px dashed #000; padding-bottom: 4px;">
+                    </div>
+                    {% endif %}
+                {% elif block.type == 'qrcode' %}
+                    <div style="text-align: center; margin: 0.8rem 0;">
+                        <div style="font-size: 2rem;">📱</div>
+                        <div style="font-size: 0.75rem; color: #475569;">[ Bon #{{ tx_id }} ]</div>
+                    </div>
+                {% endif %}
+            {% endif %}
         {% endfor %}
-    </table>
+    {% else %}
+        <div class="header">{{ shop_name }}</div>
+        <div class="subheader">{{ receipt_header }}</div>
+        <div class="divider"></div>
 
-    <div class="divider"></div>
-
-    <div class="total-row">
-        <span>SUMME:</span>
-        <span>{{ total_formatted }}</span>
-    </div>
-
-    <div class="divider"></div>
-
-    {% if (tx and tx.signature_data) or signature_data %}
-    <div style="text-align: center; margin: 0.8rem 0;">
-        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.2rem;">Unterschrift Kunde</div>
-        <img src="{{ tx.signature_data if tx else signature_data }}" alt="Unterschrift" style="max-width: 180px; max-height: 70px; border-bottom: 1px dashed #000; padding-bottom: 4px;">
-    </div>
-    <div class="divider"></div>
-    {% endif %}
-
-    <div class="footer">
-        {% if show_card_name == 'true' %}
-        <p>Vielen Dank, {{ card_name }}! 😊</p>
+        <div class="row"><span>Bon-Nr:</span><span>#{{ tx_id }}</span></div>
+        {% if show_date_time == 'true' %}
+        <div class="row"><span>Datum:</span><span>{{ date_str }}</span></div>
+        <div class="row"><span>Zeit:</span><span>{{ time_str }}</span></div>
         {% endif %}
-        <p>{{ receipt_footer }}</p>
-    </div>
+        {% if show_card_name == 'true' %}
+        <div class="row"><span>Kunde:</span><span>{{ card_name }} 💳</span></div>
+        {% endif %}
+
+        <div class="divider"></div>
+
+        <table class="items-table">
+            {% for item in items %}
+            <tr>
+                <td style="text-align: left;">{{ item.product_name }}</td>
+                <td style="text-align: center;">{{ item.quantity }}x</td>
+                <td style="text-align: right;">{{ "%.2f"|format(item.price_cents * item.quantity / 100)|replace('.', ',') }} €</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <div class="divider"></div>
+
+        <div class="total-row">
+            <span>SUMME:</span>
+            <span>{{ total_formatted }}</span>
+        </div>
+
+        <div class="divider"></div>
+
+        {% if (tx and tx.signature_data) or signature_data %}
+        <div style="text-align: center; margin: 0.8rem 0;">
+            <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.2rem;">Unterschrift Kunde</div>
+            <img src="{{ tx.signature_data if tx else signature_data }}" alt="Unterschrift" style="max-width: 180px; max-height: 70px; border-bottom: 1px dashed #000; padding-bottom: 4px;">
+        </div>
+        <div class="divider"></div>
+        {% endif %}
+
+        <div class="footer">
+            {% if show_card_name == 'true' %}
+            <p>Vielen Dank, {{ card_name }}! 😊</p>
+            {% endif %}
+            <p>{{ receipt_footer }}</p>
+        </div>
+    {% endif %}
 </div>
 
 <div class="actions">

@@ -366,3 +366,149 @@ body {
 .badge-secondary { background: #f1f5f9; color: #64748b; }
 .badge-danger { background: #fee2e2; color: #b91c1c; }
 .badge-info { background: #e0f2fe; color: #0369a1; }
+
+/* Drag & Drop Receipt Template Builder */
+.builder-side-by-side {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .builder-side-by-side {
+        grid-template-columns: 1fr;
+    }
+}
+
+.builder-blocks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    min-height: 200px;
+}
+
+.builder-block-card {
+    background: #f8fafc;
+    border: 1.5px solid var(--admin-border);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.builder-block-card.dragging {
+    opacity: 0.5;
+    background: #e2e8f0;
+    border-style: dashed;
+}
+
+.builder-block-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.drag-handle {
+    cursor: grab;
+    font-size: 1.2rem;
+    color: #94a3b8;
+    user-select: none;
+    padding: 0.2rem 0.4rem;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.block-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-grow: 1;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.block-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.block-actions button {
+    background: white;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.block-actions button:hover {
+    background: #f1f5f9;
+}
+
+.block-options-panel {
+    background: white;
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    padding: 0.6rem;
+    margin-top: 0.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+/* Thermal Paper Live Preview Box */
+.receipt-paper-preview {
+    background: #ffffff;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 1.5rem 1.2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    font-family: 'Courier New', Courier, monospace;
+    color: #111;
+    max-width: 340px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.receipt-paper-preview .preview-header-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 0.3rem;
+}
+
+.receipt-paper-preview .preview-text {
+    font-size: 0.95rem;
+    margin-bottom: 0.3rem;
+}
+
+.receipt-paper-preview .preview-sep {
+    border-top: 1px dashed #475569;
+    margin: 0.6rem 0;
+}
+
+.receipt-paper-preview .preview-sep-solid {
+    border-top: 2px solid #111;
+    margin: 0.6rem 0;
+}
+
+.receipt-paper-preview .preview-table {
+    width: 100%;
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+}
+
+.receipt-paper-preview .preview-qr {
+    text-align: center;
+    margin: 0.8rem 0;
+}

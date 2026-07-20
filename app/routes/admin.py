@@ -383,6 +383,7 @@ def settings():
         paper_width = request.form.get("paper_width", "58mm")
         screen_timeout = request.form.get("screen_timeout", "30")
         show_nfc_toast = request.form.get("show_nfc_toast", "true")
+        receipt_layout_json = request.form.get("receipt_layout_json", "")
 
         set_setting("shop_name", shop_name)
         set_setting("admin_pin", admin_pin)
@@ -398,9 +399,15 @@ def settings():
         set_setting("paper_width", paper_width)
         set_setting("screen_timeout", screen_timeout)
         set_setting("show_nfc_toast", show_nfc_toast)
+        if receipt_layout_json:
+            set_setting("receipt_layout_json", receipt_layout_json)
 
-        flash("Einstellungen & NFC-Modus erfolgreich gespeichert!", "success")
+        flash("Einstellungen & Bon-Template erfolgreich gespeichert!", "success")
         return redirect(url_for("admin.settings"))
+
+    from app.seed import DEFAULT_RECEIPT_LAYOUT
+    import json
+    default_json = json.dumps(DEFAULT_RECEIPT_LAYOUT)
 
     current_settings = {
         "shop_name": get_setting("shop_name", Config.SHOP_NAME),
@@ -417,6 +424,7 @@ def settings():
         "paper_width": get_setting("paper_width", "58mm"),
         "screen_timeout": get_setting("screen_timeout", "30"),
         "show_nfc_toast": get_setting("show_nfc_toast", "true"),
+        "receipt_layout_json": get_setting("receipt_layout_json", default_json),
     }
     return render_template("admin/settings.html", settings=current_settings)
 
