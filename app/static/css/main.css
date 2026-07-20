@@ -71,18 +71,19 @@ body {
 /* Main Layout: Split view (Grid on Left, Cart on Right) */
 .cashier-layout {
     display: grid;
-    grid-template-columns: 1fr 380px;
-    gap: 1.5rem;
+    grid-template-columns: 1fr clamp(380px, 32vw, 500px);
+    gap: 1.8rem;
     padding: 1.5rem;
-    max-width: 1600px;
+    max-width: 1750px;
     margin: 0 auto;
     height: calc(100vh - 90px);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 992px) {
     .cashier-layout {
         grid-template-columns: 1fr;
         height: auto;
+        padding: 1rem;
     }
 }
 
@@ -111,10 +112,10 @@ body {
 .tab-btn {
     background: white;
     border: 3px solid transparent;
-    padding: 0.8rem 1.4rem;
+    padding: 0.85rem 1.5rem;
     border-radius: 50px;
-    font-size: 1.2rem;
-    font-weight: 700;
+    font-size: 1.25rem;
+    font-weight: 800;
     color: var(--text-color);
     cursor: pointer;
     white-space: nowrap;
@@ -142,14 +143,14 @@ body {
 
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-    gap: 1.2rem;
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+    gap: 1.3rem;
 }
 
 .product-card {
     background: white;
     border-radius: var(--radius-lg);
-    padding: 1.2rem;
+    padding: 1.3rem 1.1rem;
     text-align: center;
     cursor: pointer;
     box-shadow: var(--shadow-card);
@@ -159,13 +160,13 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    min-height: 190px;
+    min-height: 200px;
 }
 
 .product-card:hover {
     transform: translateY(-5px) scale(1.03);
     border-color: var(--primary-yellow);
-    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.1);
 }
 
 .product-card:active {
@@ -174,22 +175,22 @@ body {
 }
 
 .product-card .emoji {
-    font-size: 4.5rem;
+    font-size: 4.8rem;
     line-height: 1;
     margin-bottom: 0.5rem;
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.12));
 }
 
 .product-card .img-thumb {
-    width: 80px;
-    height: 80px;
+    width: 85px;
+    height: 85px;
     object-fit: cover;
     border-radius: var(--radius-md);
     margin-bottom: 0.5rem;
 }
 
 .product-card .name {
-    font-size: 1.3rem;
+    font-size: 1.35rem;
     font-weight: 800;
     color: #2c3e50;
     margin-bottom: 0.3rem;
@@ -197,49 +198,51 @@ body {
 }
 
 .product-card .price {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     font-weight: 900;
     color: #27ae60;
     background: #e8f8f5;
-    padding: 0.2rem 0.8rem;
+    padding: 0.3rem 0.9rem;
     border-radius: 20px;
 }
 
-/* Cart Panel (Sidebar) */
+/* Cart Panel (Sidebar / Shopping Basket) */
 .cart-panel {
     background: white;
-    border-radius: var(--radius-lg);
-    padding: 1.5rem;
-    box-shadow: var(--shadow-soft);
+    border-radius: 28px;
+    padding: 1.6rem;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.09);
     display: flex;
     flex-direction: column;
     height: 100%;
-    border: 3px solid #e1e8ed;
+    border: 3px solid #e2e8f0;
 }
 
 .cart-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 3px dashed #ecf0f1;
-    padding-bottom: 1rem;
-    margin-bottom: 1rem;
+    border-bottom: 3px dashed #e2e8f0;
+    padding-bottom: 1.1rem;
+    margin-bottom: 1.1rem;
 }
 
 .cart-header h2 {
-    font-size: 1.8rem;
+    font-size: 2rem;
+    font-weight: 900;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
+    color: #1e293b;
 }
 
 .clear-btn {
-    background: #ffdddd;
-    color: var(--primary-red);
+    background: #ffe4e6;
+    color: #e11d48;
     border: none;
-    padding: 0.6rem 1rem;
+    padding: 0.65rem 1.2rem;
     border-radius: 50px;
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 800;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -255,32 +258,34 @@ body {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
-    padding-right: 0.3rem;
+    gap: 0.9rem;
+    padding-right: 0.4rem;
 }
 
 .empty-cart-msg {
     text-align: center;
     color: var(--text-muted);
-    font-size: 1.3rem;
+    font-size: 1.35rem;
     margin: auto 0;
+    line-height: 1.4;
 }
 
 .empty-cart-msg .big-emoji {
-    font-size: 4rem;
+    font-size: 4.8rem;
     display: block;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.6rem;
 }
 
 .cart-item {
-    background: #f8f9fa;
-    border-radius: var(--radius-md);
-    padding: 0.8rem 1rem;
+    background: #f8fafc;
+    border-radius: 20px;
+    padding: 1rem 1.2rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.8rem;
+    gap: 1rem;
     border: 2px solid #edf2f7;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     animation: popIn 0.25s ease-out;
 }
 
@@ -292,59 +297,64 @@ body {
 .cart-item-info {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.8rem;
     flex: 1;
 }
 
 .cart-item-emoji {
-    font-size: 2rem;
+    font-size: 2.5rem;
+    line-height: 1;
 }
 
 .cart-item-details {
     display: flex;
     flex-direction: column;
+    gap: 2px;
 }
 
 .cart-item-name {
     font-weight: 800;
-    font-size: 1.1rem;
+    font-size: 1.25rem;
+    color: #1e293b;
 }
 
 .cart-item-price {
-    font-size: 1rem;
-    color: #27ae60;
-    font-weight: 700;
+    font-size: 1.15rem;
+    color: #00b894;
+    font-weight: 800;
 }
 
 /* Cart Quantity Controls */
 .qty-controls {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.5rem;
 }
 
 .qty-btn {
-    width: 38px;
-    height: 38px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     border: none;
-    font-size: 1.4rem;
-    font-weight: bold;
+    font-size: 1.6rem;
+    font-weight: 900;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: transform 0.1s ease;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
 .qty-btn.minus {
     background: #ffeaa7;
     color: #d63031;
+    box-shadow: 0 4px 10px rgba(214, 48, 49, 0.15);
 }
 
 .qty-btn.plus {
     background: #55efc4;
     color: #00b894;
+    box-shadow: 0 4px 10px rgba(0, 184, 148, 0.18);
 }
 
 .qty-btn:active {
@@ -353,32 +363,37 @@ body {
 
 .qty-count {
     font-weight: 900;
-    font-size: 1.2rem;
-    min-width: 28px;
+    font-size: 1.4rem;
+    min-width: 32px;
     text-align: center;
+    color: #0f172a;
 }
 
 /* Cart Footer / Pay Button */
 .cart-footer {
-    border-top: 3px dashed #ecf0f1;
-    padding-top: 1rem;
-    margin-top: 1rem;
+    border-top: 3px dashed #e2e8f0;
+    padding-top: 1.2rem;
+    margin-top: 1.2rem;
 }
 
 .total-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 1.8rem;
+    font-size: 2rem;
     font-weight: 900;
-    margin-bottom: 1rem;
+    margin-bottom: 1.2rem;
+    color: #0f172a;
 }
 
 .total-amount {
-    color: #27ae60;
-    background: #e8f8f5;
-    padding: 0.2rem 1rem;
-    border-radius: 30px;
+    color: #00a878;
+    background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
+    border: 2px solid #81e6d9;
+    padding: 0.35rem 1.4rem;
+    border-radius: 50px;
+    font-size: 2.2rem;
+    letter-spacing: 0.5px;
 }
 
 .pay-btn {
@@ -386,29 +401,29 @@ body {
     background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
     color: white;
     border: none;
-    padding: 1.2rem;
-    border-radius: var(--radius-lg);
-    font-size: 1.8rem;
+    padding: 1.3rem;
+    border-radius: 24px;
+    font-size: 2rem;
     font-weight: 900;
     cursor: pointer;
-    box-shadow: 0 8px 20px rgba(0, 184, 148, 0.35);
+    box-shadow: 0 10px 25px rgba(0, 184, 148, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.8rem;
+    gap: 1rem;
     transition: all 0.2s ease;
 }
 
 .pay-btn:disabled {
-    background: #b2bec3;
+    background: #cbd5e1;
     box-shadow: none;
     cursor: not-allowed;
-    opacity: 0.7;
+    opacity: 0.65;
 }
 
 .pay-btn:not(:disabled):hover {
     transform: translateY(-3px);
-    box-shadow: 0 12px 25px rgba(0, 184, 148, 0.45);
+    box-shadow: 0 14px 30px rgba(0, 184, 148, 0.5);
 }
 
 .pay-btn:not(:disabled):active {
