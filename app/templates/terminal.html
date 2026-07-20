@@ -354,8 +354,8 @@
         opacity: 0.3;
     }
 
-    /* Orientation Warning for Terminal (Must be Portrait) */
-    .portrait-warning-overlay {
+    /* Orientation Warning for Terminal (Must be Portrait for normal, Landscape for signature) */
+    .portrait-warning-overlay, .signature-rotate-overlay {
         display: none;
         position: fixed;
         top: 0;
@@ -376,8 +376,21 @@
         50% { transform: rotate(-90deg); }
     }
 
+    @keyframes rotatePhoneToLandscape {
+        0%, 100% { transform: rotate(0deg); }
+        50% { transform: rotate(90deg); }
+    }
+
+    /* Normal mode: require Portrait */
     @media screen and (orientation: landscape) and (max-height: 600px) {
-        .portrait-warning-overlay {
+        body:not(.signature-mode-active) .portrait-warning-overlay {
+            display: flex;
+        }
+    }
+
+    /* Signature mode: require Landscape */
+    @media screen and (orientation: portrait) {
+        body.signature-mode-active .signature-rotate-overlay {
             display: flex;
         }
     }
@@ -515,6 +528,13 @@
     <div style="font-size: 5rem; animation: rotatePhone 2s infinite ease-in-out;">📱</div>
     <h2 style="font-size: 2rem; margin-top: 1rem; color: #38ef7d;">Bitte Smartphone hochkant halten!</h2>
     <p style="font-size: 1.2rem; opacity: 0.85; margin-top: 0.5rem;">Das Terminal ist für Hochformat optimiert.</p>
+</div>
+
+<!-- Landscape Warning Overlay for Signature Mode -->
+<div class="signature-rotate-overlay">
+    <div style="font-size: 5rem; animation: rotatePhoneToLandscape 2s infinite ease-in-out;">📱</div>
+    <h2 style="font-size: 2rem; margin-top: 1rem; color: #ffda79;">Zum Unterschreiben quer drehen! 🔄</h2>
+    <p style="font-size: 1.2rem; opacity: 0.85; margin-top: 0.5rem;">Halte das Smartphone im Querformat für mehr Platz.</p>
 </div>
 {% endblock %}
 
@@ -808,12 +828,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const successGreeting = document.getElementById("successGreeting");
     const errorMessageDisplay = document.getElementById("errorMessageDisplay");
 
+    function lockTerminalOrientation(mode) {
+        if ('orientation' in screen && screen.orientation.lock) {
+            screen.orientation.lock(mode).catch(err => console.warn("Terminal orientation lock:", err));
+        }
+    }
+
     function showState(el) {
         wakeUp();
         [stateIdle, stateWaiting, statePin, stateSignature, stateSuccess, stateError, stateSleep].forEach(s => {
             if (s) s.classList.add("hidden");
         });
         if (el) el.classList.remove("hidden");
+
+        if (el === stateSignature) {
+            document.body.classList.add("signature-mode-active");
+            lockTerminalOrientation('landscape');
+        } else {
+            document.body.classList.remove("signature-mode-active");
+            lockTerminalOrientation('portrait');
+        }
+
         resetIdleTimer();
     }
 
