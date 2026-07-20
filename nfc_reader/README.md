@@ -13,16 +13,18 @@ Connections to Pi #2 GPIO:
 
 ## Quick Start
 ```bash
-cd nfc_reader
+git clone https://github.com/Ayakashi97/kids-supermarket.git
+cd kids-supermarket/nfc_reader
+
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
 # Run hardware reader
-python reader.py --server http://<pi1-ip>:5000
+python reader.py --server http://<pi1-ip>:5050
 
 # Or run simulator (interactive console)
-python reader.py --server http://<pi1-ip>:5000 --simulate
+python reader.py --server http://<pi1-ip>:5050 --simulate
 ```
 
 ## Systemd Auto-Start
