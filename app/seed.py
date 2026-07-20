@@ -1,8 +1,17 @@
 import logging
 from app.db import db
-from app.models import Product, Card
+from app.models import Product, Card, Category
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_CATEGORIES = [
+    {"name": "Obst & Gemüse", "emoji": "🍎", "sort_order": 1},
+    {"name": "Backwaren", "emoji": "🥨", "sort_order": 2},
+    {"name": "Milchprodukte", "emoji": "🥛", "sort_order": 3},
+    {"name": "Getränke", "emoji": "🧃", "sort_order": 4},
+    {"name": "Süßes", "emoji": "🍫", "sort_order": 5},
+    {"name": "Sonstiges", "emoji": "📦", "sort_order": 6},
+]
 
 DEFAULT_PRODUCTS = [
     {"name": "Brezel", "price_cents": 80, "emoji": "🥨", "category": "Backwaren"},
@@ -26,7 +35,15 @@ DEFAULT_TEST_CARDS = [
 
 
 def seed_default_products():
-    """Seeds default German supermarket products if database is empty."""
+    """Seeds default German supermarket categories & products if database is empty."""
+    if Category.query.first() is None:
+        logger.info("Seeding default categories...")
+        for cat in DEFAULT_CATEGORIES:
+            c = Category(name=cat["name"], emoji=cat["emoji"], sort_order=cat["sort_order"], is_active=True)
+            db.session.add(c)
+        db.session.commit()
+        logger.info("Successfully seeded default categories.")
+
     if Product.query.first() is None:
         logger.info("Database empty. Seeding default German products...")
         for item in DEFAULT_PRODUCTS:

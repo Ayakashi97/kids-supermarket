@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for
-from app.models import Product
+from app.models import Product, Category
 
 cashier_bp = Blueprint("cashier", __name__)
 
@@ -13,8 +13,9 @@ def get_setting(key: str, default_val: str) -> str:
 @cashier_bp.route("/")
 def index():
     products = Product.query.filter_by(is_active=True).all()
+    categories = Category.query.filter_by(is_active=True).order_by(Category.sort_order, Category.id).all()
     shop_name = get_setting("shop_name", "Kinder-Supermarkt")
-    return render_template("cashier.html", products=products, shop_name=shop_name)
+    return render_template("cashier.html", products=products, categories=categories, shop_name=shop_name)
 
 
 @cashier_bp.route("/terminal")

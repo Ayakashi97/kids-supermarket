@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 from app.config import Config
 from app.db import db
-from app.models import Product, Card, Transaction, Setting
+from app.models import Product, Card, Transaction, Setting, Category
 from app.services.socket_events import server_state, socketio
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -105,7 +105,64 @@ def products():
         return redirect(url_for("admin.products"))
 
     all_products = Product.query.order_by(Product.category, Product.name).all()
-    return render_template("admin/products.html", products=all_products)
+    categories = Category.query.filter_by(is_active=True).order_by(Category.sort_order).all()
+    return render_template("admin/products.html", products=all_products, categories=categories)
+
+
+# --- Category Management ---
+@admin_bp.route("/categories", methods=["GET", "POST"])
+def categories():
+    if not is_logged_in():
+        return redirect(url_for("admin.login"))
+
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        emoji = request.form.get("emoji", "📦").strip()
+        sort_order = int(request.form.get("sort_order", "0"))
+
+        if not name:
+            flash("Bitte Name der Kategorie eingeben!", "danger")
+            return redirect(url_for("admin.categories"))
+
+        existing = Category.query.filter_by(name=name).first()
+        if existing:
+            flash(f"Kategorie '{name}' existiert bereits!", "danger")
+            return redirect(url_for("admin.categories"))
+
+        category = Category(name=name, emoji=emoji, sort_order=sort_order, is_active=True)
+        db.session.add(category)
+        db.session.commit()
+        flash(f"Kategorie '{name}' erfolgreich hinzugefügt! 🎉", "success")
+        return redirect(url_for("admin.categories"))
+
+    all_cats = Category.query.order_by(Category.sort_order, Category.id).all()
+    return render_template("admin/categories.html", categories=all_cats)
+
+
+@admin_bp.route("/categories/toggle/<int:cat_id>")
+def toggle_category(cat_id):
+    if not is_logged_in():
+        return redirect(url_for("admin.login"))
+    cat = Category.query.get_or_404(cat_id)
+    cat.is_active = not cat.is_active
+    db.session.commit()
+    return redirect(url_for("admin.categories"))
+
+
+@admin_bp.route("/categories/delete/<int:cat_id>")
+def delete_category(cat_id):
+    if not is_logged_in():
+        return redirect(url_for("admin.login"))
+    cat = Category.query.get_or_404(cat_id)
+    product_count = Product.query.filter_by(category=cat.name).count()
+    if product_count > 0:
+        flash(f"Kategorie '{cat.name}' kann nicht gelöscht werden, da noch {product_count} Produkte zugeordnet sind!", "danger")
+        return redirect(url_for("admin.categories"))
+
+    db.session.delete(cat)
+    db.session.commit()
+    flash(f"Kategorie '{cat.name}' gelöscht!", "info")
+    return redirect(url_for("admin.categories"))
 
 
 @admin_bp.route("/products/toggle/<int:product_id>")

@@ -2,6 +2,25 @@ from datetime import datetime, timezone
 from app.db import db
 
 
+class Category(db.Model):
+    __tablename__ = "categories"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    emoji = db.Column(db.String(10), nullable=True, default="📦")
+    sort_order = db.Column(db.Integer, default=0, nullable=False)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "emoji": self.emoji,
+            "sort_order": self.sort_order,
+            "is_active": self.is_active,
+        }
+
+
 class Product(db.Model):
     __tablename__ = "products"
 

@@ -310,6 +310,84 @@ document.addEventListener("DOMContentLoaded", () => {
         payBtn.disabled = false;
     }
 
+    // --- Pagination System ---
+    let currentPage = 0;
+    let currentCategory = "all";
+    const prevPageBtn = document.getElementById("prevPageBtn");
+    const nextPageBtn = document.getElementById("nextPageBtn");
+    const pageIndicator = document.getElementById("pageIndicator");
+    const productGrid = document.getElementById("productGrid");
+
+    if ('orientation' in screen && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(err => console.warn("Cashier orientation lock:", err));
+    }
+
+    function calculateItemsPerPage() {
+        if (!productGrid) return 8;
+        const gridWidth = productGrid.clientWidth || 600;
+        const gridHeight = productGrid.clientHeight || 400;
+        const cols = Math.max(1, Math.floor(gridWidth / 175));
+        const rows = Math.max(1, Math.floor(gridHeight / 195));
+        return Math.max(4, cols * rows);
+    }
+
+    function getVisibleCards() {
+        const cards = Array.from(productCards);
+        if (currentCategory === "all") return cards;
+        return cards.filter(card => card.getAttribute("data-category") === currentCategory);
+    }
+
+    function renderPage() {
+        const visibleCards = getVisibleCards();
+        const itemsPerPage = calculateItemsPerPage();
+        const totalPages = Math.max(1, Math.ceil(visibleCards.length / itemsPerPage));
+
+        if (currentPage >= totalPages) currentPage = totalPages - 1;
+        if (currentPage < 0) currentPage = 0;
+
+        productCards.forEach(card => card.style.display = "none");
+
+        const startIdx = currentPage * itemsPerPage;
+        const endIdx = startIdx + itemsPerPage;
+        const pageCards = visibleCards.slice(startIdx, endIdx);
+
+        pageCards.forEach(card => card.style.display = "flex");
+
+        if (pageIndicator) {
+            pageIndicator.textContent = `Seite ${currentPage + 1} / ${totalPages}`;
+        }
+
+        if (prevPageBtn) prevPageBtn.disabled = (currentPage <= 0);
+        if (nextPageBtn) nextPageBtn.disabled = (currentPage >= totalPages - 1);
+    }
+
+    if (prevPageBtn) {
+        prevPageBtn.addEventListener("click", () => {
+            if (currentPage > 0) {
+                currentPage--;
+                renderPage();
+                playBeepSound();
+            }
+        });
+    }
+
+    if (nextPageBtn) {
+        nextPageBtn.addEventListener("click", () => {
+            const visibleCards = getVisibleCards();
+            const itemsPerPage = calculateItemsPerPage();
+            const totalPages = Math.max(1, Math.ceil(visibleCards.length / itemsPerPage));
+            if (currentPage < totalPages - 1) {
+                currentPage++;
+                renderPage();
+                playBeepSound();
+            }
+        });
+    }
+
+    window.addEventListener("resize", () => {
+        renderPage();
+    });
+
     // --- Product Click Handlers ---
     productCards.forEach(card => {
         card.addEventListener("click", () => {
@@ -326,19 +404,14 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.addEventListener("click", () => {
             tabBtns.forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
-
-            const selectedCat = btn.getAttribute("data-category");
-
-            productCards.forEach(card => {
-                const cardCat = card.getAttribute("data-category");
-                if (selectedCat === "all" || cardCat === selectedCat) {
-                    card.style.display = "flex";
-                } else {
-                    card.style.display = "none";
-                }
-            });
+            currentCategory = btn.getAttribute("data-category");
+            currentPage = 0;
+            renderPage();
         });
     });
+
+    // Initial page render
+    renderPage();
 
     // Clear cart button
     clearCartBtn.addEventListener("click", () => {

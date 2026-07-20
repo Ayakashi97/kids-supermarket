@@ -4,7 +4,7 @@
   "description": "Kassensystem Dashboard für den Kinder-Supermarkt",
   "start_url": "/",
   "display": "fullscreen",
-  "orientation": "any",
+  "orientation": "landscape",
   "background_color": "#ffffff",
   "theme_color": "#34ace0",
   "icons": [

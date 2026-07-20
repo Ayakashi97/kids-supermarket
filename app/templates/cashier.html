@@ -16,18 +16,24 @@
 <div class="cashier-layout">
     <!-- Left Section: Products & Category Tabs -->
     <section class="products-section">
-        <!-- Category Filter Tabs -->
-        <nav class="category-tabs">
+        <!-- Category Filter Tabs (Dynamic from DB) -->
+        <nav class="category-tabs" id="categoryTabs">
             <button class="tab-btn active" data-category="all">Alle 🌟</button>
-            <button class="tab-btn" data-category="Obst & Gemüse">Obst & Gemüse 🍎</button>
-            <button class="tab-btn" data-category="Backwaren">Backwaren 🥨</button>
-            <button class="tab-btn" data-category="Milchprodukte">Milchprodukte 🥛</button>
-            <button class="tab-btn" data-category="Getränke">Getränke 🧃</button>
-            <button class="tab-btn" data-category="Süßes">Süßes 🍫</button>
+            {% if categories %}
+                {% for cat in categories %}
+                <button class="tab-btn" data-category="{{ cat.name }}">{{ cat.name }} {{ cat.emoji or '' }}</button>
+                {% endfor %}
+            {% else %}
+                <button class="tab-btn" data-category="Obst & Gemüse">Obst & Gemüse 🍎</button>
+                <button class="tab-btn" data-category="Backwaren">Backwaren 🥨</button>
+                <button class="tab-btn" data-category="Milchprodukte">Milchprodukte 🥛</button>
+                <button class="tab-btn" data-category="Getränke">Getränke 🧃</button>
+                <button class="tab-btn" data-category="Süßes">Süßes 🍫</button>
+            {% endif %}
         </nav>
 
-        <!-- Product Grid Scrollable Area -->
-        <div class="product-grid-scroll">
+        <!-- Product Grid Area with Pagination -->
+        <div class="product-grid-wrapper">
             <div class="product-grid" id="productGrid">
                 {% for product in products %}
                 <div class="product-card" 
@@ -47,6 +53,17 @@
                     <span class="price">{{ (product.price_cents / 100) | round(2) }} €</span>
                 </div>
                 {% endfor %}
+            </div>
+
+            <!-- Kid-Friendly Pagination Footer -->
+            <div class="pagination-bar" id="paginationBar">
+                <button type="button" class="page-arrow-btn" id="prevPageBtn">
+                    <span>◀ ZURÜCK</span>
+                </button>
+                <span class="page-indicator" id="pageIndicator">Seite 1 / 1</span>
+                <button type="button" class="page-arrow-btn" id="nextPageBtn">
+                    <span>WEITER ▶</span>
+                </button>
             </div>
         </div>
     </section>
@@ -116,6 +133,13 @@
 
         <button class="cancel-payment-btn" id="cancelPayBtn" style="margin-top: 1.2rem;">Abbrechen ❌</button>
     </div>
+</div>
+
+<!-- Landscape Warning Overlay for Cashier -->
+<div class="landscape-warning-overlay">
+    <div style="font-size: 5rem; animation: rotateTablet 2s infinite ease-in-out;">📱</div>
+    <h2 style="font-size: 2.2rem; margin-top: 1rem; color: #ffda79;">Bitte Tablet ins Querformat drehen!</h2>
+    <p style="font-size: 1.3rem; opacity: 0.85; margin-top: 0.5rem; text-align: center;">Die Kasse ist für das Querformat (Landscape) optimiert.</p>
 </div>
 {% endblock %}
 

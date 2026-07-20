@@ -353,6 +353,34 @@
         opacity: 0.3;
     }
 
+    /* Orientation Warning for Terminal (Must be Portrait) */
+    .portrait-warning-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: #080f14;
+        z-index: 99999;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    @keyframes rotatePhone {
+        0%, 100% { transform: rotate(0deg); }
+        50% { transform: rotate(-90deg); }
+    }
+
+    @media screen and (orientation: landscape) and (max-height: 600px) {
+        .portrait-warning-overlay {
+            display: flex;
+        }
+    }
+
     .hidden {
         display: none !important;
     }
@@ -466,6 +494,13 @@
 <div id="stateSleep" class="sleep-overlay hidden">
     <div class="sleep-icon">😴</div>
     <p>Standby — Tippen zum Aufwecken</p>
+</div>
+
+<!-- Portrait Warning Overlay -->
+<div class="portrait-warning-overlay">
+    <div style="font-size: 5rem; animation: rotatePhone 2s infinite ease-in-out;">📱</div>
+    <h2 style="font-size: 2rem; margin-top: 1rem; color: #38ef7d;">Bitte Smartphone hochkant halten!</h2>
+    <p style="font-size: 1.2rem; opacity: 0.85; margin-top: 0.5rem;">Das Terminal ist für Hochformat optimiert.</p>
 </div>
 {% endblock %}
 

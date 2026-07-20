@@ -8,48 +8,52 @@
 
 {% block content %}
 <nav class="admin-nav">
-    <a href="{{ url_for('admin.dashboard') }}">🛒 Admin Panel</a>
-    <div class="admin-menu">
-        <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
-        <a href="{{ url_for('admin.products') }}">Produkte</a>
-        <a href="{{ url_for('admin.cards') }}">Kundenkarten 💳</a>
-        <a href="{{ url_for('admin.transactions') }}">Einkäufe</a>
-        <a href="{{ url_for('admin.settings') }}">Einstellungen ⚙️</a>
-        <a href="{{ url_for('admin.logout') }}">Abmelden</a>
+    <div class="admin-nav-container">
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-brand">🛒 Admin Panel</a>
+        <button type="button" class="admin-nav-toggle" onclick="document.querySelector('.admin-menu').classList.toggle('open')">☰</button>
+        <div class="admin-menu">
+            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin.categories') }}">Kategorien 🏷️</a>
+            <a href="{{ url_for('admin.products') }}">Produkte</a>
+            <a href="{{ url_for('admin.cards') }}" class="active">Kundenkarten 💳</a>
+            <a href="{{ url_for('admin.transactions') }}">Einkäufe</a>
+            <a href="{{ url_for('admin.settings') }}">Einstellungen ⚙️</a>
+            <a href="{{ url_for('admin.logout') }}" class="logout-link">Abmelden</a>
+        </div>
     </div>
 </nav>
 
 <div class="admin-container">
     <div class="page-title-row">
-        <h2>Kundenkarten (NFC Stickers) verwalten</h2>
+        <h2>Kundenkarten (NFC Stickers) verwalten 💳</h2>
     </div>
 
-    <div style="background: #e17055; color: white; padding: 0.8rem 1.2rem; border-radius: 12px; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-        <span>🔢 <strong>Terminal PIN-Abfrage:</strong> Der PIN-Modus (Deaktiviert, Spielgeld-PIN, oder Exakte Karten-PIN) wird in den <strong>Einstellungen</strong> konfiguriert!</span>
+    <div style="background: #e17055; color: white; padding: 1rem 1.2rem; border-radius: 12px; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem;">
+        <span>🔢 <strong>Terminal PIN-Abfrage:</strong> Der PIN-Modus wird in den <strong>Einstellungen</strong> konfiguriert!</span>
         <a href="{{ url_for('admin.settings') }}" class="btn btn-sm" style="background: white; color: #d63031; font-weight: bold; text-decoration: none;">Zu den Einstellungen ⚙️</a>
     </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="badge badge-{{ category }}" style="font-size: 1rem; margin-bottom: 1rem;">{{ message }}</div>
+                <div class="badge badge-{{ category }}" style="font-size: 1rem; margin-bottom: 1.2rem; width: 100%; display: block; border-radius: 12px; padding: 0.8rem 1.2rem;">{{ message }}</div>
             {% endfor %}
         {% endif %}
     {% endwith %}
 
     <div class="admin-card">
         <h3>Neue Kundenkarte registrieren</h3>
-        <p style="color: #666; margin-bottom: 1rem;">
+        <p style="color: var(--admin-muted); margin-bottom: 1.2rem;">
             Tippe auf <strong>"Scan 💳"</strong> und halte die neue Karte an die Rückseite deines Smartphones oder das Lesegerät.
         </p>
 
         <form method="POST" enctype="multipart/form-data">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-grid">
                 <div class="form-group">
                     <label for="nfc_uid">NFC UID (Automatisch oder Manuell):</label>
                     <div style="display: flex; gap: 0.5rem;">
                         <input type="text" id="nfc_uid" name="nfc_uid" placeholder="UID z.B. 4A8F91C2 oder Lena123" required>
-                        <button type="button" class="btn btn-primary" id="scanBtn">Scan 💳</button>
+                        <button type="button" class="btn btn-primary" id="scanBtn" style="white-space: nowrap;">Scan 💳</button>
                     </div>
                 </div>
 
@@ -61,7 +65,7 @@
                 <div class="form-group">
                     <label for="pin">Karten PIN (Optionale 4-stellige Geheimzahl):</label>
                     <input type="text" id="pin" name="pin" maxlength="4" placeholder="z.B. 1234">
-                    <small style="color: #666;">Wird benötigt, wenn der PIN-Modus in den Einstellungen aktiviert ist.</small>
+                    <small>Wird benötigt, wenn der PIN-Modus in den Einstellungen aktiviert ist.</small>
                 </div>
 
                 <div class="form-group">
@@ -70,56 +74,64 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-success">Karte registrieren</button>
+            <button type="submit" class="btn btn-success" style="margin-top: 0.5rem;">Karte registrieren ➕</button>
         </form>
     </div>
 
     <div class="admin-card">
         <h3>Registrierte Karten</h3>
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Foto</th>
-                    <th>Name</th>
-                    <th>NFC UID</th>
-                    <th>Karten PIN</th>
-                    <th>Erstellt am</th>
-                    <th>Status</th>
-                    <th>Aktionen</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for c in cards %}
-                <tr>
-                    <td>
-                        {% if c.image_path %}
-                            <img src="{{ url_for('static', filename=c.image_path) }}" class="img-preview" alt="{{ c.name }}">
-                        {% else %}
-                            <span style="font-size: 2rem;">👤</span>
-                        {% endif %}
-                    </td>
-                    <td><strong>{{ c.name }}</strong></td>
-                    <td><code>{{ c.nfc_uid }}</code></td>
-                    <td><strong>{{ c.pin if c.pin else 'Keine (1234)' }}</strong></td>
-                    <td>{{ c.created_at.strftime('%d.%m.%Y %H:%M') if c.created_at else '-' }}</td>
-                    <td>
-                        {% if c.is_active %}
-                            <span class="badge badge-success">Aktiv</span>
-                        {% else %}
-                            <span class="badge badge-secondary">Inaktiv</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <a href="{{ url_for('admin.edit_card', card_id=c.id) }}" class="btn btn-sm btn-secondary" style="background: #e67e22; color: white;">Bearbeiten ✏️</a>
-                        <a href="{{ url_for('admin.toggle_card', card_id=c.id) }}" class="btn btn-sm btn-primary">
-                            {% if c.is_active %}Deaktivieren{% else %}Aktivieren{% endif %}
-                        </a>
-                        <a href="{{ url_for('admin.delete_card', card_id=c.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Karte wirklich löschen?');">Löschen</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Foto</th>
+                        <th>Name</th>
+                        <th>NFC UID</th>
+                        <th>Karten PIN</th>
+                        <th>Erstellt am</th>
+                        <th>Status</th>
+                        <th>Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in cards %}
+                    <tr>
+                        <td>
+                            {% if c.image_path %}
+                                <img src="{{ url_for('static', filename=c.image_path) }}" class="img-preview" alt="{{ c.name }}">
+                            {% else %}
+                                <span style="font-size: 2rem;">👤</span>
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ c.name }}</strong></td>
+                        <td><code>{{ c.nfc_uid }}</code></td>
+                        <td><strong>{{ c.pin if c.pin else 'Keine (1234)' }}</strong></td>
+                        <td>{{ c.created_at.strftime('%d.%m.%Y %H:%M') if c.created_at else '-' }}</td>
+                        <td>
+                            {% if c.is_active %}
+                                <span class="badge badge-success">Aktiv</span>
+                            {% else %}
+                                <span class="badge badge-secondary">Inaktiv</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{{ url_for('admin.edit_card', card_id=c.id) }}" class="btn btn-sm" style="background: #e67e22; color: white;">Bearbeiten ✏️</a>
+                                <a href="{{ url_for('admin.toggle_card', card_id=c.id) }}" class="btn btn-sm btn-primary">
+                                    {% if c.is_active %}Deaktivieren{% else %}Aktivieren{% endif %}
+                                </a>
+                                <a href="{{ url_for('admin.delete_card', card_id=c.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Karte wirklich löschen?');">Löschen</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: var(--admin-muted);">Noch keine Kundenkarten registriert.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -138,7 +150,6 @@ document.addEventListener("DOMContentLoaded", () => {
         
         socket.emit("start_registration");
 
-        // Web NFC Scanner for Smartphone Admin
         if ('NDEFReader' in window) {
             try {
                 const ndef = new NDEFReader();

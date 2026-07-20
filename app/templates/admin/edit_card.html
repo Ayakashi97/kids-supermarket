@@ -8,14 +8,18 @@
 
 {% block content %}
 <nav class="admin-nav">
-    <a href="{{ url_for('admin.dashboard') }}">🛒 Admin Panel</a>
-    <div class="admin-menu">
-        <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
-        <a href="{{ url_for('admin.products') }}">Produkte</a>
-        <a href="{{ url_for('admin.cards') }}">Kundenkarten 💳</a>
-        <a href="{{ url_for('admin.transactions') }}">Einkäufe</a>
-        <a href="{{ url_for('admin.settings') }}">Einstellungen ⚙️</a>
-        <a href="{{ url_for('admin.logout') }}">Abmelden</a>
+    <div class="admin-nav-container">
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-brand">🛒 Admin Panel</a>
+        <button type="button" class="admin-nav-toggle" onclick="document.querySelector('.admin-menu').classList.toggle('open')">☰</button>
+        <div class="admin-menu">
+            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin.categories') }}">Kategorien 🏷️</a>
+            <a href="{{ url_for('admin.products') }}">Produkte</a>
+            <a href="{{ url_for('admin.cards') }}" class="active">Kundenkarten 💳</a>
+            <a href="{{ url_for('admin.transactions') }}">Einkäufe</a>
+            <a href="{{ url_for('admin.settings') }}">Einstellungen ⚙️</a>
+            <a href="{{ url_for('admin.logout') }}" class="logout-link">Abmelden</a>
+        </div>
     </div>
 </nav>
 
@@ -27,7 +31,7 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="badge badge-{{ category }}" style="font-size: 1rem; margin-bottom: 1rem;">{{ message }}</div>
+                <div class="badge badge-{{ category }}" style="font-size: 1rem; margin-bottom: 1.2rem; width: 100%; display: block; border-radius: 12px; padding: 0.8rem 1.2rem;">{{ message }}</div>
             {% endfor %}
         {% endif %}
     {% endwith %}
@@ -38,18 +42,18 @@
         <form method="POST" enctype="multipart/form-data">
             <div class="form-group">
                 <label>NFC UID (Unveränderbar):</label>
-                <input type="text" value="{{ card.nfc_uid }}" readonly style="background: #e9ecef; font-family: monospace; font-weight: bold;">
+                <input type="text" value="{{ card.nfc_uid }}" readonly style="background: #e2e8f0; font-family: monospace; font-weight: bold;">
             </div>
 
             <div class="form-group">
-                <label for="name">Name des Kindes / Anhabers:</label>
+                <label for="name">Name des Kindes / Inhabers:</label>
                 <input type="text" id="name" name="name" value="{{ card.name }}" required>
             </div>
 
             <div class="form-group">
                 <label for="pin">Karten PIN (Optionale 4-stellige Geheimzahl):</label>
                 <input type="text" id="pin" name="pin" maxlength="4" value="{{ card.pin or '' }}" placeholder="z.B. 1234">
-                <small style="color: #666;">Standard für Sicherheits-Modus falls nicht angegeben: <code>1234</code>. PIN-Modus kann unter <a href="{{ url_for('admin.settings') }}">Einstellungen ⚙️</a> konfiguriert werden.</small>
+                <small>Standard für Sicherheits-Modus falls nicht angegeben: <code>1234</code>. PIN-Modus kann unter <a href="{{ url_for('admin.settings') }}">Einstellungen ⚙️</a> konfiguriert werden.</small>
             </div>
 
             <div class="form-group">
@@ -62,9 +66,9 @@
                 <input type="file" id="photo_file" name="photo_file" accept="image/*">
             </div>
 
-            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                <button type="submit" class="btn btn-success">Änderungen speichern</button>
-                <a href="{{ url_for('admin.cards') }}" class="btn btn-secondary" style="background: #95a5a6; color: white; text-decoration: none; padding: 0.6rem 1.2rem; border-radius: 8px;">Abbrechen</a>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
+                <button type="submit" class="btn btn-success">Änderungen speichern 💾</button>
+                <a href="{{ url_for('admin.cards') }}" class="btn btn-secondary">Abbrechen</a>
             </div>
         </form>
     </div>

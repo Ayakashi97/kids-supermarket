@@ -70,4 +70,16 @@
 - [x] Flexible NFC UID normalization (`find_card_by_uid`) in backend socket events
 - [x] Web NFC card scanning in Admin Card Registration (`/admin/cards`)
 - [x] Dynamic Shop Name (`shop_name`) customization across Cashier UI, Terminal UI, Receipts, Admin, and page titles
-- [x] Responsive layout bounds & safe area spacing (`env(safe-area-inset-top)` / `env(safe-area-inset-bottom)`) preventing cut-off UI elements
+- **[x]** Responsive layout bounds & safe area spacing (`env(safe-area-inset-top)` / `env(safe-area-inset-bottom)`) preventing cut-off UI elements
+
+## Phase 9 — Orientation Locking, Cashier Pagination, Mobile-First Admin & Dynamic Categories
+- [x] Locked Terminal UI to **Portrait** mode (`manifest-terminal.json` orientation + `screen.orientation.lock('portrait')` + landscape warning overlay)
+- [x] Locked Cashier UI to **Landscape** mode (`manifest.json` orientation + `screen.orientation.lock('landscape')` + portrait warning overlay)
+- [x] Kid-Friendly Cashier **Pagination system** with large `◀ ZURÜCK` / `WEITER ▶` arrow buttons (eliminating scrolling for kids)
+- [x] Dynamic calculation of `itemsPerPage` based on container dimensions
+- [x] Dynamic `Category` database model (`Category` table with `name`, `emoji`, `sort_order`, `is_active`)
+- [x] Dynamic category seeding & cashier tabs rendering from database
+- [x] Mobile-First Admin Panel Redesign (`admin.css` rewrite with hamburger menu `☰`, touch targets ≥48px, font size ≥18px, responsive card & table views)
+- [x] Admin Category Management (`/admin/categories`) with add, toggle, delete, sort order, and emoji support
+- [x] Dynamic category select dropdown in Admin Product Management (`/admin/products`)
+
