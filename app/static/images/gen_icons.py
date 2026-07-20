@@ -1,40 +1,14 @@
 import zlib
 import struct
+import math
 import os
 
-def create_gradient_icon(width, height, color1, color2, badge_color):
-    r1, g1, b1 = color1
-    r2, g2, b2 = color2
-    br, bg, bb = badge_color
-
+def create_png_with_drawing(width, height, draw_func):
     raw_data = bytearray()
-    center_x = width / 2
-    center_y = height / 2
-    badge_radius = width * 0.32
-
     for y in range(height):
         raw_data.append(0)
-        t_y = y / height
         for x in range(width):
-            t_x = x / width
-            t = (t_x + t_y) / 2.0
-            r = int(r1 * (1 - t) + r2 * t)
-            g = int(g1 * (1 - t) + g2 * t)
-            b = int(b1 * (1 - t) + b2 * t)
-            
-            dx = x - center_x
-            dy = y - center_y
-            dist = (dx * dx + dy * dy) ** 0.5
-            
-            if dist <= badge_radius:
-                edge = badge_radius - dist
-                if edge < 2:
-                    alpha = edge / 2.0
-                    r = int(br * alpha + r * (1 - alpha))
-                    g = int(bg * alpha + g * (1 - alpha))
-                    b = int(bb * alpha + b * (1 - alpha))
-                else:
-                    r, g, b = br, bg, bb
+            r, g, b = draw_func(x / width, y / height)
             raw_data.extend([r, g, b])
 
     png = b'\x89PNG\r\n\x1a\n'
@@ -49,28 +23,106 @@ def create_gradient_icon(width, height, color1, color2, badge_color):
     png += struct.pack('!I', 0) + b'IEND' + struct.pack('!I', zlib.crc32(b'IEND'))
     return png
 
-img_dir = os.path.dirname(os.path.abspath(__file__))
-os.makedirs(img_dir, exist_ok=True)
+def draw_terminal(nx, ny):
+    # Dark Cyber background gradient
+    t = (nx + ny) / 2.0
+    r = int(15 * (1 - t) + 44 * t)
+    g = int(32 * (1 - t) + 83 * t)
+    b = int(39 * (1 - t) + 100 * t)
 
-with open(os.path.join(img_dir, 'favicon.png'), 'wb') as f:
-    f.write(create_gradient_icon(32, 32, (52, 172, 224), (30, 60, 114), (255, 218, 121)))
+    # Phone Body (Rounded Box)
+    if 0.34 <= nx <= 0.66 and 0.22 <= ny <= 0.78:
+        # Screen area
+        if 0.37 <= nx <= 0.63 and 0.28 <= ny <= 0.72:
+            # Credit Card on screen
+            if 0.40 <= nx <= 0.60 and 0.42 <= ny <= 0.58:
+                return (254, 202, 87) # Gold card
+            return (16, 172, 132) # Emerald screen
+        return (255, 255, 255) # Phone frame
 
-with open(os.path.join(img_dir, 'favicon.ico'), 'wb') as f:
-    f.write(create_gradient_icon(32, 32, (52, 172, 224), (30, 60, 114), (255, 218, 121)))
+    # NFC Wireless Waves (Arcs top right)
+    cx, cy = 0.72, 0.28
+    dist = math.hypot(nx - cx, ny - cy)
+    angle = math.atan2(ny - cy, nx - cx)
+    if -1.2 <= angle <= 0.2:
+        if 0.08 <= dist <= 0.11 or 0.15 <= dist <= 0.18 or 0.22 <= dist <= 0.25:
+            return (56, 239, 125) # Neon Green NFC wave
 
-# 1. Cashier Icons (Sky Blue + Bright Gold)
-for size in (192, 512):
-    with open(os.path.join(img_dir, f'icon-cashier-{size}.png'), 'wb') as f:
-        f.write(create_gradient_icon(size, size, (52, 172, 224), (30, 60, 114), (255, 218, 121)))
+    return (r, g, b)
 
-# 2. Terminal Icons (Dark Cyber + Neon Green)
-for size in (192, 512):
-    with open(os.path.join(img_dir, f'icon-terminal-{size}.png'), 'wb') as f:
-        f.write(create_gradient_icon(size, size, (15, 32, 39), (44, 83, 100), (56, 239, 125)))
+def draw_cashier(nx, ny):
+    # Blue background gradient
+    t = (nx + ny) / 2.0
+    r = int(30 * (1 - t) + 52 * t)
+    g = int(60 * (1 - t) + 172 * t)
+    b = int(114 * (1 - t) + 224 * t)
 
-# 3. Admin Icons (Royal Blue + Coral Red)
-for size in (192, 512):
-    with open(os.path.join(img_dir, f'icon-admin-{size}.png'), 'wb') as f:
-        f.write(create_gradient_icon(size, size, (56, 103, 214), (43, 85, 183), (255, 118, 117)))
+    # Shopping Cart Basket
+    if 0.30 <= ny <= 0.60:
+        left_limit = 0.28 + (ny - 0.30) * 0.15
+        right_limit = 0.72 - (ny - 0.30) * 0.05
+        if left_limit <= nx <= right_limit:
+            if (nx - left_limit) < 0.04 or (right_limit - nx) < 0.04 or (ny - 0.30) < 0.04 or (0.60 - ny) < 0.04 or (int(nx*50)%4==0) or (int(ny*50)%4==0):
+                return (255, 255, 255) # Cart wire
+            return (255, 218, 121) # Item filling
 
-print("All dedicated PWA app icons generated successfully!")
+    # Cart Handle
+    if 0.20 <= nx <= 0.30 and 0.25 <= ny <= 0.38:
+        if math.hypot(nx - 0.25, ny - 0.30) <= 0.06:
+            return (255, 255, 255)
+
+    # Cart Wheels
+    w1 = math.hypot(nx - 0.40, ny - 0.72)
+    w2 = math.hypot(nx - 0.65, ny - 0.72)
+    if w1 <= 0.07 or w2 <= 0.07:
+        if w1 <= 0.03 or w2 <= 0.03:
+            return (255, 218, 121)
+        return (255, 255, 255)
+
+    return (r, g, b)
+
+def draw_admin(nx, ny):
+    # Dark Indigo gradient
+    t = (nx + ny) / 2.0
+    r = int(44 * (1 - t) + 52 * t)
+    g = int(62 * (1 - t) + 152 * t)
+    b = int(80 * (1 - t) + 219 * t)
+
+    # Gear wheel
+    cx, cy = 0.5, 0.5
+    dx, dy = nx - cx, ny - cy
+    dist = math.hypot(dx, dy)
+    angle = math.atan2(dy, dx)
+
+    # 8 Gear teeth
+    tooth = math.sin(angle * 8) > 0
+    outer_r = 0.34 if tooth else 0.28
+
+    if 0.12 <= dist <= outer_r:
+        if dist <= 0.25 or tooth:
+            return (255, 255, 255)
+
+    if 0.08 <= dist < 0.12:
+        return (255, 218, 121) # Inner gear core
+
+    return (r, g, b)
+
+if __name__ == "__main__":
+    img_dir = os.path.dirname(os.path.abspath(__file__))
+    os.makedirs(img_dir, exist_ok=True)
+
+    with open(os.path.join(img_dir, 'favicon.png'), 'wb') as f:
+        f.write(create_png_with_drawing(32, 32, draw_cashier))
+
+    with open(os.path.join(img_dir, 'favicon.ico'), 'wb') as f:
+        f.write(create_png_with_drawing(32, 32, draw_cashier))
+
+    for size in (192, 512):
+        with open(os.path.join(img_dir, f'icon-cashier-{size}.png'), 'wb') as f:
+            f.write(create_png_with_drawing(size, size, draw_cashier))
+        with open(os.path.join(img_dir, f'icon-terminal-{size}.png'), 'wb') as f:
+            f.write(create_png_with_drawing(size, size, draw_terminal))
+        with open(os.path.join(img_dir, f'icon-admin-{size}.png'), 'wb') as f:
+            f.write(create_png_with_drawing(size, size, draw_admin))
+
+    print("All rich PWA app icons generated successfully!")
