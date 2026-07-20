@@ -159,9 +159,12 @@ def cards():
                 file.save(os.path.join(save_dir, filename))
                 image_path = f"images/cards/{filename}"
 
+        pin = request.form.get("pin", "").strip() or None
+
         card = Card(
             nfc_uid=nfc_uid,
             name=name,
+            pin=pin,
             image_path=image_path,
             is_active=True,
             created_at=datetime.now(timezone.utc),
@@ -205,6 +208,7 @@ def settings():
     if request.method == "POST":
         shop_name = request.form.get("shop_name", Config.SHOP_NAME)
         admin_pin = request.form.get("admin_pin", Config.ADMIN_PIN)
+        pin_mode = request.form.get("pin_mode", "disabled")
         printer_enabled = request.form.get("printer_enabled", "true")
         printer_device = request.form.get("printer_device", Config.PRINTER_DEVICE)
         receipt_header = request.form.get("receipt_header", "")
@@ -215,6 +219,7 @@ def settings():
 
         set_setting("shop_name", shop_name)
         set_setting("admin_pin", admin_pin)
+        set_setting("pin_mode", pin_mode)
         set_setting("printer_enabled", printer_enabled)
         set_setting("printer_device", printer_device)
         set_setting("receipt_header", receipt_header)
@@ -223,12 +228,13 @@ def settings():
         set_setting("show_date_time", show_date_time)
         set_setting("paper_width", paper_width)
 
-        flash("Einstellungen & Bon-Layout erfolgreich gespeichert!", "success")
+        flash("Einstellungen & Terminal PIN-Modus erfolgreich gespeichert!", "success")
         return redirect(url_for("admin.settings"))
 
     current_settings = {
         "shop_name": get_setting("shop_name", Config.SHOP_NAME),
         "admin_pin": get_setting("admin_pin", Config.ADMIN_PIN),
+        "pin_mode": get_setting("pin_mode", "disabled"),
         "printer_enabled": get_setting("printer_enabled", "true"),
         "printer_device": get_setting("printer_device", Config.PRINTER_DEVICE),
         "receipt_header": get_setting("receipt_header", "🛒 WILLKOMMEN IM KINDER-MARKT 🛒"),

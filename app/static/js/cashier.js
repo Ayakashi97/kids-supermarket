@@ -122,6 +122,14 @@ document.addEventListener("DOMContentLoaded", () => {
         showPaymentWaitingOverlay();
     });
 
+    socket.on("prompt_pin", (data) => {
+        showPaymentPinPromptOverlay(data);
+    });
+
+    socket.on("pin_error", (data) => {
+        showPaymentPinErrorOverlay(data.message || "Falsche PIN! ❌");
+    });
+
     socket.on("payment_success", (data) => {
         playSuccessSound();
         showPaymentSuccessOverlay(data);
@@ -284,6 +292,27 @@ document.addEventListener("DOMContentLoaded", () => {
         overlayTitle.textContent = "Karte hinhalten! 💳";
         overlaySubtitle.textContent = "Halte deine Supermarkt-Karte an das Lesegerät...";
         overlayIcon.textContent = "💳";
+        overlayIcon.style.display = "block";
+        photoContainer.style.display = "none";
+        cancelPayBtn.style.display = "block";
+        paymentOverlay.classList.remove("hidden");
+    }
+
+    function showPaymentPinPromptOverlay(data) {
+        overlayTitle.textContent = data.card_name ? `Hallo ${data.card_name}! 🔢` : "PIN eingeben 🔢";
+        overlaySubtitle.textContent = "Warte auf PIN-Eingabe am Lesegerät...";
+        overlayIcon.textContent = "🔢";
+        overlayIcon.style.display = "block";
+        photoContainer.style.display = "none";
+        cancelPayBtn.style.display = "block";
+        paymentOverlay.classList.remove("hidden");
+    }
+
+    function showPaymentPinErrorOverlay(msg) {
+        playErrorSound();
+        overlayTitle.textContent = "Falsche PIN ❌";
+        overlaySubtitle.textContent = msg || "Bitte 4-stellige Geheimzahl erneut eingeben.";
+        overlayIcon.textContent = "⚠️";
         overlayIcon.style.display = "block";
         photoContainer.style.display = "none";
         cancelPayBtn.style.display = "block";

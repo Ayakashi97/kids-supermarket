@@ -42,8 +42,8 @@
 
     /* Card Reader Pulsing Animation */
     .terminal-card-icon {
-        font-size: 9rem;
-        margin-bottom: 1rem;
+        font-size: 8rem;
+        margin-bottom: 0.5rem;
         display: inline-block;
         filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
     }
@@ -59,37 +59,37 @@
     }
 
     .terminal-title {
-        font-size: 3rem;
+        font-size: 2.8rem;
         font-weight: 900;
-        margin-bottom: 0.8rem;
+        margin-bottom: 0.5rem;
     }
 
     .terminal-subtitle {
-        font-size: 1.8rem;
+        font-size: 1.6rem;
         opacity: 0.9;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
     }
 
     .amount-badge {
         display: inline-block;
         background: #00b894;
         color: white;
-        font-size: 2.8rem;
+        font-size: 2.5rem;
         font-weight: 900;
-        padding: 0.5rem 2rem;
+        padding: 0.4rem 1.8rem;
         border-radius: 50px;
         box-shadow: 0 10px 25px rgba(0,184,148,0.4);
-        margin-top: 1rem;
+        margin-top: 0.5rem;
     }
 
     /* Customer Photo Display */
     .customer-photo-box {
-        width: 220px;
-        height: 220px;
+        width: 200px;
+        height: 200px;
         border-radius: 50%;
         overflow: hidden;
         border: 8px solid #00b894;
-        margin: 0 auto 1.5rem auto;
+        margin: 0 auto 1rem auto;
         box-shadow: 0 15px 35px rgba(0,0,0,0.4);
         animation: photoPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
@@ -105,6 +105,50 @@
         height: 100%;
         object-fit: cover;
     }
+
+    /* Touchscreen Terminal PIN-Pad */
+    .terminal-pin-display {
+        background: rgba(255,255,255,0.15);
+        border: 3px solid rgba(255,255,255,0.4);
+        border-radius: 20px;
+        padding: 0.8rem;
+        font-size: 3rem;
+        letter-spacing: 1.2rem;
+        margin: 1rem auto;
+        max-width: 320px;
+        text-align: center;
+        color: #f1c40f;
+    }
+
+    .terminal-pin-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.8rem;
+        max-width: 360px;
+        margin: 0 auto;
+    }
+
+    .t-pin-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 18px;
+        font-size: 2rem;
+        font-weight: 800;
+        color: white;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.1s ease;
+        user-select: none;
+    }
+
+    .t-pin-btn:active {
+        transform: scale(0.92);
+        background: #f1c40f;
+        color: #2c3e50;
+    }
+
+    .t-pin-btn.btn-clear { background: rgba(231, 76, 60, 0.6); }
+    .t-pin-btn.btn-submit { background: rgba(46, 204, 113, 0.8); }
 
     .hidden {
         display: none !important;
@@ -133,7 +177,33 @@
         <div class="amount-badge" id="payAmountDisplay">0,00 €</div>
     </div>
 
-    <!-- State 3: PAYMENT SUCCESS -->
+    <!-- State 3: PIN PROMPT -->
+    <div id="statePin" class="hidden">
+        <div class="terminal-title" id="pinCardGreeting">Hallo! 💳</div>
+        <div class="terminal-subtitle" id="pinSubtitle">Bitte PIN eingeben</div>
+
+        <div class="terminal-pin-display" id="tPinDisplay">••••</div>
+
+        <div class="terminal-pin-grid">
+            <button type="button" class="t-pin-btn" onclick="tPressNum('1')">1</button>
+            <button type="button" class="t-pin-btn" onclick="tPressNum('2')">2</button>
+            <button type="button" class="t-pin-btn" onclick="tPressNum('3')">3</button>
+
+            <button type="button" class="t-pin-btn" onclick="tPressNum('4')">4</button>
+            <button type="button" class="t-pin-btn" onclick="tPressNum('5')">5</button>
+            <button type="button" class="t-pin-btn" onclick="tPressNum('6')">6</button>
+
+            <button type="button" class="t-pin-btn" onclick="tPressNum('7')">7</button>
+            <button type="button" class="t-pin-btn" onclick="tPressNum('8')">8</button>
+            <button type="button" class="t-pin-btn" onclick="tPressNum('9')">9</button>
+
+            <button type="button" class="t-pin-btn btn-clear" onclick="tClearPin()">C</button>
+            <button type="button" class="t-pin-btn" onclick="tPressNum('0')">0</button>
+            <button type="button" class="t-pin-btn btn-submit" onclick="tSubmitPin()">✓</button>
+        </div>
+    </div>
+
+    <!-- State 4: PAYMENT SUCCESS -->
     <div id="stateSuccess" class="hidden">
         <div class="customer-photo-box" id="photoBox" style="display: none;">
             <img id="terminalPhoto" src="" alt="Kundenfoto">
@@ -143,7 +213,7 @@
         <div class="terminal-subtitle">Zahlung erfolgreich! Vielen Dank!</div>
     </div>
 
-    <!-- State 4: PAYMENT ERROR -->
+    <!-- State 5: PAYMENT ERROR -->
     <div id="stateError" class="hidden">
         <div class="terminal-card-icon">😕</div>
         <div class="terminal-title">Hoppla!</div>
@@ -155,15 +225,50 @@
 {% block scripts %}
 <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 <script>
+let termPin = "";
+
+function updateTPinDisplay() {
+    const display = document.getElementById("tPinDisplay");
+    if (!display) return;
+    if (termPin.length === 0) {
+        display.textContent = "••••";
+    } else {
+        display.textContent = "•".repeat(termPin.length);
+    }
+}
+
+function tPressNum(num) {
+    if (termPin.length < 4) {
+        termPin += num;
+        updateTPinDisplay();
+    }
+}
+
+function tClearPin() {
+    termPin = "";
+    updateTPinDisplay();
+}
+
+function tSubmitPin() {
+    if (window.termSocket) {
+        console.log("Submitting PIN:", termPin);
+        window.termSocket.emit("submit_pin", { pin: termPin });
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-    const socket = io();
+    window.termSocket = io();
+    const socket = window.termSocket;
 
     const stateIdle = document.getElementById("stateIdle");
     const stateWaiting = document.getElementById("stateWaiting");
+    const statePin = document.getElementById("statePin");
     const stateSuccess = document.getElementById("stateSuccess");
     const stateError = document.getElementById("stateError");
 
     const payAmountDisplay = document.getElementById("payAmountDisplay");
+    const pinCardGreeting = document.getElementById("pinCardGreeting");
+    const pinSubtitle = document.getElementById("pinSubtitle");
     const photoBox = document.getElementById("photoBox");
     const terminalPhoto = document.getElementById("terminalPhoto");
     const successIcon = document.getElementById("successIcon");
@@ -171,7 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const errorMessageDisplay = document.getElementById("errorMessageDisplay");
 
     function showState(el) {
-        [stateIdle, stateWaiting, stateSuccess, stateError].forEach(s => s.classList.add("hidden"));
+        [stateIdle, stateWaiting, statePin, stateSuccess, stateError].forEach(s => s.classList.add("hidden"));
         el.classList.remove("hidden");
     }
 
@@ -186,7 +291,21 @@ document.addEventListener("DOMContentLoaded", () => {
         showState(stateWaiting);
     });
 
+    socket.on("prompt_pin", (data) => {
+        termPin = "";
+        updateTPinDisplay();
+        pinCardGreeting.textContent = data.card_name ? `Hallo ${data.card_name}! 💳` : "PIN eingeben 🔢";
+        pinSubtitle.textContent = `Bitte 4-stellige Geheimzahl eingeben (${data.total_formatted || ''})`;
+        showState(statePin);
+    });
+
+    socket.on("pin_error", (data) => {
+        pinSubtitle.textContent = data.message || "Falsche PIN! Versuche es nochmal.";
+        tClearPin();
+    });
+
     socket.on("payment_success", (data) => {
+        termPin = "";
         if (data.card_image_url) {
             terminalPhoto.src = data.card_image_url;
             photoBox.style.display = "block";
@@ -205,6 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     socket.on("payment_error", (data) => {
+        termPin = "";
         errorMessageDisplay.textContent = data.message || "Unbekannte Karte 😕";
         showState(stateError);
         setTimeout(() => {
@@ -213,6 +333,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     socket.on("payment_cancelled", () => {
+        termPin = "";
         showState(stateIdle);
     });
 });

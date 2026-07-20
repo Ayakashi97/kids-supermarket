@@ -56,6 +56,7 @@
         <button onclick="simTap('UNKNOWN_999')">❓ Unbekannt</button>
         <input type="text" id="devUidInput" placeholder="UID...">
         <button onclick="simTap(document.getElementById('devUidInput').value)">Tap 💳</button>
+        <button onclick="simPin('1234')">PIN 1234 🔢</button>
         <a href="/receipt/latest" target="_blank" style="color: #f1c40f; font-weight: bold; margin-left: 0.5rem; text-decoration: none;">📄 Bon (PDF)</a>
         <a href="/terminal" target="_blank" style="color: #4cd137; font-weight: bold; margin-left: 0.5rem; text-decoration: none;">📺 Terminal</a>
     </div>
@@ -76,6 +77,17 @@
         if (sock) {
             console.log("[DEV SIMULATOR] Emitting card_tapped with UID:", uid);
             sock.emit("card_tapped", { uid: uid });
+        } else {
+            alert("Socket.IO client library not loaded!");
+        }
+    }
+
+    function simPin(pin) {
+        if (!pin) return;
+        const sock = getDevSocket();
+        if (sock) {
+            console.log("[DEV SIMULATOR] Emitting submit_pin with PIN:", pin);
+            sock.emit("submit_pin", { pin: pin });
         } else {
             alert("Socket.IO client library not loaded!");
         }

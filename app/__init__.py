@@ -49,6 +49,15 @@ def create_app(config_class=Config):
     # Create tables and seed data
     with app.app_context():
         db.create_all()
+        
+        # Check and add missing columns for lightweight SQLite schema updates
+        try:
+            db.session.execute(db.text("ALTER TABLE cards ADD COLUMN pin VARCHAR(10)"))
+            db.session.commit()
+            logger.info("Migrated SQLite schema: added cards.pin column.")
+        except Exception:
+            db.session.rollback()
+
         seed_default_products()
 
     logger.info("Kinder-Supermarkt app initialized successfully.")
