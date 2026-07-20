@@ -130,6 +130,34 @@ If using a 5-inch or 7-inch HDMI touchscreen connected via HDMI adapter:
    ```
 2. Reboot: `sudo reboot`.
 
+#### C. 3.5-inch SPI GPIO Touchscreen Displays (XPT2046 Touch Controller / ILI9486)
+If using a 3.5" display plugged directly into the 40-pin GPIO header (SPI bus instead of HDMI/DSI):
+
+> ⚠️ **Why is the screen white?**
+> By default, Raspberry Pi OS sends display output to HDMI (`/dev/fb0`). A 3.5" SPI display runs over GPIO SPI (`/dev/fb1`) and stays **solid white** until the SPI LCD driver and framebuffer mapping are installed!
+
+**1-Click Installation Driver (Recommended)**:
+SSH into Pi #2 (`ssh pi@supermarket-terminal.local`) and run:
+
+```bash
+# Clone official LCD-show driver repository
+git clone https://github.com/goodtft/LCD-show.git
+chmod -R 755 LCD-show
+cd LCD-show/
+
+# Run setup script for 3.5" XPT2046 SPI display (auto-configures SPI, overlays & reboots)
+sudo ./LCD35-show
+```
+
+*(After automatic reboot, the desktop and Chromium kiosk terminal UI will display on the 3.5" touchscreen!).*
+
+**To rotate display (if upside down)**:
+```bash
+cd LCD-show/
+# Options: 0, 90, 180, 270 degrees
+sudo ./rotate.py 90
+```
+
 ---
 
 ### 2. PN532 NFC Module Wiring
