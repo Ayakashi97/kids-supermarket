@@ -6,12 +6,12 @@ Complete step-by-step setup guide for the **Kinder-Supermarkt** system, includin
 
 ## 📐 Architecture Overview
 
-| Device | Role | OS / Browser | Connected Hardware | Default Access URL |
-|---|---|---|---|---|
-| **Raspberry Pi #1** | Backend Server (Flask, SQLite, Docker) | **Raspberry Pi OS Lite (64-bit)** | USB Thermal Receipt Printer | `http://<pi1-ip>:5050` |
-| **Smartphone (Empfohlen)** | NFC Reader & Terminal Display | **Android (Chrome Web NFC)** or **iOS (Safari PWA)** | Built-in NFC chip | `http://<pi1-ip>:5050/terminal` |
-| **Tablet** | Cashier UI | Any OS (iOS / Android / Windows) | Web Browser | `http://<pi1-ip>:5050` |
-| **Raspberry Pi #2 (Legacy)** | Hardware NFC Reader & LCD | **Raspberry Pi OS Desktop** | Touchscreen LCD + PN532 USB | `http://<pi1-ip>:5050/terminal` |
+| Device | Role | OS / Browser | Connected Hardware | PWA App Name | Default Access URL |
+|---|---|---|---|---|---|
+| **Raspberry Pi #1** | Backend Server (Flask, SQLite, Docker) | **Raspberry Pi OS Lite (64-bit)** | USB Thermal Receipt Printer | — | `http://<pi1-ip>:5050` |
+| **Smartphone (Empfohlen)** | NFC Reader & Terminal Display | **Android (Chrome Web NFC)** or **iOS (Safari PWA)** | Built-in NFC chip | **Supermarkt Terminal** 💳 | `http://<pi1-ip>:5050/terminal` |
+| **Tablet** | Cashier UI | Any OS (iOS / Android / Windows) | Web Browser | **Supermarkt Kasse** 🛒 | `http://<pi1-ip>:5050` |
+| **Raspberry Pi #2 (Legacy)** | Hardware NFC Reader & LCD | **Raspberry Pi OS Desktop** | Touchscreen LCD + PN532 USB | — | `http://<pi1-ip>:5050/terminal` |
 
 ---
 
@@ -23,16 +23,27 @@ Using an old smartphone (Android or iPhone) is the easiest and cleanest way to r
 1. Ensure Wi-Fi is connected to the same network as Raspberry Pi #1.
 2. Open **Google Chrome** on the Android phone.
 3. Open `http://<pi1-ip>:5050/terminal`.
-4. Tap the browser menu `⋮` ➡️ **"Zum Startbildschirm hinzufügen"** (Add to Home screen) or **"App installieren"**.
-5. Launch the app from the Home Screen — it opens in **100% full screen** without browser bars!
-6. **Web NFC**: Android Chrome will automatically scan NFC cards/stickers brought near the back of the phone. When scanned, the phone emits the UID directly over SocketIO and processes the payment!
+4. Tap the green button **`📱 NFC-Leser auf Handy aktivieren`** once and tap **"Erlauben"** when Android Chrome prompts for NFC permission.
+   - *Hinweis*: Die App merkt sich diese Aktivierung im `localStorage`. Der Button verschwindet danach dauerhaft!
+5. Tap the Chrome browser menu `⋮` ➡️ **"Zum Startbildschirm hinzufügen"** (Add to Home screen) or **"App installieren"**.
+6. Launch **Supermarkt Terminal** from the Home Screen — it opens in **100% full screen** without browser bars!
+7. **Web NFC**: Hold any NFC card or sticker against the back of the phone. Android Chrome captures the UID/text directly and triggers the payment!
 
 ### 2. iPhone (iOS Safari PWA & Touchscreen Terminal)
 1. Connect iPhone to the local Wi-Fi.
 2. Open **Safari** on the iPhone and navigate to `http://<pi1-ip>:5050/terminal`.
 3. Tap the Share button 📤 ➡️ **"Zum Home-Bildschirm"** (Add to Home Screen).
-4. Launch the app from the iPhone Home Screen — it opens in borderless **fullscreen app mode**.
+4. Launch **Supermarkt Terminal** from the iPhone Home Screen — it opens in borderless **fullscreen app mode**.
 5. *Note on iOS*: Apple blocks Web NFC in Safari, so on iOS the terminal displays in **Touchscreen Mode** where children can tap their card avatar on screen to pay or enter their PIN.
+
+---
+
+## 📱 Tablet Setup (Cashier PWA)
+
+1. Open **Chrome** or **Safari** on the Tablet.
+2. Navigate to `http://<pi1-ip>:5050`.
+3. Tap `⋮` / Share 📤 ➡️ **"Zum Startbildschirm hinzufügen"**.
+4. Launch **Supermarkt Kasse** 🛒 — opens as an independent, fullscreen cashier app with custom shop name and product grid.
 
 ---
 
@@ -98,19 +109,10 @@ docker compose up -d
 
 ---
 
-## 💳 Optional: Legacy Raspberry Pi #2 Hardware Terminal Setup
-
-If you prefer using a dedicated Raspberry Pi #2 with a 3.5" LCD touchscreen and PN532 NFC module:
-
-1. Flash **Raspberry Pi OS Desktop (64-bit)**.
-2. Configure Chromium Kiosk Mode to boot into `http://<pi1-ip>:5050/terminal`.
-3. Connect PN532 via USB adapter (`/dev/ttyUSB0`) or I2C.
-4. Run `python3 nfc_reader/reader.py` to send SocketIO events on card detection.
-
----
-
-## 🔐 Admin Panel Access
+## 🔐 Admin Panel & Shop Name Customization
 
 1. Open `http://supermarket-server.local:5050/admin` in any browser.
 2. Use the touchscreen **PIN-Pad** to enter the admin PIN (default: `1234`).
-3. Set **NFC-Lesegerät Modus** to `web_nfc` (Smartphone Web NFC) or `touchscreen_simulation`.
+3. Under **Einstellungen** (`/admin/settings`):
+   - **Name des Supermarkts**: Enter your custom shop name (e.g. *Emmis Kaufladen*). This name updates live across Cashier, Terminal, Receipts, Admin, and page titles!
+   - **NFC-Lesegerät Modus**: Set to `web_nfc` (Smartphone Web NFC) or `touchscreen_simulation`.

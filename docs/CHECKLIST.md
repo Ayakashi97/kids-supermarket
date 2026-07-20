@@ -60,12 +60,14 @@
 - [x] Scanning animations
 - [x] Touch-optimized UI elements (minimum 80px tap targets)
 
-## Phase 8 — Smartphone Web NFC & PWA Migration
+## Phase 8 — Smartphone Web NFC, Dual PWA & Dynamic Customization
 - [x] Replaced Pi #2 requirement with Smartphone (Android / iPhone)
 - [x] Web NFC API integration (`window.NDEFReader`) in `/terminal` for Android Chrome
-- [x] Progressive Web App (PWA) manifest (`manifest.json`) & Service Worker (`sw.js`)
+- [x] Persistent NFC permission state (`localStorage.setItem("nfc_permission_granted", "true")`)
+- [x] Dual Progressive Web App (PWA) manifests (`manifest.json` for Cashier, `manifest-terminal.json` for Terminal) & Service Worker (`sw.js`)
 - [x] Borderless fullscreen app mode for iOS Safari & Android Chrome ("Add to Home Screen")
-- [x] Header Fullscreen toggle (`⛶ Vollbild`) & Web NFC Status badge
+- [x] Favicon generation (`favicon.png`, `favicon.ico`, `apple-touch-icon.png`) and base template linking
 - [x] Flexible NFC UID normalization (`find_card_by_uid`) in backend socket events
 - [x] Web NFC card scanning in Admin Card Registration (`/admin/cards`)
-
+- [x] Dynamic Shop Name (`shop_name`) customization across Cashier UI, Terminal UI, Receipts, Admin, and page titles
+- [x] Responsive layout bounds & safe area spacing (`env(safe-area-inset-top)` / `env(safe-area-inset-bottom)`) preventing cut-off UI elements

@@ -12,15 +12,17 @@ Bestehend aus einer **Kassen-App auf dem Tablet**, einem **Raspberry Pi Server**
 
 ## 🌟 Highlights & Funktionen
 
-- **📱 Kinderleichte Kassen-Oberfläche (Tablet-UI)**:
+- **📱 Kinderleichte Kassen-Oberfläche (Tablet-PWA)**:
   - Große bunten Tasten, Kategorien-Filter (*Obst & Gemüse 🍎, Backwaren 🥨, Milchprodukte 🥛, Getränke 🧃, Süßes 🍫*), klare Preisanzeige und kinderfreundliche Animationen.
+  - Dynamischer Supermarkt-Name: Im Admin-Panel einstellbar (z.B. *Emmis Kaufladen*, *Kinder-Supermarkt* oder *Lenas Mini-Markt*) und sofort live auf Kasse, Terminal & Bons aktiv!
   - Sound-Effekte über Web Audio API (Kassen-Piep beim Tippen, Sieges-Fanfaren bei Bezahlung, Fehler-Buzz).
-  - Minimaler Text, intuitive Bedienung für kleine Kinder.
+  - Ergonomischer Einkaufskorb ohne Abschneiden von Knöpfen, mit Touch-Schaltflächen für Kinderhände.
 
 - **📲 Altes Smartphone als NFC-Zahlungsterminal (Web NFC & PWA Fullscreen)**:
   - Benutze einfach ein **altes Smartphone (Android mit NFC oder iPhone)** statt eines zweiten Raspberry Pis!
   - **Android Chrome**: Liest NFC-Karten/Sticker direkt über den eingebauten NFC-Chip im Smartphone aus (`window.NDEFReader`).
-  - **iOS Safari / PWA**: Funktioniert als vollwertige App ("Zum Home-Bildschirm hinzufügen") im 100% Vollbildmodus mit visuellen Live-Animationen, Touchscreen-Kartenwahl und PIN-Eingabe.
+  - **Dauerhafte Berechtigung**: Nach der ersten NFC-Aktivierung merkt sich die App die Erlaubnis im `localStorage` – der grüne Aktivierungsbutton verschwindet danach dauerhaft.
+  - **iOS Safari / PWA**: Funktioniert als installierbare App ("Zum Home-Bildschirm hinzufügen") im 100% Vollbildmodus mit visuellen Live-Animationen, Touchscreen-Kartenwahl und PIN-Eingabe.
   - **3 Konfigurierbare PIN-Modi** (im Admin-Panel einstellbar):
     1. **Deaktiviert**: Sofortige Bezahlung nach Auflegen der Karte.
     2. **Spielgeld-Modus (`any_4_digits`)**: Terminal verlangt 4-stellige PIN, akzeptiert jede Zahlenkombination für echtes EC-Karten-Spielgefühl.
@@ -34,7 +36,7 @@ Bestehend aus einer **Kassen-App auf dem Tablet**, einem **Raspberry Pi Server**
 - **🔐 Touchscreen PIN-Pad Admin-Panel (`/admin`)**:
   - Großes 3x4 Touchscreen PIN-Pad zur Eltern-Authentifizierung (Standard-PIN: `1234`).
   - Produkt-Verwaltung (CRUD mit Bild-Upload & Preisen in Euro/Cent).
-  - NFC-Kundenkarten Registrierung: Karte an das Smartphone / Lesegerät halten, Name, optionale PIN & Foto des Kindes zuweisen.
+  - NFC-Kundenkarten Registrierung: Karte an das Smartphone / Lesegerät halten (Hardware UID oder NDEF Text), Name, optionale PIN & Foto des Kindes zuweisen.
   - Transaktions-Historie aller getätigten Einkäufe.
 
 - **🧪 Entwicklungs- & Simulations-Modus (`DEV_MODE=true`)**:
@@ -47,15 +49,15 @@ Bestehend aus einer **Kassen-App auf dem Tablet**, einem **Raspberry Pi Server**
 
 ```
 [Tablet / Browser (Kasse)] <──HTTP/WebSocket──> [Raspberry Pi #1: Backend Server] <──HTTP/WebSocket──> [Smartphone (Terminal PWA + Web NFC)]
-                                                           │
-                                                 [USB Thermal Printer]
+                                                            │
+                                                  [USB Thermal Printer]
 ```
 
-| Gerät | Rolle | Betriebssystem | Standard-URL |
-|---|---|---|---|
-| **Raspberry Pi #1** | Server (Flask, DB, Docker) | Raspberry Pi OS Lite (64-bit) | `http://<pi1-ip>:5050` |
-| **Tablet** | Kassen-Display | iOS / Android / Webbrowser | `http://<pi1-ip>:5050` |
-| **Smartphone** | Terminal & NFC-Reader | Android (Chrome Web NFC) / iOS (PWA Vollbild) | `http://<pi1-ip>:5050/terminal` |
+| Gerät | Rolle | Betriebssystem | PWA Name | Standard-URL |
+|---|---|---|---|---|
+| **Raspberry Pi #1** | Server (Flask, DB, Docker) | Raspberry Pi OS Lite (64-bit) | — | `http://<pi1-ip>:5050` |
+| **Tablet** | Kassen-Display | iOS / Android / Webbrowser | **Supermarkt Kasse** 🛒 | `http://<pi1-ip>:5050` |
+| **Smartphone** | Terminal & NFC-Reader | Android (Chrome Web NFC) / iOS (PWA Vollbild) | **Supermarkt Terminal** 💳 | `http://<pi1-ip>:5050/terminal` |
 
 ---
 
@@ -91,6 +93,7 @@ Sämtliche Guides und System-Spezifikationen befinden sich im Ordner [`docs/`](.
 - 🛠️ **[Raspberry Pi & Smartphone Setup Guide](./docs/setup.md)** — Anleitung für Smartphone Web NFC & PWA Installation auf iPhone / Android
 - 🧪 **[Development & Emulation Mode Guide](./docs/DEV_MODE.md)** — Testen ohne Hardware über die Entwickler-Simulationsleiste
 - 📋 **[Master Phase Progress Checklist](./docs/CHECKLIST.md)** — Übersicht über Entwicklungsphasen
+- 📱 **[Phase 8 PWA & Web NFC Documentation](./docs/PHASE_8.md)** — Details zur Smartphone PWA & Web NFC Integration
 
 ---
 
