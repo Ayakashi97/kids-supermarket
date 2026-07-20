@@ -82,7 +82,9 @@
     <div class="admin-card">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.4rem;">
             <h3>🖨️ Bon-Drucker Hardware-Einstellungen</h3>
-            <a href="/receipt/preview" target="_blank" class="btn btn-primary btn-sm">Bon Vorschau / PDF 📄</a>
+            <a href="/receipt/preview" target="_blank" class="btn btn-primary btn-sm">
+                <svg width="18" height="18" viewBox="0 0 24 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg> PDF
+            </a>
         </div>
         
         <div class="form-grid">
@@ -135,7 +137,9 @@
             <div class="builder-controls-col">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                     <h4 style="margin: 0; font-size: 1.1rem; color: #0f172a;">🧱 Bausteine & Reihenfolge</h4>
-                    <button type="button" class="btn btn-icon btn-primary" id="btnAddReceiptBlock" title="Baustein hinzufügen">➕</button>
+                    <button type="button" class="btn btn-icon btn-primary" id="btnAddReceiptBlock" title="Baustein hinzufügen">
+                        <svg width="20" height="20" viewBox="0 0 24 24" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    </button>
                 </div>
 
                 <div id="receiptBlocksContainer" class="builder-blocks-list">
@@ -160,7 +164,9 @@
     </div>
 
     <div style="display: flex; justify-content: flex-end; margin-top: 1.5rem;">
-        <button type="submit" class="btn btn-icon btn-success" style="width: 60px; height: 60px; font-size: 1.6rem;" title="Einstellungen speichern">💾</button>
+        <button type="submit" class="btn btn-icon btn-success" style="width: 54px; height: 54px;" title="Einstellungen speichern">
+            <svg width="24" height="24" viewBox="0 0 24 24" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </button>
     </div>
 </form>
 
@@ -168,8 +174,10 @@
 <div class="overlay hidden" id="addBlockModal">
     <div class="admin-card overlay-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
-            <h3 style="margin: 0; font-size: 1.4rem;">Baustein hinzufügen ➕</h3>
-            <button type="button" class="btn-icon btn-danger" id="closeAddBlockModalBtn" title="Schließen">❌</button>
+            <h3 style="margin: 0; font-size: 1.4rem;">Baustein hinzufügen</h3>
+            <button type="button" class="btn-icon btn-danger" id="closeAddBlockModalBtn" title="Schließen">
+                <svg width="20" height="20" viewBox="0 0 24 24" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
         </div>
         <p style="color: var(--admin-muted); margin-bottom: 1.4rem; font-size: 0.95rem;">Wähle den Typ des neuen Kassenbon-Bausteins:</p>
 

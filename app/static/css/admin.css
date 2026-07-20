@@ -504,7 +504,16 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    color: white;
 }
+
+.btn-icon svg {
+    stroke: #ffffff;
+    color: #ffffff;
+    fill: none;
+    pointer-events: none;
+}
+
 
 @media (max-width: 680px) {
     .table-responsive {
