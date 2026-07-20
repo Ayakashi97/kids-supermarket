@@ -13,6 +13,7 @@
 </div>
 
 <form method="POST">
+    <!-- Supermarkt Grund-Einstellungen -->
     <div class="admin-card">
         <h3>Supermarkt-Einstellungen</h3>
         <div class="form-grid">
@@ -77,9 +78,10 @@
         </div>
     </div>
 
+    <!-- Hardware Bon-Drucker Einstellungen -->
     <div class="admin-card">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.4rem;">
-            <h3>🧾 Kassenbon-Layout & Druckereinstellungen</h3>
+            <h3>🖨️ Bon-Drucker Hardware-Einstellungen</h3>
             <a href="/receipt/preview" target="_blank" class="btn btn-primary btn-sm">Bon Vorschau / PDF 📄</a>
         </div>
         
@@ -116,40 +118,14 @@
                     <option value="80mm" {% if settings.paper_width == '80mm' %}selected{% endif %}>80 mm (Breit Bon)</option>
                 </select>
             </div>
-
-            <div class="form-group">
-                <label for="receipt_header">Kopfzeile auf dem Kassenbon:</label>
-                <input type="text" id="receipt_header" name="receipt_header" value="{{ settings.receipt_header }}">
-            </div>
-
-            <div class="form-group">
-                <label for="receipt_footer">Fußzeile auf dem Kassenbon:</label>
-                <input type="text" id="receipt_footer" name="receipt_footer" value="{{ settings.receipt_footer }}">
-            </div>
-
-            <div class="form-group">
-                <label for="show_card_name">Kundenname auf Bon drucken:</label>
-                <select id="show_card_name" name="show_card_name">
-                    <option value="true" {% if settings.show_card_name == 'true' %}selected{% endif %}>Ja (z.B. Kunde: Lena 💳)</option>
-                    <option value="false" {% if settings.show_card_name == 'false' %}selected{% endif %}>Nein (Anonym drucken)</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="show_date_time">Datum & Uhrzeit drucken:</label>
-                <select id="show_date_time" name="show_date_time">
-                    <option value="true" {% if settings.show_date_time == 'true' %}selected{% endif %}>Ja</option>
-                    <option value="false" {% if settings.show_date_time == 'false' %}selected{% endif %}>Nein</option>
-                </select>
-            </div>
         </div>
     </div>
 
-    <!-- Visueller Drag & Drop Bon-Template Builder -->
+    <!-- Visueller Drag & Drop Bon-Template Builder (Replaces legacy text fields) -->
     <div class="admin-card">
         <h3>🧾 Visueller Kassenbon Template-Builder</h3>
         <p style="color: var(--admin-muted); margin-bottom: 1.4rem; font-weight: 600;">
-            Stelle hier per Drag & Drop oder Pfeiltasten deinen Kassenbon zusammen. Alle Änderungen werden in Echtzeit simuliert!
+            Stelle hier per Drag & Drop oder Pfeiltasten deinen Kassenbon zusammen. Kopftext, Fußtext, Kundenname, Datum & Trennlinien werden direkt hier konfiguriert und in Echtzeit simuliert!
         </p>
 
         <input type="hidden" id="receipt_layout_json_input" name="receipt_layout_json" value='{{ settings.receipt_layout_json }}'>
