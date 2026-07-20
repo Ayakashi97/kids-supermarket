@@ -337,7 +337,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const receiptActions = document.getElementById("receiptActions");
     const btnPrintReceiptBtn = document.getElementById("btnPrintReceiptBtn");
-    const btnViewPdfBtn = document.getElementById("btnViewPdfBtn");
     const closeSuccessBtn = document.getElementById("closeSuccessBtn");
     const printStatusMsg = document.getElementById("printStatusMsg");
 
@@ -390,7 +389,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (receiptActions && data.transaction_id) {
             receiptActions.style.display = "flex";
-            if (btnViewPdfBtn) btnViewPdfBtn.href = `/receipt/${data.transaction_id}`;
             if (btnPrintReceiptBtn) {
                 btnPrintReceiptBtn.disabled = false;
                 btnPrintReceiptBtn.textContent = "🖨️";
