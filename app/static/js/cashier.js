@@ -338,14 +338,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const receiptActions = document.getElementById("receiptActions");
     const btnPrintReceiptBtn = document.getElementById("btnPrintReceiptBtn");
     const btnViewPdfBtn = document.getElementById("btnViewPdfBtn");
+    const closeSuccessBtn = document.getElementById("closeSuccessBtn");
     const printStatusMsg = document.getElementById("printStatusMsg");
 
     if (btnPrintReceiptBtn) {
         btnPrintReceiptBtn.addEventListener("click", () => {
             if (!currentTransactionId) return;
             btnPrintReceiptBtn.disabled = true;
-            btnPrintReceiptBtn.textContent = "Drucke... ⏳";
+            btnPrintReceiptBtn.textContent = "⏳";
             socket.emit("request_print_receipt", { transaction_id: currentTransactionId });
+        });
+    }
+
+    if (closeSuccessBtn) {
+        closeSuccessBtn.addEventListener("click", () => {
+            clearCart();
+            hideOverlay();
         });
     }
 
@@ -355,12 +363,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (res && res.success) {
             printStatusMsg.style.color = "#2ecc71";
             printStatusMsg.textContent = res.message || "Bon gedruckt! 🧾";
-            btnPrintReceiptBtn.textContent = "Erneut drucken 🧾";
+            btnPrintReceiptBtn.textContent = "✅";
             btnPrintReceiptBtn.disabled = false;
         } else {
             printStatusMsg.style.color = "#f39c12";
             printStatusMsg.textContent = res.message || "Drucker nicht erreichbar";
-            btnPrintReceiptBtn.textContent = "Bon drucken 🧾";
+            btnPrintReceiptBtn.textContent = "🖨️";
             btnPrintReceiptBtn.disabled = false;
         }
     });
@@ -385,16 +393,18 @@ document.addEventListener("DOMContentLoaded", () => {
             if (btnViewPdfBtn) btnViewPdfBtn.href = `/receipt/${data.transaction_id}`;
             if (btnPrintReceiptBtn) {
                 btnPrintReceiptBtn.disabled = false;
-                btnPrintReceiptBtn.textContent = "🧾 Bon drucken";
+                btnPrintReceiptBtn.textContent = "🖨️";
             }
             if (printStatusMsg) {
                 printStatusMsg.style.display = "none";
                 printStatusMsg.textContent = "";
             }
+            cancelPayBtn.style.display = "none";
+        } else {
+            cancelPayBtn.textContent = "Fertig / Schließen ❌";
+            cancelPayBtn.style.display = "block";
         }
 
-        cancelPayBtn.textContent = "Fertig / Schließen ✨";
-        cancelPayBtn.style.display = "block";
         paymentOverlay.classList.remove("hidden");
     }
 

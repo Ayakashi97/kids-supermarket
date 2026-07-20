@@ -439,13 +439,17 @@
         </div>
 
         <!-- State 4: PAYMENT SUCCESS -->
-        <div id="stateSuccess" class="hidden">
+        <div id="stateSuccess" class="hidden" style="cursor: pointer;" onclick="showState(document.getElementById('stateIdle'))">
             <div class="customer-photo-box" id="photoBox" style="display: none;">
                 <img id="terminalPhoto" src="" alt="Kundenfoto">
             </div>
             <div class="terminal-card-icon" id="successIcon" style="display: none;">🎉</div>
             <div class="terminal-title" id="successGreeting">Hallo! 🎉</div>
-            <div class="terminal-subtitle">Zahlung erfolgreich! Vielen Dank!</div>
+            <div class="terminal-subtitle">Zahlung erfolgreich!</div>
+            
+            <button type="button" style="margin-top: 1rem; width: 75px; height: 75px; background: linear-gradient(135deg, #ff7675 0%, #d63031 100%); color: white; border: none; border-radius: 50%; font-size: 2.5rem; cursor: pointer; box-shadow: 0 10px 25px rgba(214, 48, 49, 0.4);">
+                ❌
+            </button>
         </div>
 
         <!-- State 5: PAYMENT ERROR -->
@@ -807,10 +811,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         successGreeting.textContent = data.card_name ? `Hallo ${data.card_name}! 🎉` : "Bezahlt! 🎉";
         showState(stateSuccess);
-
-        setTimeout(() => {
-            showState(stateIdle);
-        }, 3500);
     });
 
     socket.on("payment_error", (data) => {
