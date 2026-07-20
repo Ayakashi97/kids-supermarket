@@ -217,38 +217,43 @@ sudo systemctl enable --now supermarkt-nfc
 
 ---
 
-### 5. Setup Touchscreen Chromium Kiosk Mode (Auto-Launch Terminal on Boot)
+### 5. Universal Touchscreen Chromium Kiosk Mode (Auto-Launch Terminal on Boot)
 
-Configure Chromium to launch full-screen in Kiosk mode on boot:
+If the Raspberry Pi keeps showing the "Welcome Desktop" setup popup or desktop screen on reboot, follow these 3 steps:
 
-#### Method A: Raspberry Pi OS Bookworm (Labwc / Wayland — Default)
-Create autostart config file:
+#### Step 1: Disable First-Boot Setup Wizard
 ```bash
-mkdir -p ~/.config/labwc
-nano ~/.config/labwc/autostart
+sudo systemctl disable rpi-initial-setup
 ```
 
-Paste (replace IP with your Pi #1 IP if needed):
+#### Step 2: Create Universal XDG Autostart File
+Create a `.desktop` autostart file (works on **ALL** Raspberry Pi OS versions: Wayland, Wayfire, Labwc, X11):
+
 ```bash
-chromium-browser --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://supermarket-server.local:5050/terminal &
+mkdir -p ~/.config/autostart
+nano ~/.config/autostart/kiosk.desktop
 ```
 
-#### Method B: Raspberry Pi OS Bullseye / X11 (Default on Pi 3 / Zero)
-Create/edit LXDE autostart file:
-```bash
-mkdir -p ~/.config/lxsession/LXDE-pi
-nano ~/.config/lxsession/LXDE-pi/autostart
+Paste the following content (replace IP with your Pi #1 IP):
+```ini
+[Desktop Entry]
+Type=Application
+Name=Supermarkt Kiosk
+Exec=chromium-browser --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://10.9.3.172:5050/terminal
+X-GNOME-Autostart-enabled=true
 ```
 
-Paste:
+#### Step 3: Enable Desktop Auto-Login
 ```bash
-@xset s 30
-@xset dpms 30 30 30
-@unclutter -idle 0.1 -root
-@chromium-browser --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://supermarket-server.local:5050/terminal
+sudo raspi-config nonint do_boot_behaviour B4
 ```
 
-Reboot Pi #2 (`sudo reboot`). It will now boot directly into the animated **Kinder-Supermarkt Terminal**!
+Reboot Pi #2:
+```bash
+sudo reboot
+```
+
+The Raspberry Pi will now skip the setup screen and boot directly into the **Kinder-Supermarkt Terminal**!
 
 ---
 
