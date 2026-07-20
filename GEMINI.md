@@ -98,10 +98,13 @@ supermarket/
 │           ├── login.html     ← Touchscreen PIN-Pad login
 │           ├── dashboard.html
 │           ├── categories.html← Dynamic category CRUD management
-│           ├── products.html
-│           ├── cards.html     ← NFC card registration (Smartphone Web NFC + socket)
+│           ├── edit_category.html
+│           ├── products.html  ← Product CRUD management
+│           ├── edit_product.html
+│           ├── cards.html     ← NFC card registration & CRUD
+│           ├── edit_card.html
 │           ├── settings.html  ← Receipt layout & shop settings (NFC mode chooser)
-│           └── transactions.html
+│           └── transactions.html ← Transaction history & deletion
 ├── nfc_reader/                ← Optional standalone PN532 daemon for Pi #2 (Legacy)
 └── docs/
     ├── setup.md               ← Complete Raspberry Pi OS & Smartphone setup guide

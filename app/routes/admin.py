@@ -149,6 +149,40 @@ def toggle_category(cat_id):
     return redirect(url_for("admin.categories"))
 
 
+@admin_bp.route("/categories/edit/<int:cat_id>", methods=["GET", "POST"])
+def edit_category(cat_id):
+    if not is_logged_in():
+        return redirect(url_for("admin.login"))
+
+    cat = Category.query.get_or_404(cat_id)
+
+    if request.method == "POST":
+        new_name = request.form.get("name", "").strip()
+        emoji = request.form.get("emoji", "📦").strip()
+        sort_order = int(request.form.get("sort_order", "0"))
+
+        if not new_name:
+            flash("Bitte Name der Kategorie eingeben!", "danger")
+            return redirect(url_for("admin.edit_category", cat_id=cat.id))
+
+        if new_name != cat.name:
+            existing = Category.query.filter_by(name=new_name).first()
+            if existing:
+                flash(f"Kategorie '{new_name}' existiert bereits!", "danger")
+                return redirect(url_for("admin.edit_category", cat_id=cat.id))
+
+            Product.query.filter_by(category=cat.name).update({"category": new_name})
+
+        cat.name = new_name
+        cat.emoji = emoji
+        cat.sort_order = sort_order
+        db.session.commit()
+        flash(f"Kategorie '{cat.name}' erfolgreich aktualisiert! 🎉", "success")
+        return redirect(url_for("admin.categories"))
+
+    return render_template("admin/edit_category.html", category=cat)
+
+
 @admin_bp.route("/categories/delete/<int:cat_id>")
 def delete_category(cat_id):
     if not is_logged_in():
@@ -163,6 +197,45 @@ def delete_category(cat_id):
     db.session.commit()
     flash(f"Kategorie '{cat.name}' gelöscht!", "info")
     return redirect(url_for("admin.categories"))
+
+
+@admin_bp.route("/products/edit/<int:product_id>", methods=["GET", "POST"])
+def edit_product(product_id):
+    if not is_logged_in():
+        return redirect(url_for("admin.login"))
+
+    product = Product.query.get_or_404(product_id)
+
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        price_euros = float(request.form.get("price", "0.0").replace(",", "."))
+        price_cents = int(round(price_euros * 100))
+        category = request.form.get("category", "Sonstiges")
+        emoji = request.form.get("emoji", "🛒").strip()
+
+        if not name:
+            flash("Bitte Produktname angeben!", "danger")
+            return redirect(url_for("admin.edit_product", product_id=product.id))
+
+        if "image_file" in request.files:
+            file = request.files["image_file"]
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                save_dir = os.path.join(current_app.root_path, "static", "images", "products")
+                os.makedirs(save_dir, exist_ok=True)
+                file.save(os.path.join(save_dir, filename))
+                product.image_path = f"images/products/{filename}"
+
+        product.name = name
+        product.price_cents = price_cents
+        product.category = category
+        product.emoji = emoji
+        db.session.commit()
+        flash(f"Produkt '{product.name}' erfolgreich aktualisiert! 🎉", "success")
+        return redirect(url_for("admin.products"))
+
+    categories = Category.query.filter_by(is_active=True).order_by(Category.sort_order).all()
+    return render_template("admin/edit_product.html", product=product, categories=categories)
 
 
 @admin_bp.route("/products/toggle/<int:product_id>")
@@ -354,3 +427,24 @@ def transactions():
 
     all_tx = Transaction.query.order_by(Transaction.created_at.desc()).all()
     return render_template("admin/transactions.html", transactions=all_tx)
+
+
+@admin_bp.route("/transactions/delete/<int:tx_id>")
+def delete_transaction(tx_id):
+    if not is_logged_in():
+        return redirect(url_for("admin.login"))
+    tx = Transaction.query.get_or_404(tx_id)
+    db.session.delete(tx)
+    db.session.commit()
+    flash(f"Einkauf #{tx_id} gelöscht!", "info")
+    return redirect(url_for("admin.transactions"))
+
+
+@admin_bp.route("/transactions/clear")
+def clear_transactions():
+    if not is_logged_in():
+        return redirect(url_for("admin.login"))
+    Transaction.query.delete()
+    db.session.commit()
+    flash("Alle Einkäufe wurden zurückgesetzt!", "info")
+    return redirect(url_for("admin.transactions"))

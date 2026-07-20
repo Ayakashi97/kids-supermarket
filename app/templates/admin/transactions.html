@@ -26,7 +26,18 @@
 <div class="admin-container">
     <div class="page-title-row">
         <h2>Einkaufshistorie 🧾</h2>
+        {% if transactions %}
+        <a href="{{ url_for('admin.clear_transactions') }}" class="btn btn-sm btn-danger" onclick="return confirm('Wirklich ALLE Transaktionen löschen?');">Historie leeren 🗑️</a>
+        {% endif %}
     </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="badge badge-{{ category }}" style="font-size: 1rem; margin-bottom: 1.2rem; width: 100%; display: block; border-radius: 12px; padding: 0.8rem 1.2rem;">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
     <div class="admin-card">
         <h3>Alle Transaktionen</h3>
@@ -63,7 +74,10 @@
                         </td>
                         <td><strong style="color: var(--admin-accent); font-size: 1.1rem;">{{ (tx.total_cents / 100) | round(2) }} €</strong></td>
                         <td>
-                            <a href="/receipt/{{ tx.id }}" target="_blank" class="btn btn-sm btn-primary">Bon / PDF 📄</a>
+                            <div class="action-buttons">
+                                <a href="/receipt/{{ tx.id }}" target="_blank" class="btn btn-sm btn-primary">Bon / PDF 📄</a>
+                                <a href="{{ url_for('admin.delete_transaction', tx_id=tx.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Transaktion löschen?');">Löschen ❌</a>
+                            </div>
                         </td>
                     </tr>
                     {% else %}

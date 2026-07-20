@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Produkt bearbeiten — Admin{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block content %}
+<nav class="admin-nav">
+    <div class="admin-nav-container">
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-brand">🛒 Admin Panel</a>
+        <button type="button" class="admin-nav-toggle" onclick="document.querySelector('.admin-menu').classList.toggle('open')">☰</button>
+        <div class="admin-menu">
+            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin.categories') }}">Kategorien 🏷️</a>
+            <a href="{{ url_for('admin.products') }}" class="active">Produkte</a>
+            <a href="{{ url_for('admin.cards') }}">Kundenkarten 💳</a>
+            <a href="{{ url_for('admin.transactions') }}">Einkäufe</a>
+            <a href="{{ url_for('admin.settings') }}">Einstellungen ⚙️</a>
+            <a href="{{ url_for('admin.logout') }}" class="logout-link">Abmelden</a>
+        </div>
+    </div>
+</nav>
+
+<div class="admin-container" style="max-width: 700px;">
+    <div class="page-title-row">
+        <h2>Produkt bearbeiten 🍎</h2>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="badge badge-{{ category }}" style="font-size: 1rem; margin-bottom: 1.2rem; width: 100%; display: block; border-radius: 12px; padding: 0.8rem 1.2rem;">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="admin-card">
+        <h3>Produkt "{{ product.name }}"</h3>
+
+        <form method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="name">Produktname:</label>
+                <input type="text" id="name" name="name" value="{{ product.name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="price">Preis (€):</label>
+                <input type="number" step="0.01" id="price" name="price" value="{{ (product.price_cents / 100) | round(2) }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="category">Kategorie:</label>
+                <select id="category" name="category">
+                    {% for cat in categories %}
+                    <option value="{{ cat.name }}" {% if cat.name == product.category %}selected{% endif %}>{{ cat.name }} {{ cat.emoji or '' }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="emoji">Emoji Symbol:</label>
+                <input type="text" id="emoji" name="emoji" value="{{ product.emoji or '' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="image_file">Neues Foto hochladen (optional):</label>
+                {% if product.image_path %}
+                <div style="margin-bottom: 0.8rem;">
+                    <img src="{{ url_for('static', filename=product.image_path) }}" class="img-preview" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;" alt="{{ product.name }}">
+                </div>
+                {% endif %}
+                <input type="file" id="image_file" name="image_file" accept="image/*">
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
+                <button type="submit" class="btn btn-success">Änderungen speichern 💾</button>
+                <a href="{{ url_for('admin.products') }}" class="btn btn-secondary">Abbrechen</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

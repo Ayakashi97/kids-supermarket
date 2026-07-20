@@ -89,6 +89,7 @@
                         </td>
                         <td>
                             <div class="action-buttons">
+                                <a href="{{ url_for('admin.edit_category', cat_id=cat.id) }}" class="btn btn-sm" style="background: #e67e22; color: white;">Bearbeiten ✏️</a>
                                 <a href="{{ url_for('admin.toggle_category', cat_id=cat.id) }}" class="btn btn-sm btn-primary">
                                     {% if cat.is_active %}Deaktivieren{% else %}Aktivieren{% endif %}
                                 </a>
