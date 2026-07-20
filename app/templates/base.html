@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Kinder-Supermarkt{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     {% block head %}{% endblock %}
     <style>
         .dev-sim-bar {
@@ -59,13 +60,23 @@
     </div>
 
     <script>
+    function getDevSocket() {
+        if (window.socket) return window.socket;
+        if (typeof io !== 'undefined') {
+            window.socket = io();
+            return window.socket;
+        }
+        return null;
+    }
+
     function simTap(uid) {
         if (!uid) return;
-        if (typeof socket !== 'undefined' && socket) {
+        const sock = getDevSocket();
+        if (sock) {
             console.log("[DEV SIMULATOR] Emitting card_tapped with UID:", uid);
-            socket.emit("card_tapped", { uid: uid });
+            sock.emit("card_tapped", { uid: uid });
         } else {
-            alert("WebSocket client not initialized on this page yet!");
+            alert("Socket.IO client library not loaded!");
         }
     }
     </script>

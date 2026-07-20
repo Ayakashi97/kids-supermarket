@@ -111,7 +111,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const cancelPayBtn = document.getElementById("cancelPayBtn");
 
     // --- Socket.IO Client Setup ---
-    const socket = io();
+    window.socket = io();
+    const socket = window.socket;
 
     socket.on("connect", () => {
         console.log("Connected to server WebSocket!");
