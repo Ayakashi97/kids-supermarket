@@ -97,15 +97,17 @@ When using an enclosure/case where a 3.5" Touchscreen Display plugs flush onto a
 ---
 
 ### Option 1: Use a USB-to-TTL Adapter with your existing PN532 Module (Recommended)
-You can connect your existing PN532 module into one of Pi #2's **external USB ports** using a $2 USB-to-TTL Serial Adapter (CP2102, PL2303, or FT232):
+You can connect your existing PN532 module into one of Pi #2's **external USB ports** using a $2 USB-to-TTL Serial Adapter (AZDelivery / CP2102 / PL2303 / FT232):
+
+![Connecting AZDelivery USB-C to TTL Serial Adapter to Raspberry Pi 4 and PN532 NFC Module](images/azdelivery_usb_connection.jpg)
 
 1. Set PN532 DIP Switches to **HSU Mode**: `SEL0 = 0 (LOW / OFF)`, `SEL1 = 0 (LOW / OFF)`.
 2. Connect PN532 pins to the USB Serial Adapter:
-   - `VCC` ➡️ `5V` or `3.3V`
+   - `VCC` ➡️ `5V` (Set jumper on AZDelivery adapter to **5V**)
    - `GND` ➡️ `GND`
    - `TX`  ➡️ `RX`
    - `RX`  ➡️ `TX`
-3. Plug the USB adapter into any USB port on Pi #2! The 40-pin GPIO header remains 100% free inside the case for the 3.5" touchscreen.
+3. Plug a standard USB-C to USB-A cable from the AZDelivery adapter into **any USB port on Raspberry Pi #2**! The 40-pin GPIO header remains 100% free inside the case for the 3.5" touchscreen.
 
 ---
 
