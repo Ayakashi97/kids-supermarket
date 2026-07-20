@@ -333,7 +333,40 @@ document.addEventListener("DOMContentLoaded", () => {
         paymentOverlay.classList.remove("hidden");
     }
 
+    let currentTransactionId = null;
+
+    const receiptActions = document.getElementById("receiptActions");
+    const btnPrintReceiptBtn = document.getElementById("btnPrintReceiptBtn");
+    const btnViewPdfBtn = document.getElementById("btnViewPdfBtn");
+    const printStatusMsg = document.getElementById("printStatusMsg");
+
+    if (btnPrintReceiptBtn) {
+        btnPrintReceiptBtn.addEventListener("click", () => {
+            if (!currentTransactionId) return;
+            btnPrintReceiptBtn.disabled = true;
+            btnPrintReceiptBtn.textContent = "Drucke... ⏳";
+            socket.emit("request_print_receipt", { transaction_id: currentTransactionId });
+        });
+    }
+
+    socket.on("print_result", (res) => {
+        if (!btnPrintReceiptBtn || !printStatusMsg) return;
+        printStatusMsg.style.display = "block";
+        if (res && res.success) {
+            printStatusMsg.style.color = "#2ecc71";
+            printStatusMsg.textContent = res.message || "Bon gedruckt! 🧾";
+            btnPrintReceiptBtn.textContent = "Erneut drucken 🧾";
+            btnPrintReceiptBtn.disabled = false;
+        } else {
+            printStatusMsg.style.color = "#f39c12";
+            printStatusMsg.textContent = res.message || "Drucker nicht erreichbar";
+            btnPrintReceiptBtn.textContent = "Bon drucken 🧾";
+            btnPrintReceiptBtn.disabled = false;
+        }
+    });
+
     function showPaymentSuccessOverlay(data) {
+        currentTransactionId = data.transaction_id || null;
         overlayTitle.textContent = data.card_name ? `Hallo ${data.card_name}! 🎉` : "Bezahlt! 🎉";
         overlaySubtitle.textContent = `Gesamtsumme: ${formatCurrency(data.total_cents || getTotalCents())}`;
 
@@ -347,7 +380,21 @@ document.addEventListener("DOMContentLoaded", () => {
             overlayIcon.style.display = "block";
         }
 
-        cancelPayBtn.style.display = "none";
+        if (receiptActions && data.transaction_id) {
+            receiptActions.style.display = "flex";
+            if (btnViewPdfBtn) btnViewPdfBtn.href = `/receipt/${data.transaction_id}`;
+            if (btnPrintReceiptBtn) {
+                btnPrintReceiptBtn.disabled = false;
+                btnPrintReceiptBtn.textContent = "🧾 Bon drucken";
+            }
+            if (printStatusMsg) {
+                printStatusMsg.style.display = "none";
+                printStatusMsg.textContent = "";
+            }
+        }
+
+        cancelPayBtn.textContent = "Fertig / Schließen ✨";
+        cancelPayBtn.style.display = "block";
         paymentOverlay.classList.remove("hidden");
     }
 
@@ -357,11 +404,15 @@ document.addEventListener("DOMContentLoaded", () => {
         overlayIcon.textContent = "⚠️";
         overlayIcon.style.display = "block";
         photoContainer.style.display = "none";
-        cancelPayBtn.style.display = "none";
+        if (receiptActions) receiptActions.style.display = "none";
+        cancelPayBtn.textContent = "Schließen ❌";
+        cancelPayBtn.style.display = "block";
         paymentOverlay.classList.remove("hidden");
     }
 
     function hideOverlay() {
         paymentOverlay.classList.add("hidden");
+        if (receiptActions) receiptActions.style.display = "none";
+        cancelPayBtn.textContent = "Abbrechen ❌";
     }
 });

@@ -49,3 +49,16 @@ def nfc_tap():
         "message": f"NFC tap triggered for UID '{uid}'"
     })
 
+
+@api_bp.route("/print_receipt/<int:tx_id>", methods=["GET", "POST"])
+def print_receipt_api(tx_id):
+    from app.models import Transaction
+    from app.services.printer import print_receipt
+
+    tx = Transaction.query.get(tx_id)
+    if not tx:
+        return jsonify({"success": False, "message": "Transaktion nicht gefunden!"}), 404
+
+    success, message = print_receipt(tx.to_dict(), check_enabled=False)
+    return jsonify({"success": success, "message": message})
+

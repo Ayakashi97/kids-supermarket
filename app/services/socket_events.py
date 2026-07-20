@@ -92,8 +92,10 @@ def process_completed_payment(card: Card, cart: list, socket_io: SocketIO):
             "card_image_url": card_image_url,
         }
 
-        # Attempt thermal printing
-        print_receipt(transaction.to_dict())
+        # Check print mode setting (ask_cashier default, always, or never)
+        print_mode = get_setting("print_mode", "ask_cashier")
+        if print_mode == "always":
+            print_receipt(transaction.to_dict())
 
         # Reset server state
         server_state["mode"] = "idle"
@@ -126,6 +128,18 @@ def register_socket_events(socket_io: SocketIO):
     @socket_io.on("ping")
     def handle_ping():
         emit("pong", {"status": "ok"})
+
+    @socket_io.on("request_print_receipt")
+    def handle_request_print_receipt(data):
+        from app.models import Transaction
+        tx_id = data.get("transaction_id")
+        tx = Transaction.query.get(tx_id) if tx_id else None
+        if not tx:
+            emit("print_result", {"success": False, "message": "Transaktion nicht gefunden!"})
+            return
+
+        success, message = print_receipt(tx.to_dict(), check_enabled=False)
+        emit("print_result", {"success": success, "message": message})
 
     @socket_io.on("start_payment")
     def handle_start_payment(data):

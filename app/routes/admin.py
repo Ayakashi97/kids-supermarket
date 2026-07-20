@@ -244,6 +244,7 @@ def settings():
         pin_mode = request.form.get("pin_mode", "disabled")
         nfc_mode = request.form.get("nfc_mode", "web_nfc")
         printer_enabled = request.form.get("printer_enabled", "false")
+        print_mode = request.form.get("print_mode", "ask_cashier")
         printer_device = request.form.get("printer_device", Config.PRINTER_DEVICE)
         receipt_header = request.form.get("receipt_header", "")
         receipt_footer = request.form.get("receipt_footer", "")
@@ -257,6 +258,7 @@ def settings():
         set_setting("pin_mode", pin_mode)
         set_setting("nfc_mode", nfc_mode)
         set_setting("printer_enabled", printer_enabled)
+        set_setting("print_mode", print_mode)
         set_setting("printer_device", printer_device)
         set_setting("receipt_header", receipt_header)
         set_setting("receipt_footer", receipt_footer)
@@ -274,6 +276,7 @@ def settings():
         "pin_mode": get_setting("pin_mode", "disabled"),
         "nfc_mode": get_setting("nfc_mode", "web_nfc"),
         "printer_enabled": get_setting("printer_enabled", "false"),
+        "print_mode": get_setting("print_mode", "ask_cashier"),
         "printer_device": get_setting("printer_device", Config.PRINTER_DEVICE),
         "receipt_header": get_setting("receipt_header", "🛒 WILLKOMMEN IM KINDER-MARKT 🛒"),
         "receipt_footer": get_setting("receipt_footer", "Vielen Dank für deinen Einkauf! 😊"),

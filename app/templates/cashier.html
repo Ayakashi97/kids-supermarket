@@ -92,7 +92,20 @@
         <h2 id="overlayTitle">Karte hinhalten! 💳</h2>
         <p id="overlaySubtitle">Halte deine Supermarkt-Karte an das Lesegerät...</p>
 
-        <button class="cancel-payment-btn" id="cancelPayBtn">Abbrechen ❌</button>
+        <!-- Cashier Receipt Print Options -->
+        <div id="receiptActions" style="display: none; width: 100%; margin-top: 1rem; flex-direction: column; gap: 0.8rem; align-items: center;">
+            <div id="printStatusMsg" style="font-weight: 800; font-size: 1.15rem; color: #27ae60; margin-bottom: 0.4rem; display: none;"></div>
+            <div style="display: flex; gap: 0.8rem; flex-wrap: wrap; justify-content: center; width: 100%;">
+                <button type="button" class="btn-nfc-activate" id="btnPrintReceiptBtn" style="margin: 0; background: linear-gradient(135deg, #00b894, #00cec9); color: white; padding: 0.85rem 1.6rem; font-size: 1.2rem; border-radius: 50px; border: none; cursor: pointer; font-weight: 900;">
+                    🧾 Bon drucken
+                </button>
+                <a id="btnViewPdfBtn" href="#" target="_blank" class="clear-btn" style="background: #e0f2fe; color: #0284c7; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 0.85rem 1.4rem; border-radius: 50px; font-weight: 800;">
+                    📄 PDF Bon
+                </a>
+            </div>
+        </div>
+
+        <button class="cancel-payment-btn" id="cancelPayBtn" style="margin-top: 1.2rem;">Abbrechen ❌</button>
     </div>
 </div>
 {% endblock %}

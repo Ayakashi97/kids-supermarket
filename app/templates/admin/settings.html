@@ -95,6 +95,16 @@
             </div>
 
             <div class="form-group">
+                <label for="print_mode">Bon-Druckverhalten nach der Zahlung:</label>
+                <select id="print_mode" name="print_mode">
+                    <option value="ask_cashier" {% if settings.print_mode == 'ask_cashier' or not settings.print_mode %}selected{% endif %}>Kassierer nach Zahlung fragen (Button "Bon drucken" auf der Kasse)</option>
+                    <option value="always" {% if settings.print_mode == 'always' %}selected{% endif %}>Immer automatisch drucken (sofern Drucker aktiv)</option>
+                    <option value="never" {% if settings.print_mode == 'never' %}selected{% endif %}>Nie automatisch drucken (Nur PDF-Bon anzeigen)</option>
+                </select>
+                <small style="color: #666;">Schützt vor Papierverschwendung. Es gilt automatisch ein <strong>Limit von maximal 20 Bons pro Stunde</strong>!</small>
+            </div>
+
+            <div class="form-group">
                 <label for="printer_device">USB Drucker-Gerätepfad:</label>
                 <input type="text" id="printer_device" name="printer_device" value="{{ settings.printer_device }}">
                 <small style="color: #666;">Standard für Raspberry Pi USB-Drucker: <code>/dev/usb/lp0</code></small>

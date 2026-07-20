@@ -1,10 +1,14 @@
 import os
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.config import Config
 from app.models import Setting
 
 logger = logging.getLogger(__name__)
+
+# Sliding 1-hour print history rate limiter
+PRINT_HISTORY = []
+MAX_PRINTS_PER_HOUR = 20
 
 
 def get_setting(key: str, default_val: str) -> str:
@@ -18,16 +22,44 @@ def get_setting(key: str, default_val: str) -> str:
     return default_val
 
 
-def print_receipt(transaction_data: dict) -> bool:
+def check_rate_limit() -> tuple[bool, str]:
+    """
+    Ensures no more than 20 receipts are printed per 60 minutes.
+    Returns (allowed: bool, reason: str).
+    """
+    global PRINT_HISTORY
+    now = datetime.now()
+    cutoff = now - timedelta(hours=1)
+    
+    # Keep only prints from the last 1 hour
+    PRINT_HISTORY = [t for t in PRINT_HISTORY if t > cutoff]
+    
+    if len(PRINT_HISTORY) >= MAX_PRINTS_PER_HOUR:
+        msg = f"Limit erreicht: Maximal {MAX_PRINTS_PER_HOUR} Bons pro Stunde erlaubt! (Schutz vor Papier-Spam) ⏳"
+        logger.warning(msg)
+        return False, msg
+
+    return True, ""
+
+
+def print_receipt(transaction_data: dict, check_enabled: bool = True) -> tuple[bool, str]:
     """
     Prints a thermal receipt via python-escpos USB/File device if enabled and connected.
-    If disabled or disconnected, skips cleanly without throwing errors or interrupting transactions.
+    Enforces a strict 20-receipts-per-hour rate limit.
+    Returns (success: bool, message: str).
     """
-    # Check if printer is enabled in settings (default: false)
-    printer_enabled_str = get_setting("printer_enabled", "false").lower()
-    if printer_enabled_str not in ("true", "1", "yes"):
-        logger.debug("Receipt printing is disabled in settings. Skipping hardware print.")
-        return False
+    # Check rate limit first
+    allowed, limit_msg = check_rate_limit()
+    if not allowed:
+        return False, limit_msg
+
+    # Check if printer is enabled in settings
+    if check_enabled:
+        printer_enabled_str = get_setting("printer_enabled", "false").lower()
+        if printer_enabled_str not in ("true", "1", "yes"):
+            msg = "Drucker ist in den Admin-Einstellungen deaktiviert."
+            logger.debug(msg)
+            return False, msg
 
     device_path = get_setting("printer_device", Config.PRINTER_DEVICE)
     shop_name = get_setting("shop_name", Config.SHOP_NAME)
@@ -56,11 +88,9 @@ def print_receipt(transaction_data: dict) -> bool:
 
     # Check if hardware USB printer device exists
     if not os.path.exists(device_path):
-        logger.info(
-            "USB printer device '%s' not found or disconnected. Skipping hardware print (PDF receipt available).",
-            device_path,
-        )
-        return False
+        msg = f"Drucker-Gerät '{device_path}' nicht angeschlossen. PDF-Bon steht bereit."
+        logger.info(msg)
+        return False, msg
 
     try:
         from escpos.printer import File
@@ -107,9 +137,14 @@ def print_receipt(transaction_data: dict) -> bool:
         printer.cut()
         printer.close()
 
-        logger.info("Receipt #%s successfully printed to USB thermal printer!", tx_id)
-        return True
+        # Track timestamp for rate limiting
+        PRINT_HISTORY.append(datetime.now())
+
+        success_msg = f"Kassenbon #{tx_id} erfolgreich gedruckt! 🧾 ({len(PRINT_HISTORY)}/{MAX_PRINTS_PER_HOUR} in dieser Stunde)"
+        logger.info(success_msg)
+        return True, success_msg
 
     except Exception as e:
-        logger.info("Hardware printer on %s not accessible (%s). Payment completed normally.", device_path, str(e))
-        return False
+        err_msg = f"Fehler beim Drucken: {str(e)}"
+        logger.error(err_msg)
+        return False, err_msg
