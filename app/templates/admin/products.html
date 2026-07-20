@@ -125,9 +125,11 @@
             </div>
 
             <div class="form-group">
-                <label for="add_p_nfc">🏷️ NFC-Tag UID (optional):</label>
-                <input type="text" id="add_p_nfc" name="nfc_uid" placeholder="z.B. 04:A3:22:B1 (leer lassen = kein Tag)">
-                <small>Nur benötigt wenn Hand-Scanner Modus aktiv ist.</small>
+                <label for="add_p_nfc">🏷️ NFC-Tag UID (Auto / Manuell):</label>
+                <div style="display: flex; gap: 0.6rem;">
+                    <input type="text" id="add_p_nfc" name="nfc_uid" placeholder="z.B. 04:A3:22:B1 (leer lassen = kein Tag)">
+                    <button type="button" class="btn btn-primary" id="scanAddProductBtn" style="white-space: nowrap;">Scan 🏷️</button>
+                </div>
             </div>
 
             <div class="form-group">
@@ -182,9 +184,11 @@
             </div>
 
             <div class="form-group">
-                <label for="edit_p_nfc">🏷️ NFC-Tag UID (optional):</label>
-                <input type="text" id="edit_p_nfc" name="nfc_uid" placeholder="z.B. 04:A3:22:B1 (leer lassen = kein Tag)">
-                <small>Nur benötigt wenn Hand-Scanner Modus aktiv ist. Für vollständige Optionen bitte über “Bearbeiten” (separate Seite) vorgehen.</small>
+                <label for="edit_p_nfc">🏷️ NFC-Tag UID (Auto / Manuell):</label>
+                <div style="display: flex; gap: 0.6rem;">
+                    <input type="text" id="edit_p_nfc" name="nfc_uid" placeholder="z.B. 04:A3:22:B1 (leer lassen = kein Tag)">
+                    <button type="button" class="btn btn-primary" id="scanEditProductBtn" style="white-space: nowrap;">Scan 🏷️</button>
+                </div>
             </div>
 
             <div class="form-group">
@@ -206,6 +210,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 <script>
 function openModal(id) {
     document.getElementById(id).classList.remove("hidden");
@@ -222,5 +227,99 @@ function editProduct(id, name, price, category, emoji, nfcUid) {
     document.getElementById("edit_p_nfc").value = nfcUid || '';
     openModal("editProductModal");
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const socket = io();
+    let activeTargetInput = null;
+
+    function setupScanBtn(btnId, inputId) {
+        const btn = document.getElementById(btnId);
+        const input = document.getElementById(inputId);
+        if (!btn || !input) return;
+
+        btn.addEventListener("click", async () => {
+            activeTargetInput = input;
+            btn.disabled = true;
+            btn.textContent = "Warte... 📱";
+
+            socket.emit("start_registration");
+
+            if ('NDEFReader' in window) {
+                try {
+                    const ndef = new NDEFReader();
+                    await ndef.scan();
+                    ndef.onreading = (event) => {
+                        let rawUid = event.serialNumber || "";
+                        if (!rawUid && event.message && event.message.records) {
+                            const decoder = new TextDecoder();
+                            for (const record of event.message.records) {
+                                if (record.data) {
+                                    try {
+                                        const txt = decoder.decode(record.data).trim();
+                                        if (txt) { rawUid = txt; break; }
+                                    } catch(e){}
+                                }
+                            }
+                        }
+                        if (rawUid) {
+                            input.value = rawUid;
+                            btn.disabled = false;
+                            btn.textContent = "Erfasst! ✅";
+                            socket.emit("card_tapped", { uid: rawUid });
+                            setTimeout(() => { btn.textContent = "Scan 🏷️"; }, 3000);
+                        }
+                    };
+                } catch (err) {
+                    console.warn("Web NFC error:", err);
+                    btn.disabled = false;
+                    btn.textContent = "Scan 🏷️";
+                }
+            } else {
+                setTimeout(() => {
+                    if (btn.disabled && !input.value) {
+                        btn.disabled = false;
+                        btn.textContent = "Scan 🏷️";
+                    }
+                }, 6000);
+            }
+        });
+    }
+
+    setupScanBtn("scanAddProductBtn", "add_p_nfc");
+    setupScanBtn("scanEditProductBtn", "edit_p_nfc");
+
+    function handleTagCaptured(uid) {
+        // If modal open, fill active target or auto-detect open modal input
+        let target = activeTargetInput;
+        if (!target) {
+            const editModal = document.getElementById("editProductModal");
+            const addModal = document.getElementById("addProductModal");
+            if (editModal && !editModal.classList.contains("hidden")) {
+                target = document.getElementById("edit_p_nfc");
+            } else if (addModal && !addModal.classList.contains("hidden")) {
+                target = document.getElementById("add_p_nfc");
+            }
+        }
+        if (target && uid) {
+            target.value = uid;
+            const addBtn = document.getElementById("scanAddProductBtn");
+            const editBtn = document.getElementById("scanEditProductBtn");
+            [addBtn, editBtn].forEach(b => {
+                if (b) {
+                    b.disabled = false;
+                    b.textContent = "Erfasst! ✅";
+                    setTimeout(() => { b.textContent = "Scan 🏷️"; }, 3000);
+                }
+            });
+        }
+    }
+
+    socket.on("card_captured", (data) => {
+        if (data && data.uid) handleTagCaptured(data.uid);
+    });
+    socket.on("card_tapped", (data) => {
+        if (data && data.uid) handleTagCaptured(data.uid);
+    });
+});
 </script>
 {% endblock %}
