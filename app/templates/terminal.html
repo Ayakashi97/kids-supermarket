@@ -549,79 +549,100 @@ let ndefReaderInstance = null;
 let currentScannerMode = "disabled"; // updated from server status event
 
 let termAudioCtx = null;
-function initTermAudio() {
+let lastSoundTime = 0;
+
+function unlockTermAudio() {
     if (!termAudioCtx) {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (AudioContextClass) {
             termAudioCtx = new AudioContextClass();
         }
     }
-    if (termAudioCtx && termAudioCtx.state === "suspended") {
-        termAudioCtx.resume().catch(err => console.warn("AudioContext resume error:", err));
+    if (termAudioCtx) {
+        if (termAudioCtx.state === "suspended") {
+            termAudioCtx.resume().catch(err => console.warn("AudioContext resume error:", err));
+        }
+        try {
+            const buf = termAudioCtx.createBuffer(1, 1, 22050);
+            const src = termAudioCtx.createBufferSource();
+            src.buffer = buf;
+            src.connect(termAudioCtx.destination);
+            src.start(0);
+        } catch (e) {}
     }
     return termAudioCtx;
 }
 
 // Sound synthesis using Web Audio API
-function playSound(type) {
+function playSound(type, force = false) {
+    const now = Date.now();
+    if (!force && now - lastSoundTime < 180) {
+        return; // Prevent duplicate rapid overlapping sounds within 180ms
+    }
+    lastSoundTime = now;
+
     try {
-        const ctx = initTermAudio();
-        if (!ctx) return;
-        if (ctx.state === "suspended") {
-            ctx.resume();
+        let ctx = unlockTermAudio();
+        if (!ctx || ctx.state === "closed") {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) return;
+            ctx = new AudioContextClass();
+            termAudioCtx = ctx;
         }
+
+        const nowTime = ctx.currentTime;
 
         if (type === 'beep') {
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(880, ctx.currentTime);
-            gain.gain.setValueAtTime(0.2, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+            osc.frequency.setValueAtTime(880, nowTime);
+            gain.gain.setValueAtTime(0.25, nowTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, nowTime + 0.15);
             osc.connect(gain);
             gain.connect(ctx.destination);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.15);
+            osc.start(nowTime);
+            osc.stop(nowTime + 0.15);
         } else if (type === 'scanner') {
-            // Classic supermarket barcode scanner beep: sharp, high, short
+            // Classic supermarket barcode scanner beep: sharp, high, short (1900 Hz)
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
             osc.type = 'square';
-            osc.frequency.setValueAtTime(1900, ctx.currentTime);
-            gain.gain.setValueAtTime(0.18, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+            osc.frequency.setValueAtTime(1900, nowTime);
+            gain.gain.setValueAtTime(0.25, nowTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, nowTime + 0.09);
             osc.connect(gain);
             gain.connect(ctx.destination);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.08);
+            osc.start(nowTime);
+            osc.stop(nowTime + 0.09);
         } else if (type === 'success') {
             const notes = [523.25, 659.25, 783.99, 1046.50];
             notes.forEach((freq, i) => {
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(freq, ctx.currentTime + (i * 0.1));
-                gain.gain.setValueAtTime(0.25, ctx.currentTime + (i * 0.1));
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + (i * 0.1) + 0.3);
+                osc.frequency.setValueAtTime(freq, nowTime + (i * 0.1));
+                gain.gain.setValueAtTime(0.3, nowTime + (i * 0.1));
+                gain.gain.exponentialRampToValueAtTime(0.001, nowTime + (i * 0.1) + 0.3);
                 osc.connect(gain);
                 gain.connect(ctx.destination);
-                osc.start(ctx.currentTime + (i * 0.1));
-                osc.stop(ctx.currentTime + (i * 0.1) + 0.3);
+                osc.start(nowTime + (i * 0.1));
+                osc.stop(nowTime + (i * 0.1) + 0.3);
             });
         } else if (type === 'error') {
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
             osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(150, ctx.currentTime);
-            gain.gain.setValueAtTime(0.3, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+            osc.frequency.setValueAtTime(180, nowTime);
+            gain.gain.setValueAtTime(0.3, nowTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, nowTime + 0.35);
             osc.connect(gain);
             gain.connect(ctx.destination);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.4);
+            osc.start(nowTime);
+            osc.stop(nowTime + 0.35);
         }
     } catch (e) {
-        console.log("Audio play error:", e);
+        console.warn("Audio play error:", e);
     }
 }
 
@@ -781,7 +802,7 @@ async function initWebNFC(isUserClick = false) {
             ndefReaderInstance.onreading = (event) => {
                 console.log("NFC Tag detected! Serial number:", event.serialNumber);
                 resetIdleTimer();
-                initTermAudio();
+                playSound(currentScannerMode === "enabled" ? 'scanner' : 'beep');
 
                 let rawUid = event.serialNumber || "";
 
@@ -985,12 +1006,17 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     document.addEventListener("pointerdown", () => {
+        unlockTermAudio();
         wakeUp();
         requestScreenWakeLock();
         lockTerminalOrientation();
         if (!webNfcScanning && 'NDEFReader' in window) {
             initWebNFC(true);
         }
+    });
+
+    document.addEventListener("click", () => {
+        unlockTermAudio();
     });
 
     document.addEventListener("visibilitychange", () => {
