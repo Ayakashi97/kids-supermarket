@@ -167,6 +167,7 @@ Detailed documentation and progress checklists are maintained in the [`docs/`](f
 - **[Phase 4 Documentation](file:///Users/jan/projects/supermarket/docs/PHASE_4.md)** — Receipt Printing USB ESC/POS (COMPLETED)
 - **[Phase 5 Documentation](file:///Users/jan/projects/supermarket/docs/PHASE_5.md)** — NFC Reader Service & Touchscreen Terminal (COMPLETED)
 - **[Phase 6 Documentation](file:///Users/jan/projects/supermarket/docs/PHASE_6.md)** — Admin Panel Product & Card Management (COMPLETED)
+- **[Dev & Testing Guide](file:///Users/jan/projects/supermarket/docs/DEV_MODE.md)** — Hardware Emulation & Testing Mode (COMPLETED)
 - **[Master Checklist](file:///Users/jan/projects/supermarket/docs/CHECKLIST.md)** — Overall project checklist per phase
 
 ### Phase Progress Summary
@@ -176,5 +177,5 @@ Detailed documentation and progress checklists are maintained in the [`docs/`](f
 - [x] **Phase 4: Receipt Printing (USB ESC/POS)** (Thermal printer integration, admin configuration support)
 - [x] **Phase 5: NFC Reader Service & Touchscreen Terminal (Pi #2)** (Touchscreen animations, PN532 polling service)
 - [x] **Phase 6: Admin Panel (Product & Card Management)** (PIN auth, product CRUD, card NFC tap registration, photo upload, settings)
-- [ ] **Phase 7: Polish & Kid Experience**
+- [x] **Phase 7: Polish & Kid Experience** (Dev mode emulation toolbar, audio synthesis, touch optimizations)
 

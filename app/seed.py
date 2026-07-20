@@ -1,6 +1,6 @@
 import logging
 from app.db import db
-from app.models import Product
+from app.models import Product, Card
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +19,11 @@ DEFAULT_PRODUCTS = [
     {"name": "Erdbeeren", "price_cents": 180, "emoji": "🍓", "category": "Obst & Gemüse"},
 ]
 
+DEFAULT_TEST_CARDS = [
+    {"nfc_uid": "TEST_LENA_123", "name": "Lena 👧"},
+    {"nfc_uid": "TEST_PAPA_456", "name": "Papa 👨"},
+]
+
 
 def seed_default_products():
     """Seeds default German supermarket products if database is empty."""
@@ -35,3 +40,15 @@ def seed_default_products():
             db.session.add(product)
         db.session.commit()
         logger.info("Successfully seeded %d default products.", len(DEFAULT_PRODUCTS))
+
+    if Card.query.first() is None:
+        logger.info("Seeding default test customer cards for development...")
+        for c_item in DEFAULT_TEST_CARDS:
+            card = Card(
+                nfc_uid=c_item["nfc_uid"],
+                name=c_item["name"],
+                is_active=True,
+            )
+            db.session.add(card)
+        db.session.commit()
+        logger.info("Successfully seeded test customer cards.")

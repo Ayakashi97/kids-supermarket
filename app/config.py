@@ -20,3 +20,6 @@ class Config:
 
     UPLOAD_FOLDER = BASE_DIR / "static" / "images"
     ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
+
+    DEV_MODE = os.getenv("DEV_MODE", "true").lower() in ("true", "1", "yes")
+

@@ -6,15 +6,70 @@
     <title>{% block title %}Kinder-Supermarkt{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     {% block head %}{% endblock %}
+    <style>
+        .dev-sim-bar {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            background: #2c3e50;
+            color: white;
+            padding: 0.8rem 1.2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 9999;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            border: 2px solid #3498db;
+        }
+        .dev-sim-bar button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .dev-sim-bar button:hover { background: #2980b9; }
+        .dev-sim-bar input {
+            padding: 0.4rem;
+            border-radius: 6px;
+            border: none;
+            width: 120px;
+        }
+    </style>
 </head>
 <body>
-    <header class="app-header">
-        <h1>🛒 Kinder-Supermarkt</h1>
-    </header>
-
     <main class="app-content">
         {% block content %}{% endblock %}
     </main>
+
+    {% if config.DEV_MODE %}
+    <!-- DEV MODE EMULATION TOOLBAR -->
+    <div class="dev-sim-bar" id="devSimBar">
+        <span>🧪 <strong>DEV SIMULATOR:</strong></span>
+        <button onclick="simTap('TEST_LENA_123')">👧 Lena</button>
+        <button onclick="simTap('TEST_PAPA_456')">👨 Papa</button>
+        <button onclick="simTap('UNKNOWN_999')">❓ Unbekannt</button>
+        <input type="text" id="devUidInput" placeholder="UID...">
+        <button onclick="simTap(document.getElementById('devUidInput').value)">Tap 💳</button>
+        <a href="/terminal" target="_blank" style="color: #4cd137; font-weight: bold; margin-left: 0.5rem; text-decoration: none;">📺 Terminal öffnen</a>
+    </div>
+
+    <script>
+    function simTap(uid) {
+        if (!uid) return;
+        if (typeof socket !== 'undefined' && socket) {
+            console.log("[DEV SIMULATOR] Emitting card_tapped with UID:", uid);
+            socket.emit("card_tapped", { uid: uid });
+        } else {
+            alert("WebSocket client not initialized on this page yet!");
+        }
+    }
+    </script>
+    {% endif %}
 
     {% block scripts %}{% endblock %}
 </body>

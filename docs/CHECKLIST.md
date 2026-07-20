@@ -53,7 +53,8 @@
 - [x] Transaction history viewer (`/admin/transactions`)
 
 ## Phase 7 — Polish & Kid Experience
-- [ ] Audio feedback (beep, success, error sounds)
-- [ ] Product category navigation tabs
-- [ ] Scanning animations
-- [ ] Touch-optimized UI elements (minimum 80px tap targets)
+- [x] Development & Emulation Testing Mode (`DEV_MODE=true`, floating NFC simulator bar, test card seeding)
+- [x] Audio feedback (beep, success, error sounds synthesized via Web Audio API)
+- [x] Product category navigation tabs
+- [x] Scanning animations
+- [x] Touch-optimized UI elements (minimum 80px tap targets)
