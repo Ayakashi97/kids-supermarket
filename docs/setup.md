@@ -82,14 +82,19 @@ To prevent first-time setup popups on the small 3.5" LCD screen, follow this **e
 
 ---
 
-### Step 1: Flash OS & Complete First-Time Setup on HDMI Monitor
-1. Flash **Raspberry Pi OS Desktop (64-bit)** using Raspberry Pi Imager.
-2. Connect Pi #2 to a standard **HDMI Monitor**, keyboard, and mouse.
-3. Power on Pi #2 and complete the on-screen **Raspberry Pi First-Time Setup Wizard** (Language, Wi-Fi, Timezone, User/Password -> Click Finish).
-4. Alternatively, disable the setup wizard immediately via terminal:
+### Step 1: Flash OS & Disable the "Welcome to Raspberry Pi" Wizard via SSH
+
+1. Flash **Raspberry Pi OS Desktop (64-bit)** using Raspberry Pi Imager (enable SSH in the OS customization options).
+2. Power on Pi #2 — you can skip the HDMI monitor entirely!
+3. SSH into Pi #2 from your computer:
    ```bash
-   sudo systemctl disable --now rpi-initial-setup
+   ssh admin@supermarket-terminal.local
    ```
+4. Remove the **piwiz** wizard autostart file — this is the cause of the "Welcome to the Raspberry Pi Desktop" popup:
+   ```bash
+   sudo rm /etc/xdg/autostart/piwiz.desktop
+   ```
+   *(This is a permanent fix — the wizard will never appear again after this).*
 
 ---
 
