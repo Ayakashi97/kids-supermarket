@@ -207,6 +207,32 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Sound: Payment process started chime
+    function playPaymentStartSound() {
+        initAudio();
+        try {
+            const notes = [523.25, 659.25, 880.00]; // C5, E5, A5
+            notes.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.08);
+
+                gain.gain.setValueAtTime(0.35, audioCtx.currentTime + idx * 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + idx * 0.08 + 0.15);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(audioCtx.currentTime + idx * 0.08);
+                osc.stop(audioCtx.currentTime + idx * 0.08 + 0.15);
+            });
+        } catch (e) {
+            console.warn("Payment start sound error:", e);
+        }
+    }
+
     // --- State & DOM Elements ---
     let cart = []; // Array of { id, name, price_cents, emoji, quantity }
     
@@ -645,13 +671,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Pay button handler
-    payBtn.addEventListener("click", () => {
-        if (cart.length === 0) return;
-        initAudio();
-        
-        socket.emit("start_payment", { cart: cart });
-        showPaymentWaitingOverlay();
-    });
+    if (payBtn) {
+        attachKidTouchHandler(payBtn, () => {
+            if (cart.length === 0) return;
+            playPaymentStartSound();
+            socket.emit("start_payment", { cart: cart });
+            showPaymentWaitingOverlay();
+        });
+    }
 
     // Cancel payment button handler
     cancelPayBtn.addEventListener("click", () => {
