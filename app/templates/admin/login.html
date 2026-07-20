@@ -5,79 +5,18 @@
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
-<style>
-    .pinpad-container {
-        max-width: 400px;
-        margin: 3rem auto;
-        background: white;
-        padding: 2.5rem;
-        border-radius: 24px;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-        text-align: center;
-        border: 3px solid #e1e8ed;
-    }
-
-    .pin-display {
-        background: #f8f9fa;
-        border: 2px solid #3867d6;
-        border-radius: 16px;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
-        font-size: 2.5rem;
-        letter-spacing: 0.8rem;
-        min-height: 70px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #2c3e50;
-    }
-
-    .pin-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1rem;
-    }
-
-    .pin-btn {
-        background: #f1f2f6;
-        border: 2px solid #dcdde1;
-        border-radius: 16px;
-        font-size: 2rem;
-        font-weight: 800;
-        color: #2f3640;
-        padding: 1.2rem;
-        cursor: pointer;
-        transition: all 0.15s ease;
-        user-select: none;
-    }
-
-    .pin-btn:active {
-        transform: scale(0.92);
-        background: #3867d6;
-        color: white;
-    }
-
-    .pin-btn.btn-clear {
-        background: #ffeaa7;
-        color: #d63031;
-    }
-
-    .pin-btn.btn-submit {
-        background: #55efc4;
-        color: #00b894;
-    }
-</style>
 {% endblock %}
 
 {% block content %}
 <div class="pinpad-container">
-    <h2>🔐 Admin Login</h2>
-    <p style="color: #7f8c8d; margin-bottom: 1.5rem;">PIN eingeben (Standard: 1234)</p>
+    <div style="font-size: 3.5rem; margin-bottom: 0.5rem; filter: drop-shadow(0 8px 15px rgba(79, 70, 229, 0.3));">🔐</div>
+    <h2 style="font-size: 1.8rem; font-weight: 900; color: #0f172a; margin-bottom: 0.4rem;">Admin Bereich</h2>
+    <p style="color: var(--admin-muted); font-weight: 700; margin-bottom: 1.8rem; font-size: 0.95rem;">PIN eingeben (Standard: 1234)</p>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="badge badge-{{ category }}" style="font-size: 1.1rem; margin-bottom: 1rem; padding: 0.5rem 1rem;">{{ message }}</div>
+                <div class="badge badge-{{ category }}" style="font-size: 1rem; margin-bottom: 1.2rem; width: 100%; display: flex; justify-content: center; padding: 0.75rem 1rem;">{{ message }}</div>
             {% endfor %}
         {% endif %}
     {% endwith %}

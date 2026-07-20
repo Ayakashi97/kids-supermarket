@@ -10,16 +10,16 @@
 {% block content %}
 <nav class="admin-nav">
     <div class="admin-nav-container">
-        <a href="{{ url_for('admin.dashboard') }}" class="admin-brand">🛒 Admin Panel</a>
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-brand">🛒 Supermarkt Admin</a>
         <button type="button" class="admin-nav-toggle" onclick="document.querySelector('.admin-menu').classList.toggle('open')">☰</button>
         <div class="admin-menu">
-            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
-            <a href="{{ url_for('admin.categories') }}">Kategorien 🏷️</a>
-            <a href="{{ url_for('admin.products') }}" class="active">Produkte</a>
-            <a href="{{ url_for('admin.cards') }}">Kundenkarten 💳</a>
-            <a href="{{ url_for('admin.transactions') }}">Einkäufe</a>
-            <a href="{{ url_for('admin.settings') }}">Einstellungen ⚙️</a>
-            <a href="{{ url_for('admin.logout') }}" class="logout-link">Abmelden</a>
+            <a href="{{ url_for('admin.dashboard') }}">📊 Dashboard</a>
+            <a href="{{ url_for('admin.categories') }}">🏷️ Kategorien</a>
+            <a href="{{ url_for('admin.products') }}" class="active">🍎 Produkte</a>
+            <a href="{{ url_for('admin.cards') }}">💳 Kundenkarten</a>
+            <a href="{{ url_for('admin.transactions') }}">🛍️ Einkäufe</a>
+            <a href="{{ url_for('admin.settings') }}">⚙️ Einstellungen</a>
+            <a href="{{ url_for('admin.logout') }}" class="logout-link">🚪 Abmelden</a>
         </div>
     </div>
 </nav>
@@ -32,13 +32,13 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="badge badge-{{ category }}" style="font-size: 1rem; margin-bottom: 1.2rem; width: 100%; display: block; border-radius: 12px; padding: 0.8rem 1.2rem;">{{ message }}</div>
+                <div class="badge badge-{{ category }}" style="font-size: 1rem; margin-bottom: 1.4rem; width: 100%; display: flex; justify-content: center; padding: 0.8rem 1.2rem;">{{ message }}</div>
             {% endfor %}
         {% endif %}
     {% endwith %}
 
     <div class="admin-card">
-        <h3>Neues Produkt hinzufügen</h3>
+        <h3>Neues Produkt hinzufügen ➕</h3>
         <form method="POST" enctype="multipart/form-data">
             <div class="form-grid">
                 <div class="form-group">
@@ -109,8 +109,8 @@
                             {% endif %}
                         </td>
                         <td><strong>{{ p.name }}</strong></td>
-                        <td>{{ "%.2f"|format(p.price_cents / 100)|replace('.', ',') }} €</td>
-                        <td>{{ p.category }}</td>
+                        <td><strong style="color: var(--admin-accent);">{{ "%.2f"|format(p.price_cents / 100)|replace('.', ',') }} €</strong></td>
+                        <td><span class="badge badge-info">{{ p.category }}</span></td>
                         <td>
                             {% if p.is_active %}
                                 <span class="badge badge-success">Aktiv</span>
@@ -120,17 +120,17 @@
                         </td>
                         <td>
                             <div class="action-buttons">
-                                <a href="{{ url_for('admin.edit_product', product_id=p.id) }}" class="btn btn-sm" style="background: #e67e22; color: white;">Bearbeiten ✏️</a>
+                                <a href="{{ url_for('admin.edit_product', product_id=p.id) }}" class="btn btn-sm" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);">Bearbeiten ✏️</a>
                                 <a href="{{ url_for('admin.toggle_product', product_id=p.id) }}" class="btn btn-sm btn-primary">
                                     {% if p.is_active %}Deaktivieren{% else %}Aktivieren{% endif %}
                                 </a>
-                                <a href="{{ url_for('admin.delete_product', product_id=p.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Produkt löschen?');">Löschen</a>
+                                <a href="{{ url_for('admin.delete_product', product_id=p.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Produkt löschen?');">Löschen 🗑️</a>
                             </div>
                         </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="6" style="text-align: center; color: var(--admin-muted);">Noch keine Produkte im Shop.</td>
+                        <td colspan="6" style="text-align: center; color: var(--admin-muted); padding: 2rem;">Noch keine Produkte im Shop.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

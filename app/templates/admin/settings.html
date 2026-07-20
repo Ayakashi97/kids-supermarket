@@ -11,16 +11,16 @@
 {% block content %}
 <nav class="admin-nav">
     <div class="admin-nav-container">
-        <a href="{{ url_for('admin.dashboard') }}" class="admin-brand">🛒 Admin Panel</a>
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-brand">🛒 Supermarkt Admin</a>
         <button type="button" class="admin-nav-toggle" onclick="document.querySelector('.admin-menu').classList.toggle('open')">☰</button>
         <div class="admin-menu">
-            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
-            <a href="{{ url_for('admin.categories') }}">Kategorien 🏷️</a>
-            <a href="{{ url_for('admin.products') }}">Produkte</a>
-            <a href="{{ url_for('admin.cards') }}">Kundenkarten 💳</a>
-            <a href="{{ url_for('admin.transactions') }}">Einkäufe</a>
-            <a href="{{ url_for('admin.settings') }}" class="active">Einstellungen ⚙️</a>
-            <a href="{{ url_for('admin.logout') }}" class="logout-link">Abmelden</a>
+            <a href="{{ url_for('admin.dashboard') }}">📊 Dashboard</a>
+            <a href="{{ url_for('admin.categories') }}">🏷️ Kategorien</a>
+            <a href="{{ url_for('admin.products') }}">🍎 Produkte</a>
+            <a href="{{ url_for('admin.cards') }}">💳 Kundenkarten</a>
+            <a href="{{ url_for('admin.transactions') }}">🛍️ Einkäufe</a>
+            <a href="{{ url_for('admin.settings') }}" class="active">⚙️ Einstellungen</a>
+            <a href="{{ url_for('admin.logout') }}" class="logout-link">🚪 Abmelden</a>
         </div>
     </div>
 </nav>
@@ -33,7 +33,7 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="badge badge-{{ category }}" style="font-size: 1rem; margin-bottom: 1.2rem; width: 100%; display: block; border-radius: 12px; padding: 0.8rem 1.2rem;">{{ message }}</div>
+                <div class="badge badge-{{ category }}" style="font-size: 1rem; margin-bottom: 1.4rem; width: 100%; display: flex; justify-content: center; padding: 0.8rem 1.2rem;">{{ message }}</div>
             {% endfor %}
         {% endif %}
     {% endwith %}
@@ -104,7 +104,7 @@
         </div>
 
         <div class="admin-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.4rem;">
                 <h3>🧾 Kassenbon-Layout & Druckereinstellungen</h3>
                 <a href="/receipt/preview" target="_blank" class="btn btn-primary btn-sm">Bon Vorschau / PDF 📄</a>
             </div>
@@ -174,7 +174,7 @@
         <!-- Visueller Drag & Drop Bon-Template Builder -->
         <div class="admin-card">
             <h3>🧾 Visueller Kassenbon Template-Builder</h3>
-            <p style="color: var(--admin-muted); margin-bottom: 1.2rem;">
+            <p style="color: var(--admin-muted); margin-bottom: 1.4rem; font-weight: 600;">
                 Stelle hier per Drag & Drop oder Pfeiltasten deinen Kassenbon zusammen. Alle Änderungen werden in Echtzeit simuliert!
             </p>
 
@@ -183,8 +183,8 @@
             <div class="builder-side-by-side">
                 <!-- Left Column: Draggable Block Controls & Ordering -->
                 <div class="builder-controls-col">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
-                        <h4 style="margin: 0;">🧱 Bausteine & Reihenfolge</h4>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h4 style="margin: 0; font-size: 1.1rem; color: #0f172a;">🧱 Bausteine & Reihenfolge</h4>
                         <button type="button" class="btn btn-sm btn-primary" id="btnAddReceiptBlock">➕ Baustein hinzufügen</button>
                     </div>
 
@@ -192,7 +192,7 @@
                         <!-- Rendered via JS -->
                     </div>
 
-                    <div style="margin-top: 1.2rem; display: flex; gap: 0.8rem;">
+                    <div style="margin-top: 1.4rem; display: flex; gap: 0.8rem;">
                         <button type="button" class="btn btn-sm btn-secondary" id="btnResetReceiptLayout">
                             🔄 Auf Standard-Layout zurücksetzen
                         </button>
@@ -201,7 +201,7 @@
 
                 <!-- Right Column: Realtime Thermal Receipt Live Preview -->
                 <div class="builder-preview-col">
-                    <h4 style="margin-bottom: 0.8rem; text-align: center;">📄 Live-Bon Vorschau</h4>
+                    <h4 style="margin-bottom: 1rem; text-align: center; font-size: 1.1rem; color: #0f172a;">📄 Live-Bon Vorschau</h4>
                     <div class="receipt-paper-preview" id="receiptLivePreview">
                         <!-- Rendered via JS -->
                     </div>
@@ -209,7 +209,7 @@
             </div>
         </div>
 
-        <button type="submit" class="btn btn-success" style="font-size: 1.1rem; padding: 0.8rem 2rem; margin-top: 1rem;">Einstellungen speichern 💾</button>
+        <button type="submit" class="btn btn-success" style="font-size: 1.1rem; padding: 0.9rem 2.2rem; margin-top: 1.2rem;">Einstellungen speichern 💾</button>
     </form>
 </div>
 {% endblock %}

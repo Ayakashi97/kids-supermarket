@@ -9,16 +9,16 @@
 {% block content %}
 <nav class="admin-nav">
     <div class="admin-nav-container">
-        <a href="{{ url_for('admin.dashboard') }}" class="admin-brand">🛒 Admin Panel</a>
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-brand">🛒 Supermarkt Admin</a>
         <button type="button" class="admin-nav-toggle" onclick="document.querySelector('.admin-menu').classList.toggle('open')">☰</button>
         <div class="admin-menu">
-            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
-            <a href="{{ url_for('admin.categories') }}">Kategorien 🏷️</a>
-            <a href="{{ url_for('admin.products') }}" class="active">Produkte</a>
-            <a href="{{ url_for('admin.cards') }}">Kundenkarten 💳</a>
-            <a href="{{ url_for('admin.transactions') }}">Einkäufe</a>
-            <a href="{{ url_for('admin.settings') }}">Einstellungen ⚙️</a>
-            <a href="{{ url_for('admin.logout') }}" class="logout-link">Abmelden</a>
+            <a href="{{ url_for('admin.dashboard') }}">📊 Dashboard</a>
+            <a href="{{ url_for('admin.categories') }}">🏷️ Kategorien</a>
+            <a href="{{ url_for('admin.products') }}" class="active">🍎 Produkte</a>
+            <a href="{{ url_for('admin.cards') }}">💳 Kundenkarten</a>
+            <a href="{{ url_for('admin.transactions') }}">🛍️ Einkäufe</a>
+            <a href="{{ url_for('admin.settings') }}">⚙️ Einstellungen</a>
+            <a href="{{ url_for('admin.logout') }}" class="logout-link">🚪 Abmelden</a>
         </div>
     </div>
 </nav>
@@ -31,7 +31,7 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="badge badge-{{ category }}" style="font-size: 1rem; margin-bottom: 1.2rem; width: 100%; display: block; border-radius: 12px; padding: 0.8rem 1.2rem;">{{ message }}</div>
+                <div class="badge badge-{{ category }}" style="font-size: 1rem; margin-bottom: 1.4rem; width: 100%; display: flex; justify-content: center; padding: 0.8rem 1.2rem;">{{ message }}</div>
             {% endfor %}
         {% endif %}
     {% endwith %}
