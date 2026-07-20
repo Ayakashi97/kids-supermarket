@@ -58,6 +58,13 @@ def create_app(config_class=Config):
         except Exception:
             db.session.rollback()
 
+        try:
+            db.session.execute(db.text("ALTER TABLE transactions ADD COLUMN signature_data TEXT"))
+            db.session.commit()
+            logger.info("Migrated SQLite schema: added transactions.signature_data column.")
+        except Exception:
+            db.session.rollback()
+
         seed_default_products()
 
     logger.info("Kinder-Supermarkt app initialized successfully.")
