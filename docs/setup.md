@@ -6,11 +6,11 @@ Complete step-by-step setup guide for both Raspberry Pi units in the **Kinder-Su
 
 ## 📐 Architecture Overview
 
-| Device | Role | Recommended OS | Connected Hardware |
-|---|---|---|---|
-| **Raspberry Pi #1** | Backend Server (Flask, DB, Docker) | **Raspberry Pi OS Lite (64-bit)** | USB Thermal Receipt Printer |
-| **Raspberry Pi #2** | NFC Reader & Terminal Display | **Raspberry Pi OS with Desktop (64-bit)** | Touchscreen Display + PN532 NFC Reader |
-| **Tablet** | Cashier UI | Any OS (iOS/Android/Windows) | Connects via browser to Pi #1 |
+| Device | Role | Recommended OS | Connected Hardware | Default Access URL |
+|---|---|---|---|---|
+| **Raspberry Pi #1** | Backend Server (Flask, SQLite, Docker) | **Raspberry Pi OS Lite (64-bit)** | USB Thermal Receipt Printer | `http://<pi1-ip>:5050` (or `:5000`) |
+| **Raspberry Pi #2** | NFC Reader & Touchscreen Terminal | **Raspberry Pi OS with Desktop (64-bit)** | Touchscreen Display + PN532 NFC Module | `http://<pi1-ip>:5050/terminal` (Kiosk Mode) |
+| **Tablet** | Cashier UI | Any OS (iOS / Android / Windows) | Web Browser | `http://<pi1-ip>:5050` |
 
 ---
 
@@ -18,7 +18,7 @@ Complete step-by-step setup guide for both Raspberry Pi units in the **Kinder-Su
 
 ### 1. Flash OS
 1. Download & open **Raspberry Pi Imager**.
-2. Select OS: **Raspberry Pi OS Lite (64-bit)** (no desktop GUI needed).
+2. Select OS: **Raspberry Pi OS Lite (64-bit)** (headless, no desktop GUI needed).
 3. Click gear icon ⚙️ (OS Customization):
    - Set Hostname: `supermarket-server`
    - Enable SSH (with password or public key)
@@ -60,11 +60,11 @@ cd supermarket
 cp .env.example .env
 
 # Start container via Docker Compose
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 4. Connect USB Printer
-1. Connect Epson USB thermal printer via USB cable.
+1. Connect Epson (or compatible ESC/POS) USB thermal printer via USB cable.
 2. Verify system detects printer:
    ```bash
    ls -l /dev/usb/lp*
@@ -84,7 +84,7 @@ docker-compose up -d
 
 ### 1. Flash OS
 1. Open **Raspberry Pi Imager**.
-2. Select OS: **Raspberry Pi OS with Desktop (64-bit)** (desktop environment required for touchscreen kiosk mode).
+2. Select OS: **Raspberry Pi OS with Desktop (64-bit)** (desktop environment required for touchscreen kiosk display).
 3. Click gear icon ⚙️ (OS Customization):
    - Set Hostname: `supermarket-terminal`
    - Enable SSH
@@ -152,7 +152,7 @@ After=network.target
 Type=simple
 User=pi
 WorkingDirectory=/home/pi/supermarket/nfc_reader
-ExecStart=/home/pi/supermarket/nfc_reader/venv/bin/python reader.py --server http://supermarket-server.local:5000
+ExecStart=/home/pi/supermarket/nfc_reader/venv/bin/python reader.py --server http://supermarket-server.local:5050
 Restart=always
 RestartSec=5
 
@@ -182,10 +182,10 @@ To automatically launch the terminal UI on Pi #2's touchscreen display on boot:
    @xset -dpms
    @xset s noblank
    @unclutter -idle 0.1 -root
-   @chromium-browser --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://supermarket-server.local:5000/terminal
+   @chromium-browser --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://supermarket-server.local:5050/terminal
    ```
 
-3. Reboot Pi #2. The screen will automatically boot straight into the animated terminal view!
+3. Reboot Pi #2. The screen will automatically boot straight into the animated card terminal view!
 
 ---
 
@@ -193,5 +193,13 @@ To automatically launch the terminal UI on Pi #2's touchscreen display on boot:
 
 1. Connect tablet to the same Wi-Fi network as Pi #1 and Pi #2.
 2. Open browser (Safari / Chrome / Firefox).
-3. Navigate to `http://supermarket-server.local:5000` (or `http://<pi1-ip-address>:5000`).
+3. Navigate to `http://supermarket-server.local:5050` (or `http://<pi1-ip-address>:5050`).
 4. (Optional) Add web page to Home Screen for a native full-screen app experience.
+
+---
+
+## 🔐 Admin Panel Access
+
+1. Open `http://supermarket-server.local:5050/admin` in any browser.
+2. Use the touchscreen **PIN-Pad** to enter the admin PIN (default: `1234`).
+3. Manage products, register NFC cards with photos, customize thermal & PDF receipt layouts, and view transactions.
