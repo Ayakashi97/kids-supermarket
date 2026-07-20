@@ -1,5 +1,7 @@
+import json
 from flask import Blueprint, render_template, redirect, url_for
 from app.models import Product, Category
+from app.seed import DEFAULT_RECEIPT_LAYOUT
 
 cashier_bp = Blueprint("cashier", __name__)
 
