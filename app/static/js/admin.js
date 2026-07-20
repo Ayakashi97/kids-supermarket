@@ -292,10 +292,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 `;
             } else if (block.type === "qrcode") {
+                const baseUrlEl = document.getElementById("base_url");
+                const currentBase = (baseUrlEl && baseUrlEl.value.trim()) ? baseUrlEl.value.trim() : window.location.origin;
+                const sampleTarget = `${currentBase.replace(/\/$/, '')}/receipt/1042`;
+                const encoded = encodeURIComponent(sampleTarget);
+                
                 div.className = "preview-qr";
                 div.innerHTML = `
-                    <div style="font-size: 2.2rem;">📱</div>
-                    <div style="font-size: 0.75rem; color: #64748b;">[ QR-Code: #1042 ]</div>
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encoded}" alt="QR" style="width: 90px; height: 90px; border: 1px solid #cbd5e1; padding: 2px; background: white; border-radius: 6px; margin: 0 auto; display: block;">
+                    <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Scannen für digitalen Bon 📱</div>
                 `;
             }
 

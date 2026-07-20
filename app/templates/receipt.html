@@ -159,8 +159,13 @@
                     {% endif %}
                 {% elif block.type == 'qrcode' %}
                     <div style="text-align: center; margin: 0.8rem 0;">
+                        {% if qr_code_image %}
+                        <img src="{{ qr_code_image }}" alt="QR Code" style="width: 120px; height: 120px; margin: 0 auto; display: block; border: 1px solid #ddd; padding: 4px; background: white; border-radius: 8px;">
+                        <div style="font-size: 0.75rem; color: #475569; margin-top: 4px;">Scannen für digitalen Bon 📱</div>
+                        {% else %}
                         <div style="font-size: 2rem;">📱</div>
                         <div style="font-size: 0.75rem; color: #475569;">[ Bon #{{ tx_id }} ]</div>
+                        {% endif %}
                     </div>
                 {% endif %}
             {% endif %}

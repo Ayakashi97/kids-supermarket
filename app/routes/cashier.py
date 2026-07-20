@@ -1,7 +1,7 @@
-import json
-from flask import Blueprint, render_template, redirect, url_for
+from flask import Blueprint, render_template, redirect, url_for, request
 from app.models import Product, Category
 from app.seed import DEFAULT_RECEIPT_LAYOUT
+from app.services.qr_generator import generate_qr_code_base64
 
 cashier_bp = Blueprint("cashier", __name__)
 
@@ -43,6 +43,13 @@ def view_receipt(tx_id):
     show_date_time = get_setting("show_date_time", "true")
     paper_width = get_setting("paper_width", "58mm")
 
+    base_url = get_setting("base_url", "").strip()
+    if not base_url:
+        base_url = request.host_url.rstrip("/")
+
+    qr_target_url = f"{base_url}/receipt/{tx.id}"
+    qr_code_image = generate_qr_code_base64(qr_target_url)
+
     dt = tx.created_at or datetime.now()
     date_str = dt.strftime("%d.%m.%Y")
     time_str = dt.strftime("%H:%M Uhr")
@@ -74,14 +81,14 @@ def view_receipt(tx_id):
         total_formatted=total_formatted,
         signature_data=tx.signature_data,
         receipt_layout=receipt_layout,
+        qr_code_image=qr_code_image,
+        qr_target_url=qr_target_url,
     )
 
 
 @cashier_bp.route("/receipt/preview")
 def preview_receipt():
     from datetime import datetime
-    import json
-    from app.seed import DEFAULT_RECEIPT_LAYOUT
 
     shop_name = get_setting("shop_name", "Kinder-Markt")
     receipt_header = get_setting("receipt_header", f"🛒 {shop_name.upper()} 🛒")
@@ -89,6 +96,13 @@ def preview_receipt():
     show_card_name = get_setting("show_card_name", "true")
     show_date_time = get_setting("show_date_time", "true")
     paper_width = get_setting("paper_width", "58mm")
+
+    base_url = get_setting("base_url", "").strip()
+    if not base_url:
+        base_url = request.host_url.rstrip("/")
+
+    qr_target_url = f"{base_url}/receipt/preview"
+    qr_code_image = generate_qr_code_base64(qr_target_url)
 
     raw_layout = get_setting("receipt_layout_json", "")
     try:
@@ -122,6 +136,8 @@ def preview_receipt():
         items=dummy_items,
         total_formatted=total_formatted,
         receipt_layout=receipt_layout,
+        qr_code_image=qr_code_image,
+        qr_target_url=qr_target_url,
     )
 
 

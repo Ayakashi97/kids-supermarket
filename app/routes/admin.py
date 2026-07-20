@@ -383,6 +383,7 @@ def settings():
         paper_width = request.form.get("paper_width", "58mm")
         screen_timeout = request.form.get("screen_timeout", "30")
         show_nfc_toast = request.form.get("show_nfc_toast", "true")
+        base_url = request.form.get("base_url", "").strip()
         receipt_layout_json = request.form.get("receipt_layout_json", "")
 
         set_setting("shop_name", shop_name)
@@ -399,6 +400,7 @@ def settings():
         set_setting("paper_width", paper_width)
         set_setting("screen_timeout", screen_timeout)
         set_setting("show_nfc_toast", show_nfc_toast)
+        set_setting("base_url", base_url)
         if receipt_layout_json:
             set_setting("receipt_layout_json", receipt_layout_json)
 
@@ -424,6 +426,7 @@ def settings():
         "paper_width": get_setting("paper_width", "58mm"),
         "screen_timeout": get_setting("screen_timeout", "30"),
         "show_nfc_toast": get_setting("show_nfc_toast", "true"),
+        "base_url": get_setting("base_url", ""),
         "receipt_layout_json": get_setting("receipt_layout_json", default_json),
     }
     return render_template("admin/settings.html", settings=current_settings)

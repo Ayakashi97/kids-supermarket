@@ -53,6 +53,12 @@
                 </div>
 
                 <div class="form-group span-full" style="grid-column: span 2;">
+                    <label for="base_url">Server Base-URL / IP-Adresse (für QR-Codes):</label>
+                    <input type="text" id="base_url" name="base_url" value="{{ settings.base_url }}" placeholder="z.B. http://192.168.1.100:5050 (leer lassen für automatische Erkennung)">
+                    <small>Wird in QR-Codes auf Kassenbons gedruckt, damit Smartphone-Kameras beim Scannen direkt den Bon öffnen.</small>
+                </div>
+
+                <div class="form-group span-full" style="grid-column: span 2;">
                     <label for="nfc_mode">NFC-Lesegerät Modus (Smartphone Web NFC vs Touchscreen vs Legacy Hardware):</label>
                     <select id="nfc_mode" name="nfc_mode">
                         <option value="web_nfc" {% if settings.nfc_mode == 'web_nfc' or not settings.nfc_mode %}selected{% endif %}>📱 Smartphone Web NFC (NFC-Chip im Handy z.B. Android Chrome)</option>

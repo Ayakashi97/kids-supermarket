@@ -151,11 +151,13 @@ def print_receipt(transaction_data: dict, check_enabled: bool = True) -> tuple[b
                 printer.text(f"{title}\n\n\n")
                 printer.text("--------------------------------\n")
             elif b_type == "qrcode":
+                base_url = get_setting("base_url", "").strip() or "http://kinderkasse.local:5050"
+                qr_target_url = f"{base_url.rstrip('/')}/receipt/{tx_id}"
                 try:
-                    printer.qr(str(tx_id))
+                    printer.qr(qr_target_url)
                 except Exception:
                     printer.set(align="center", font="a", width=1, height=1, bold=False)
-                    printer.text(f"[ Bon #{tx_id} ]\n")
+                    printer.text(f"Bon-PDF: {qr_target_url}\n")
 
         printer.text("\n\n\n")
         printer.cut()
