@@ -592,15 +592,15 @@ async function initWebNFC() {
             console.warn("Web NFC activation failed/denied:", error);
             webNfcScanning = false;
             if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-                updateNfcStatus("touch", "⚠️", "NFC benötigt HTTPS oder Chrome Flag");
+                updateNfcStatus("touch", "⚠️", "NFC benötigt Chrome Flag");
             } else {
-                updateNfcStatus("touch", "👆", "Touchscreen-Modus");
+                updateNfcStatus("active", "💳", "NFC Lesegerät");
             }
         }
     } else {
-        console.log("Web NFC not supported in this browser. Using Touchscreen fallback.");
+        console.log("Web NFC not supported in this browser.");
         webNfcScanning = false;
-        updateNfcStatus("touch", "👆", "Touchscreen-Modus");
+        updateNfcStatus("active", "💳", "NFC Terminal");
     }
 }
 
