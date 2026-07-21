@@ -22,8 +22,9 @@ def format_cents(cents: int) -> str:
 
 
 def get_ssl_context():
-    """Return (cert_path, key_path) if SSL is configured, enabled and files exist, else None."""
+    """Return (cert_path, key_path) if SSL is configured, enabled, files exist AND key values match, else None."""
     import os
+    import ssl
     from app.models import Setting
 
     try:
@@ -35,10 +36,17 @@ def get_ssl_context():
         key = Setting.query.get("ssl_key_path")
 
         if cert and key and cert.value and key.value:
-            if os.path.exists(cert.value) and os.path.exists(key.value):
-                return (cert.value, key.value)
+            cert_path, key_path = cert.value, key.value
+            if os.path.exists(cert_path) and os.path.exists(key_path):
+                try:
+                    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+                    ctx.load_cert_chain(certfile=cert_path, keyfile=key_path)
+                    return (cert_path, key_path)
+                except Exception as ssl_err:
+                    logger.error("SSL Certificate/Key error (key mismatch or invalid): %s", ssl_err)
+                    return None
             else:
-                logger.warning("SSL files not found on disk: %s or %s", cert.value, key.value)
+                logger.warning("SSL files not found on disk: %s or %s", cert_path, key_path)
     except Exception as e:
         logger.debug("Could not read SSL configuration from DB: %s", e)
     return None

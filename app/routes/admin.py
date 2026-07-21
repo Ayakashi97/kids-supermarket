@@ -610,14 +610,26 @@ def settings():
             key_data = key_file.read()
             ca_data = ca_file.read() if (ca_file and ca_file.filename != "") else None
 
-            # Validate
+            # Validate format and matching public keys
             try:
                 from cryptography import x509
                 from cryptography.hazmat.backends import default_backend
                 from cryptography.hazmat.primitives import serialization
 
-                x509.load_pem_x509_certificate(cert_data, default_backend())
-                serialization.load_pem_private_key(key_data, password=None, backend=default_backend())
+                cert_obj = x509.load_pem_x509_certificate(cert_data, default_backend())
+                key_obj = serialization.load_pem_private_key(key_data, password=None, backend=default_backend())
+
+                cert_pub = cert_obj.public_key().public_bytes(
+                    encoding=serialization.Encoding.PEM,
+                    format=serialization.PublicFormat.SubjectPublicKeyInfo
+                )
+                key_pub = key_obj.public_key().public_bytes(
+                    encoding=serialization.Encoding.PEM,
+                    format=serialization.PublicFormat.SubjectPublicKeyInfo
+                )
+                if cert_pub != key_pub:
+                    flash("Validierungsfehler: Der private Schlüssel gehört nicht zu diesem Zertifikat! (Schlüssel-Paar stimmt nicht überein)", "danger")
+                    return redirect(url_for("admin.settings"))
             except Exception as e:
                 flash(f"Validierungsfehler: Das Zertifikat oder der Schlüssel ist ungültig! Details: {e}", "danger")
                 return redirect(url_for("admin.settings"))
@@ -650,7 +662,14 @@ def settings():
                 flash("HTTPS kann nicht aktiviert werden, da noch keine gültigen Zertifikatsdateien hochgeladen wurden!", "danger")
                 ssl_enabled = "false"
             else:
-                flash("HTTPS wurde erfolgreich aktiviert. Bitte den Container neu starten, damit die Änderungen wirksam werden!", "warning")
+                try:
+                    import ssl
+                    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+                    ctx.load_cert_chain(certfile=cert_path_setting, keyfile=key_path_setting)
+                    flash("HTTPS wurde erfolgreich aktiviert. Bitte den Container neu starten, damit die Änderungen wirksam werden!", "warning")
+                except Exception as ssl_err:
+                    flash(f"Fehler beim Laden des Zertifikat-Paares ({ssl_err})! Der Schlüssel passt nicht zum Zertifikat. HTTPS bleibt deaktiviert.", "danger")
+                    ssl_enabled = "false"
 
         set_setting("ssl_enabled", ssl_enabled)
 
