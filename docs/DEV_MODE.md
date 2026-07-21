@@ -25,14 +25,14 @@ The system includes built-in emulation modes so you can develop and play on any 
 ## 🛠️ Step-by-Step Testing Guide
 
 ### 1. Enable Touchscreen Card Selector Mode in Admin Settings
-1. Navigate to `http://localhost:5050/admin/settings`.
+1. Navigate to `http://localhost/admin/settings`.
 2. Login with PIN `1234`.
 3. Under **NFC-Lesegerät Modus**, select **"Touchscreen-Kartenwahl auf Terminal (Keine Hardware erforderlich)"**.
 4. Save settings.
 
 ### 2. Test Checkout Flow on Terminal Display
-1. Open Cashier UI: `http://localhost:5050`
-2. Open Terminal Display: `http://localhost:5050/terminal`
+1. Open Cashier UI: `http://localhost`
+2. Open Terminal Display: `http://localhost/terminal`
 3. Add products to cart on Cashier UI and click **"Jetzt Bezahlen (💳 Karte)"**.
 4. Watch the Terminal Display at `/terminal`:
    - It shows a friendly card selection grid with buttons for each active child/customer card!

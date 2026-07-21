@@ -19,6 +19,6 @@ ENV PYTHONPATH=/app_root
 # Ensure data directory exists for SQLite
 RUN mkdir -p /app_root/app/data /app_root/app/static/images/products /app_root/app/static/images/cards
 
-EXPOSE 5050
+EXPOSE 80 443
 
 CMD ["python", "app/run.py"]

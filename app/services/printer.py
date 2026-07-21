@@ -172,7 +172,7 @@ def print_receipt(transaction_data: dict, check_enabled: bool = True) -> tuple:
                 printer.text(f"{title}\n\n\n")
                 printer.text("--------------------------------\n")
             elif b_type == "qrcode":
-                base_url = get_setting("base_url", "").strip() or "http://kinderkasse.local:5050"
+                base_url = get_setting("base_url", "").strip() or "http://supermarket.local"
                 qr_target_url = f"{base_url.rstrip('/')}/receipt/{tx_id}"
                 try:
                     printer.qr(qr_target_url)

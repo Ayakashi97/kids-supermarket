@@ -119,7 +119,7 @@ Trage auf deinem Computer in der Datei `/etc/hosts` (macOS/Linux) bzw. `C:\Windo
 
 ## 🔐 Schritt 4: Zertifikate im Admin-Panel hochladen
 
-1. Öffne das Admin-Panel im Browser unter `http://<pi-ip>:5050/admin`.
+1. Öffne das Admin-Panel im Browser unter `http://<pi-ip>/admin`.
 2. Gehe auf **Einstellungen** (Zertifikate & HTTPS).
 3. Lade die Dateien hoch:
    - **Zertifikat**: `supermarket.crt`
@@ -141,7 +141,7 @@ docker compose down
 docker compose up -d
 ```
 
-Rufe danach die Seite unter **`https://supermarket.local:5050`** auf.
+Rufe danach die Seite unter **`https://supermarket.local`** auf.
 
 ---
 

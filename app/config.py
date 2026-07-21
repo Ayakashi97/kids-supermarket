@@ -20,7 +20,8 @@ class Config:
     SHOP_NAME = os.getenv("SHOP_NAME", "Kinder-Supermarkt")
     ADMIN_PIN = os.getenv("ADMIN_PIN", "1234")
     PRINTER_DEVICE = os.getenv("PRINTER_DEVICE", "/dev/usb/lp0")
-    PORT = int(os.getenv("PORT", 5050))
+    HTTP_PORT = int(os.getenv("HTTP_PORT", 80))
+    HTTPS_PORT = int(os.getenv("HTTPS_PORT", 443))
 
     UPLOAD_FOLDER = BASE_DIR / "static" / "images"
     ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}

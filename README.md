@@ -56,9 +56,9 @@ Bestehend aus einer **Kassen-App auf dem Tablet**, einem **Raspberry Pi Server**
 
 | Gerät | Rolle | Betriebssystem | PWA Name | Standard-URL |
 |---|---|---|---|---|
-| **Raspberry Pi #1** | Server (Flask, DB, Docker) | Raspberry Pi OS Lite (64-bit) | — | `http://<pi1-ip>:5050` |
-| **Tablet** | Kassen-Display | iOS / Android / Webbrowser | **Supermarkt Kasse** 🛒 | `http://<pi1-ip>:5050` |
-| **Smartphone** | Terminal & NFC-Reader | Android (Chrome Web NFC) / iOS (PWA Vollbild) | **Supermarkt Terminal** 💳 | `http://<pi1-ip>:5050/terminal` |
+| **Raspberry Pi #1** | Server (Flask, DB, Docker) | Raspberry Pi OS Lite (64-bit) | — | `http://<pi1-ip>` |
+| **Tablet** | Kassen-Display | iOS / Android / Webbrowser | **Supermarkt Kasse** 🛒 | `http://<pi1-ip>` |
+| **Smartphone** | Terminal & NFC-Reader | Android (Chrome Web NFC) / iOS (PWA Vollbild) | **Supermarkt Terminal** 💳 | `http://<pi1-ip>/terminal` |
 
 ---
 
@@ -79,10 +79,10 @@ docker compose up -d
 ```
 
 Nach dem Start ist das System direkt erreichbar unter:
-- **Kasse (Tablet UI)**: `http://localhost:5050`
-- **Zahlungsterminal (Smartphone PWA)**: `http://localhost:5050/terminal`
-- **Admin Panel**: `http://localhost:5050/admin` (PIN: `1234`)
-- **Muster-Bon (PDF)**: `http://localhost:5050/receipt/preview`
+- **Kasse (Tablet UI)**: `http://localhost`
+- **Zahlungsterminal (Smartphone PWA)**: `http://localhost/terminal`
+- **Admin Panel**: `http://localhost/admin` (PIN: `1234`)
+- **Muster-Bon (PDF)**: `http://localhost/receipt/preview`
 
 ---
 

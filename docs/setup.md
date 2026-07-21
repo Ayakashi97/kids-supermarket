@@ -8,10 +8,10 @@ Complete step-by-step setup guide for the **Kinder-Supermarkt** system, includin
 
 | Device | Role | OS / Browser | Connected Hardware | PWA App Name | Default Access URL |
 |---|---|---|---|---|---|
-| **Raspberry Pi #1** | Backend Server (Flask, SQLite, Docker) | **Raspberry Pi OS Lite (64-bit)** | USB Thermal Receipt Printer | — | `http://<pi1-ip>:5050` |
-| **Smartphone (Empfohlen)** | NFC Reader & Terminal Display | **Android (Chrome Web NFC)** or **iOS (Safari PWA)** | Built-in NFC chip | **Supermarkt Terminal** 💳 | `http://<pi1-ip>:5050/terminal` |
-| **Tablet** | Cashier UI | Any OS (iOS / Android / Windows) | Web Browser | **Supermarkt Kasse** 🛒 | `http://<pi1-ip>:5050` |
-| **Raspberry Pi #2 (Legacy)** | Hardware NFC Reader & LCD | **Raspberry Pi OS Desktop** | Touchscreen LCD + PN532 USB | — | `http://<pi1-ip>:5050/terminal` |
+| **Raspberry Pi #1** | Backend Server (Flask, SQLite, Docker) | **Raspberry Pi OS Lite (64-bit)** | USB Thermal Receipt Printer | — | `http://<pi1-ip>` |
+| **Smartphone (Empfohlen)** | NFC Reader & Terminal Display | **Android (Chrome Web NFC)** or **iOS (Safari PWA)** | Built-in NFC chip | **Supermarkt Terminal** 💳 | `http://<pi1-ip>/terminal` |
+| **Tablet** | Cashier UI | Any OS (iOS / Android / Windows) | Web Browser | **Supermarkt Kasse** 🛒 | `http://<pi1-ip>` |
+| **Raspberry Pi #2 (Legacy)** | Hardware NFC Reader & LCD | **Raspberry Pi OS Desktop** | Touchscreen LCD + PN532 USB | — | `http://<pi1-ip>/terminal` |
 
 ---
 
@@ -24,7 +24,7 @@ Using an old smartphone (Android or iPhone) is the easiest and cleanest way to r
 
 1. Ensure Wi-Fi is connected to the same network as Raspberry Pi #1.
 2. Open **Google Chrome** on the Android phone.
-3. Open **`https://supermarket.local:5050/terminal`** (bzw. deine HTTPS-URL).
+3. Open **`https://supermarket.local/terminal`** (bzw. deine HTTPS-URL).
 4. Tap the green button **`📱 NFC-Leser auf Handy aktivieren`** once and tap **"Erlauben"** when Android Chrome prompts for NFC permission.
    - *Hinweis*: Die App merkt sich diese Aktivierung im `localStorage`. Der Button verschwindet danach dauerhaft!
 5. Tap the Chrome browser menu `⋮` ➡️ **"Zum Startbildschirm hinzufügen"** (Add to Home screen) or **"App installieren"**.
