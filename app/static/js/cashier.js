@@ -660,17 +660,61 @@ document.addEventListener("DOMContentLoaded", () => {
         const maxFit = Math.max(2, Math.floor((sidebarHeight - 10) / 83));
 
         if (catSidebarBtns.length > maxFit) {
+            // Find index, name, and emoji of currently selected category in catSidebarBtns
+            let activeIdx = -1;
+            let activeCatName = "";
+            let activeCatEmoji = "";
+
             catSidebarBtns.forEach((btn, idx) => {
-                if (idx < maxFit - 1) {
+                if (btn.getAttribute("data-category") === currentCategory) {
+                    activeIdx = idx;
+                    activeCatName = btn.querySelector(".cat-name")?.textContent || currentCategory;
+                    activeCatEmoji = btn.querySelector(".cat-emoji")?.textContent || "📦";
+                }
+            });
+
+            // Standard slots: 0 to maxFit - 2
+            let visibleIndices = [];
+            for (let i = 0; i < maxFit - 1; i++) {
+                visibleIndices.push(i);
+            }
+
+            // If active category is in hidden slots (activeIdx >= maxFit - 1),
+            // replace the last category slot before "Mehr..." with the active category
+            if (activeIdx >= maxFit - 1) {
+                visibleIndices[maxFit - 2] = activeIdx;
+            }
+
+            catSidebarBtns.forEach((btn, idx) => {
+                if (visibleIndices.includes(idx)) {
                     btn.style.display = "flex";
                 } else {
                     btn.style.display = "none";
                 }
             });
-            if (btnCategoryMore) btnCategoryMore.style.display = "flex";
+
+            if (btnCategoryMore) {
+                btnCategoryMore.style.display = "flex";
+                const moreEmojiSpan = btnCategoryMore.querySelector(".cat-emoji");
+                const moreNameSpan = btnCategoryMore.querySelector(".cat-name");
+
+                // If a hidden category (selected via Mehr...) is active, also highlight the Mehr... button!
+                if (activeIdx >= maxFit - 1) {
+                    btnCategoryMore.classList.add("active");
+                    if (moreEmojiSpan) moreEmojiSpan.textContent = activeCatEmoji;
+                    if (moreNameSpan) moreNameSpan.textContent = activeCatName + " ➕";
+                } else {
+                    btnCategoryMore.classList.remove("active");
+                    if (moreEmojiSpan) moreEmojiSpan.textContent = "➕";
+                    if (moreNameSpan) moreNameSpan.textContent = "Mehr...";
+                }
+            }
         } else {
             catSidebarBtns.forEach(btn => btn.style.display = "flex");
-            if (btnCategoryMore) btnCategoryMore.style.display = "none";
+            if (btnCategoryMore) {
+                btnCategoryMore.style.display = "none";
+                btnCategoryMore.classList.remove("active");
+            }
         }
     }
 
@@ -694,6 +738,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
+        updateCategorySidebarOverflow();
         renderPage();
         playBeepSound();
     }
