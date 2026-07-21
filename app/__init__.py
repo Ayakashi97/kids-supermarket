@@ -4,7 +4,7 @@ from pathlib import Path
 from flask import Flask
 from app.config import Config
 from app.db import db
-from app.seed import seed_default_products
+from app.seed import seed_default_products, seed_settings_from_env
 from app.services.socket_events import socketio, register_socket_events
 from app.routes.cashier import cashier_bp
 from app.routes.admin import admin_bp
@@ -93,6 +93,16 @@ def create_app(config_class=Config):
 
 
         seed_default_products()
+        seed_settings_from_env()
+
+        # Update app.config['DEV_MODE'] based on DB setting
+        try:
+            from app.utils import get_setting
+            db_dev_mode = get_setting("dev_mode", "true" if Config.DEV_MODE else "false")
+            app.config['DEV_MODE'] = db_dev_mode.lower() in ("true", "1", "yes")
+            logger.info("Runtime DEV_MODE set to %s from database", app.config['DEV_MODE'])
+        except Exception as e:
+            logger.error("Failed to load dev_mode from DB: %s", e)
 
     logger.info("Kinder-Supermarkt app initialized successfully.")
     return app

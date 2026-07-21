@@ -92,3 +92,20 @@ def seed_default_products():
         db.session.add(s)
         db.session.commit()
         logger.info("Successfully seeded default receipt layout.")
+
+
+def seed_settings_from_env():
+    """Bootstrap DB settings from environment/config on first run only."""
+    from app.config import Config
+    defaults = {
+        "shop_name": Config.SHOP_NAME,
+        "admin_pin": Config.ADMIN_PIN,
+        "printer_device": Config.PRINTER_DEVICE,
+        "dev_mode": "true" if Config.DEV_MODE else "false",
+    }
+    for key, val in defaults.items():
+        if Setting.query.get(key) is None:
+            logger.info("Seeding setting %s = %s from bootstrap env", key, val)
+            setting = Setting(key=key, value=str(val))
+            db.session.add(setting)
+    db.session.commit()

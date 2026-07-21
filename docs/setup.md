@@ -20,9 +20,11 @@ Complete step-by-step setup guide for the **Kinder-Supermarkt** system, includin
 Using an old smartphone (Android or iPhone) is the easiest and cleanest way to run the payment terminal without extra hardware!
 
 ### 1. Android Smartphone (Web NFC Scanning)
+> ⚠️ **WICHTIG (HTTPS-Pflicht):** Android Chrome erlaubt den Zugriff auf den NFC-Chip *ausschließlich* über eine sichere HTTPS-Verbindung. Richte vor dem Einrichten des Smartphones unbedingt HTTPS ein. Siehe [HTTPS Setup-Anleitung](HTTPS_SETUP.md) für alle Details.
+
 1. Ensure Wi-Fi is connected to the same network as Raspberry Pi #1.
 2. Open **Google Chrome** on the Android phone.
-3. Open `http://<pi1-ip>:5050/terminal`.
+3. Open **`https://supermarket.local:5050/terminal`** (bzw. deine HTTPS-URL).
 4. Tap the green button **`📱 NFC-Leser auf Handy aktivieren`** once and tap **"Erlauben"** when Android Chrome prompts for NFC permission.
    - *Hinweis*: Die App merkt sich diese Aktivierung im `localStorage`. Der Button verschwindet danach dauerhaft!
 5. Tap the Chrome browser menu `⋮` ➡️ **"Zum Startbildschirm hinzufügen"** (Add to Home screen) or **"App installieren"**.
@@ -102,10 +104,8 @@ docker compose up -d
    ```bash
    ls -l /dev/usb/lp*
    ```
-3. Update `.env` if needed:
-   ```env
-   PRINTER_DEVICE=/dev/usb/lp0
-   ```
+3. Update the setting in the **Admin Settings UI** (`/admin/settings`) under **USB Drucker-Gerätepfad** (standardmäßig `/dev/usb/lp0`).
+   - *Wichtig*: Du musst außerdem deine `docker-compose.yml` bearbeiten, um das USB-Gerät an den Container durchzureichen, wie im Admin-Panel unter Einstellungen beschrieben.
 
 ---
 

@@ -9,6 +9,7 @@ This guide explains how to test and run the full **Kinder-Supermarkt** applicati
 The system includes built-in emulation modes so you can develop and play on any computer or tablet:
 
 1. **🧪 DEV SIMULATOR Bar** (Visible on top of the Cashier UI):
+   - Shown when **Debug- / Simulator-Leiste** is activated in Admin under **🧪 Entwickler-Einstellungen**.
    - Simulated NFC Card Taps (`Tap 👧 Lena`, `Tap 👨 Papa`, `Tap ❓ Unbekannt`).
    - Terminal PIN Entry Simulation (`PIN 1234 🔢`).
    - Immediate Bon PDF Receipt view (`📄 Bon (PDF)`).

@@ -92,6 +92,7 @@ Sämtliche Guides und System-Spezifikationen befinden sich im Ordner [`docs/`](.
 
 - 📘 **[GEMINI.md](./GEMINI.md)** — Repository-Regeln, Tech-Stack & Gesamtübersicht
 - 🛠️ **[Raspberry Pi & Smartphone Setup Guide](./docs/setup.md)** — Anleitung für Smartphone Web NFC & PWA Installation auf iPhone / Android
+- 🔐 **[HTTPS & Local SSL Setup Guide](./docs/HTTPS_SETUP.md)** — Anleitung zur SSL-Verschlüsselung, eigenen CA-Zertifikaten und zur Aktivierung von Web NFC
 - 🧪 **[Development & Emulation Mode Guide](./docs/DEV_MODE.md)** — Testen ohne Hardware über die Entwickler-Simulationsleiste
 - 📋 **[Master Phase Progress Checklist](./docs/CHECKLIST.md)** — Übersicht über Entwicklungsphasen
 - 📱 **[Phase 8 PWA & Web NFC Documentation](./docs/PHASE_8.md)** — Details zur Smartphone PWA & Web NFC Integration

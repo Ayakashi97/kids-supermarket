@@ -492,6 +492,55 @@ def delete_card(card_id):
     return redirect(url_for("admin.cards"))
 
 
+def get_cert_details(cert_path):
+    """Retrieve Subject CN, SANs, Issuer, and Expiry from a PEM certificate."""
+    if not cert_path or not os.path.exists(cert_path):
+        return None
+    try:
+        from cryptography import x509
+        from cryptography.hazmat.backends import default_backend
+        with open(cert_path, "rb") as f:
+            cert_data = f.read()
+        cert = x509.load_pem_x509_certificate(cert_data, default_backend())
+        
+        # Subject CN
+        subject = cert.subject
+        cn = next((attr.value for attr in subject if attr.oid == x509.NameOID.COMMON_NAME), "Unbekannt")
+        
+        # SANs (Subject Alternative Names)
+        sans = []
+        try:
+            ext = cert.extensions.get_extension_for_class(x509.SubjectAlternativeName)
+            dns_names = ext.value.get_values_for_type(x509.DNSName)
+            ip_names = ext.value.get_values_for_type(x509.IPAddress)
+            sans = [str(s) for s in dns_names + ip_names]
+        except Exception:
+            pass
+            
+        # Issuer
+        issuer = cert.issuer
+        issuer_cn = next((attr.value for attr in issuer if attr.oid == x509.NameOID.COMMON_NAME), "Unbekannt")
+        
+        # Validity dates
+        not_before = cert.not_valid_before_utc
+        not_after = cert.not_valid_after_utc
+        
+        # Expiry status
+        is_expired = datetime.now(timezone.utc) > not_after
+        
+        return {
+            "common_name": cn,
+            "sans": sans,
+            "issuer": issuer_cn,
+            "valid_from": not_before.strftime("%d.%m.%Y %H:%M:%S"),
+            "valid_to": not_after.strftime("%d.%m.%Y %H:%M:%S"),
+            "is_expired": is_expired
+        }
+    except Exception as e:
+        logger.error("Failed to parse SSL certificate: %s", e)
+        return {"error": str(e)}
+
+
 # --- Settings Route ---
 @admin_bp.route("/settings", methods=["GET", "POST"])
 def settings():
@@ -516,6 +565,8 @@ def settings():
         show_nfc_toast = request.form.get("show_nfc_toast", "true")
         base_url = request.form.get("base_url", "").strip()
         receipt_layout_json = request.form.get("receipt_layout_json", "")
+        dev_mode = request.form.get("dev_mode", "false")
+        ssl_enabled = request.form.get("ssl_enabled", "false")
 
         set_setting("shop_name", shop_name)
         set_setting("admin_pin", admin_pin)
@@ -534,8 +585,74 @@ def settings():
         set_setting("screen_timeout", screen_timeout)
         set_setting("show_nfc_toast", show_nfc_toast)
         set_setting("base_url", base_url)
+        set_setting("dev_mode", dev_mode)
+        current_app.config["DEV_MODE"] = dev_mode.lower() in ("true", "1", "yes")
         if receipt_layout_json:
             set_setting("receipt_layout_json", receipt_layout_json)
+
+        # Handle file uploads
+        ssl_dir = os.path.join(current_app.root_path, "data", "ssl")
+        os.makedirs(ssl_dir, exist_ok=True)
+
+        cert_file = request.files.get("ssl_cert_file")
+        key_file = request.files.get("ssl_key_file")
+        ca_file = request.files.get("ssl_ca_file")
+
+        cert_uploaded = cert_file and cert_file.filename != ""
+        key_uploaded = key_file and key_file.filename != ""
+
+        if cert_uploaded or key_uploaded:
+            if not (cert_uploaded and key_uploaded):
+                flash("Sowohl Zertifikat als auch privater Schlüssel müssen hochgeladen werden!", "danger")
+                return redirect(url_for("admin.settings"))
+
+            cert_data = cert_file.read()
+            key_data = key_file.read()
+            ca_data = ca_file.read() if (ca_file and ca_file.filename != "") else None
+
+            # Validate
+            try:
+                from cryptography import x509
+                from cryptography.hazmat.backends import default_backend
+                from cryptography.hazmat.primitives import serialization
+
+                x509.load_pem_x509_certificate(cert_data, default_backend())
+                serialization.load_pem_private_key(key_data, password=None, backend=default_backend())
+            except Exception as e:
+                flash(f"Validierungsfehler: Das Zertifikat oder der Schlüssel ist ungültig! Details: {e}", "danger")
+                return redirect(url_for("admin.settings"))
+
+            # Save
+            cert_path = os.path.join(ssl_dir, "cert.pem")
+            key_path = os.path.join(ssl_dir, "key.pem")
+
+            with open(cert_path, "wb") as f:
+                f.write(cert_data)
+            with open(key_path, "wb") as f:
+                f.write(key_data)
+
+            set_setting("ssl_cert_path", cert_path)
+            set_setting("ssl_key_path", key_path)
+
+            if ca_data:
+                ca_path = os.path.join(ssl_dir, "ca.pem")
+                with open(ca_path, "wb") as f:
+                    f.write(ca_data)
+                set_setting("ssl_ca_path", ca_path)
+
+            flash("Zertifikate erfolgreich hochgeladen und validiert! 🔐", "success")
+
+        # Now handle ssl_enabled
+        if ssl_enabled == "true":
+            cert_path_setting = get_setting("ssl_cert_path", "")
+            key_path_setting = get_setting("ssl_key_path", "")
+            if not cert_path_setting or not key_path_setting or not os.path.exists(cert_path_setting) or not os.path.exists(key_path_setting):
+                flash("HTTPS kann nicht aktiviert werden, da noch keine gültigen Zertifikatsdateien hochgeladen wurden!", "danger")
+                ssl_enabled = "false"
+            else:
+                flash("HTTPS wurde erfolgreich aktiviert. Bitte den Container neu starten, damit die Änderungen wirksam werden!", "warning")
+
+        set_setting("ssl_enabled", ssl_enabled)
 
         flash("Einstellungen & Bon-Template erfolgreich gespeichert!", "success")
         return redirect(url_for("admin.settings"))
@@ -543,6 +660,9 @@ def settings():
     from app.seed import DEFAULT_RECEIPT_LAYOUT
     import json
     default_json = json.dumps(DEFAULT_RECEIPT_LAYOUT)
+
+    ssl_cert_path = get_setting("ssl_cert_path", "")
+    cert_info = get_cert_details(ssl_cert_path) if ssl_cert_path else None
 
     current_settings = {
         "shop_name": get_setting("shop_name", Config.SHOP_NAME),
@@ -563,9 +683,31 @@ def settings():
         "show_nfc_toast": get_setting("show_nfc_toast", "true"),
         "base_url": get_setting("base_url", ""),
         "receipt_layout_json": get_setting("receipt_layout_json", default_json),
+        "ssl_enabled": get_setting("ssl_enabled", "false"),
+        "dev_mode": get_setting("dev_mode", "true" if Config.DEV_MODE else "false"),
     }
 
-    return render_template("admin/settings.html", settings=current_settings)
+    return render_template("admin/settings.html", settings=current_settings, cert_info=cert_info)
+
+
+@admin_bp.route("/settings/delete_cert", methods=["POST"])
+def delete_cert():
+    if not is_logged_in():
+        return redirect(url_for("admin.login"))
+    try:
+        ssl_dir = os.path.join(current_app.root_path, "data", "ssl")
+        for filename in ["cert.pem", "key.pem", "ca.pem"]:
+            filepath = os.path.join(ssl_dir, filename)
+            if os.path.exists(filepath):
+                os.remove(filepath)
+        set_setting("ssl_enabled", "false")
+        set_setting("ssl_cert_path", "")
+        set_setting("ssl_key_path", "")
+        set_setting("ssl_ca_path", "")
+        flash("Zertifikate gelöscht. SSL/HTTPS wurde deaktiviert.", "info")
+    except Exception as e:
+        flash(f"Fehler beim Löschen des Zertifikats: {e}", "danger")
+    return redirect(url_for("admin.settings"))
 
 
 

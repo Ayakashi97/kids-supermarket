@@ -12,7 +12,7 @@
     <h2>System-Einstellungen & Bon-Layout ⚙️</h2>
 </div>
 
-<form method="POST">
+<form method="POST" enctype="multipart/form-data">
     <!-- Supermarkt Grund-Einstellungen -->
     <div class="admin-card">
         <h3>Supermarkt-Einstellungen</h3>
@@ -91,6 +91,85 @@
         </div>
     </div>
 
+    <!-- 🔐 HTTPS & SSL-Zertifikat Einstellungen -->
+    <div class="admin-card">
+        <h3>🔐 HTTPS & SSL-Zertifikat</h3>
+        <p style="color: var(--admin-muted); margin-bottom: 1.4rem;">
+            Für Web NFC auf Android-Smartphones ist eine HTTPS-Verbindung zwingend erforderlich. Hier kannst du ein eigenes SSL-Zertifikat hochladen.
+        </p>
+        <div class="form-grid">
+            <div class="form-group span-full" style="grid-column: span 2;">
+                <label for="ssl_enabled">HTTPS (SSL) aktivieren:</label>
+                <select id="ssl_enabled" name="ssl_enabled">
+                    <option value="false" {% if settings.ssl_enabled == 'false' or not settings.ssl_enabled %}selected{% endif %}>Nein (HTTP - Standard)</option>
+                    <option value="true" {% if settings.ssl_enabled == 'true' %}selected{% endif %}>Ja (HTTPS aktivieren)</option>
+                </select>
+                <small>Hinweis: Kann erst aktiviert werden, wenn gültige Zertifikate hochgeladen wurden. Ein Server-Neustart ist nach der Aktivierung nötig!</small>
+            </div>
+
+            <div class="form-group">
+                <label for="ssl_cert_file">Zertifikatsdatei (.pem / .crt):</label>
+                <input type="file" id="ssl_cert_file" name="ssl_cert_file" accept=".pem,.crt,.cer">
+                <small>Enthält das öffentliche Zertifikat (z.B. für <code>supermarket.local</code>).</small>
+            </div>
+
+            <div class="form-group">
+                <label for="ssl_key_file">Privater Schlüssel (.pem / .key):</label>
+                <input type="file" id="ssl_key_file" name="ssl_key_file" accept=".pem,.key">
+                <small>Der private Schlüssel für das Zertifikat. Muss ohne Passwortschutz sein.</small>
+            </div>
+
+            <div class="form-group span-full" style="grid-column: span 2;">
+                <label for="ssl_ca_file">CA-Zertifikatskette (optional, .pem / .crt):</label>
+                <input type="file" id="ssl_ca_file" name="ssl_ca_file" accept=".pem,.crt">
+                <small>Falls du eine eigene Root-CA verwendest, lade hier die CA-Kette hoch.</small>
+            </div>
+
+            {% if cert_info %}
+            <div class="span-full" style="grid-column: span 2; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 1.2rem; border-radius: var(--radius-md); margin-top: 1rem;">
+                <h4 style="color: #166534; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.4rem;">
+                    🛡️ Aktives Zertifikat:
+                </h4>
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; color: #14532d;">
+                    <tr style="border-bottom: 1px solid rgba(22, 101, 52, 0.1);">
+                        <td style="padding: 0.4rem 0; font-weight: bold; width: 200px;">Domain Name (CN):</td>
+                        <td style="padding: 0.4rem 0;"><code>{{ cert_info.common_name }}</code></td>
+                    </tr>
+                    {% if cert_info.sans %}
+                    <tr style="border-bottom: 1px solid rgba(22, 101, 52, 0.1);">
+                        <td style="padding: 0.4rem 0; font-weight: bold;">Alternative Namen (SAN):</td>
+                        <td style="padding: 0.4rem 0;"><code>{{ cert_info.sans | join(', ') }}</code></td>
+                    </tr>
+                    {% endif %}
+                    <tr style="border-bottom: 1px solid rgba(22, 101, 52, 0.1);">
+                        <td style="padding: 0.4rem 0; font-weight: bold;">Aussteller (Issuer):</td>
+                        <td style="padding: 0.4rem 0;"><code>{{ cert_info.issuer }}</code></td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(22, 101, 52, 0.1);">
+                        <td style="padding: 0.4rem 0; font-weight: bold;">Gültig ab:</td>
+                        <td style="padding: 0.4rem 0;">{{ cert_info.valid_from }}</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(22, 101, 52, 0.1);">
+                        <td style="padding: 0.4rem 0; font-weight: bold;">Gültig bis:</td>
+                        <td style="padding: 0.4rem 0; {% if cert_info.is_expired %}color: var(--admin-danger); font-weight: bold;{% endif %}">
+                            {{ cert_info.valid_to }} {% if cert_info.is_expired %}(ABGELAUFEN! ❌){% endif %}
+                        </td>
+                    </tr>
+                </table>
+                <div style="margin-top: 1rem;">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="if(confirm('Möchtest du das Zertifikat wirklich löschen? Die HTTPS-Verbindung wird damit deaktiviert.')) document.getElementById('delete_cert_form').submit();">
+                        🗑️ Zertifikat löschen
+                    </button>
+                </div>
+            </div>
+            {% else %}
+            <div class="span-full" style="grid-column: span 2; background: #f8fafc; border: 1.5px dashed var(--admin-border); padding: 1.2rem; border-radius: var(--radius-md); text-align: center; color: var(--admin-muted); margin-top: 1rem;">
+                🔓 Kein eigenes SSL-Zertifikat hochgeladen. Der Server läuft unverschlüsselt (HTTP).
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
     <!-- Hardware Bon-Drucker Einstellungen -->
     <div class="admin-card">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.4rem;">
@@ -98,6 +177,29 @@
             <a href="/receipt/preview" target="_blank" class="btn btn-primary btn-sm">
                 <svg width="18" height="18" viewBox="0 0 24 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg> PDF
             </a>
+        </div>
+
+        <!-- Warning banner if printer enabled -->
+        <div id="printer_docker_warning" style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; display: {% if settings.printer_enabled == 'true' %}block{% else %}none{% endif %};">
+            <h4 style="color: #b45309; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 1.05rem;">
+                ⚠️ Wichtig: Docker-Konfiguration erforderlich!
+            </h4>
+            <p style="font-size: 0.9rem; color: #78350f; margin-bottom: 0.8rem; line-height: 1.45;">
+                Damit der Docker-Container auf den Drucker zugreifen kann, musst du das Gerät in deiner <code>docker-compose.yml</code> freigeben. Füge dazu den folgenden Block unter <code>web</code> ein:
+            </p>
+            <div style="position: relative; background: #1e293b; color: #f8fafc; padding: 0.75rem 1rem; border-radius: 6px; font-family: monospace; font-size: 0.85rem; margin-bottom: 0.8rem; overflow-x: auto;">    devices:
+      - "<span id="warning_device_path">/dev/usb/lp0</span>:<span id="warning_device_path_dest">/dev/usb/lp0</span>"</div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="copyToClipboard('    devices:\n      - &quot;' + document.getElementById('printer_device').value + ':' + document.getElementById('printer_device').value + '&quot;')" style="padding: 0.35rem 0.7rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem;">
+                    📋 Zeilen kopieren
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="copyToClipboard('docker compose down && docker compose up -d')" style="padding: 0.35rem 0.7rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem;">
+                    📋 Restart-Befehl kopieren
+                </button>
+            </div>
+            <p style="font-size: 0.85rem; color: #b45309; margin-top: 0.8rem; font-weight: bold; line-height: 1.45;">
+                Führe anschließend <code>docker compose down && docker compose up -d</code> auf dem Host-System aus.
+            </p>
         </div>
         
         <div class="form-grid">
@@ -124,7 +226,6 @@
                 <input type="number" id="max_prints_per_hour" name="max_prints_per_hour" value="{{ settings.max_prints_per_hour }}" min="1" max="500" required>
                 <small>Schützt vor Papierverschwendung. Einstellbares Stunden-Limit (Standard: 20 Bons/Std).</small>
             </div>
-
 
             <div class="form-group">
                 <label for="printer_device">USB Drucker-Gerätepfad:</label>
@@ -181,6 +282,23 @@
             </div>
         </div>
     </div>
+    <!-- Entwickler-Einstellungen -->
+    <div class="admin-card">
+        <h3>🧪 Entwickler-Einstellungen</h3>
+        <p style="color: var(--admin-muted); margin-bottom: 1.4rem;">
+            Hier kannst du Werkzeuge für die lokale Entwicklung und zum Testen aktivieren.
+        </p>
+        <div class="form-grid">
+            <div class="form-group span-full" style="grid-column: span 2;">
+                <label for="dev_mode">Debug- / Simulator-Leiste:</label>
+                <select id="dev_mode" name="dev_mode">
+                    <option value="false" {% if settings.dev_mode == 'false' %}selected{% endif %}>❌ Deaktiviert (Produktionsmodus)</option>
+                    <option value="true" {% if settings.dev_mode == 'true' %}selected{% endif %}>✅ Aktiviert (Entwickler-Simulator Leiste anzeigen)</option>
+                </select>
+                <small>Blendet am unteren Bildschirmrand eine Leiste mit virtuellen NFC-Karten-Buttons und Links zur schnellen Simulation ein.</small>
+            </div>
+        </div>
+    </div>
 
     <div style="display: flex; justify-content: flex-end; margin-top: 1.5rem;">
         <button type="submit" class="btn btn-icon btn-success" style="width: 54px; height: 54px;" title="Einstellungen speichern">
@@ -188,6 +306,58 @@
         </button>
     </div>
 </form>
+
+<!-- Separate delete form outside the main form -->
+<form id="delete_cert_form" action="{{ url_for('admin.delete_cert') }}" method="POST" style="display: none;"></form>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const printerEnabled = document.getElementById("printer_enabled");
+    const printerDevice = document.getElementById("printer_device");
+    const warningDiv = document.getElementById("printer_docker_warning");
+    const warningPath = document.getElementById("warning_device_path");
+    const warningPathDest = document.getElementById("warning_device_path_dest");
+
+    function updateWarning() {
+        if (!printerEnabled || !printerDevice || !warningDiv) return;
+        if (printerEnabled.value === "true") {
+            warningDiv.style.display = "block";
+        } else {
+            warningDiv.style.display = "none";
+        }
+        const devPath = printerDevice.value || "/dev/usb/lp0";
+        warningPath.textContent = devPath;
+        warningPathDest.textContent = devPath;
+    }
+
+    if (printerEnabled && printerDevice && warningDiv) {
+        printerEnabled.addEventListener("change", updateWarning);
+        printerDevice.addEventListener("input", updateWarning);
+        updateWarning();
+    }
+});
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        const toast = document.createElement("div");
+        toast.textContent = "Kopiert! 📋";
+        toast.style.position = "fixed";
+        toast.style.bottom = "20px";
+        toast.style.right = "20px";
+        toast.style.background = "#10b981";
+        toast.style.color = "white";
+        toast.style.padding = "0.75rem 1.5rem";
+        toast.style.borderRadius = "8px";
+        toast.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+        toast.style.zIndex = "9999";
+        toast.style.fontWeight = "bold";
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+    }).catch(err => {
+        alert("Fehler beim Kopieren: " + err);
+    });
+}
+</script>
 
 <!-- Modal for Adding Receipt Blocks -->
 <div class="overlay hidden" id="addBlockModal">

@@ -83,3 +83,15 @@
 - [x] Admin Category Management (`/admin/categories`) with add, toggle, delete, sort order, and emoji support
 - [x] Dynamic category select dropdown in Admin Product Management (`/admin/products`)
 
+## Phase 10 — HTTPS & SSL-Zertifikat, Drucker Docker-Warnungen, Settings-Refactoring
+- [x] SSL-Verschlüsselung im Backend (`ssl_context=get_ssl_context()`)
+- [x] SSL Zertifikat-Upload & -Validierung im Admin-Panel (Zertifikat, Schlüssel, optionale CA-Kette)
+- [x] Zertifikats-Detailanzeige (CN, SANs, Aussteller, Gültigkeit)
+- [x] Zertifikat löschen Option (Revert to HTTP)
+- [x] Docker-compose Drucker-Warnungs-Banner in den Admin-Einstellungen
+- [x] Clipboard Kopier-Funktion (Drucker-Zeilen & Restart-Befehl) mit modernem Toast-Hinweis
+- [x] DB-basiertes Debug-Modus / Simulator-Leiste Flag (DEV_MODE) aus den Admin-Einstellungen
+- [x] Bereinigung der `.env` und `.env.example` Dateien
+- [x] Bootstrap-Seeding von env-Variablen in die Datenbank beim ersten App-Start
+- [x] HTTPS Setup-Dokumentation (`docs/HTTPS_SETUP.md` und `docs/setup.md` Updates)
+
