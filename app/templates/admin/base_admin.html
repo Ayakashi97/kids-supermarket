@@ -36,4 +36,73 @@
 
     {% block admin_content %}{% endblock %}
 </div>
+
+<!-- Reusable Admin Delete Confirmation Modal -->
+<div class="overlay hidden" id="deleteConfirmModal" style="z-index: 10000;">
+    <div class="admin-card overlay-card" style="max-width: 440px; text-align: center; padding: 2rem 1.8rem; border-radius: 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
+        <div style="width: 76px; height: 76px; background: #fee2e2; border: 3px solid #fca5a5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.4rem; margin: 0 auto 1.2rem auto; color: #dc2626;">
+            🗑️
+        </div>
+        <h3 id="deleteModalTitle" style="margin-bottom: 0.5rem; font-size: 1.4rem; color: #0f172a; font-weight: 800;">Eintrag löschen?</h3>
+        <p id="deleteModalMessage" style="color: var(--admin-muted); margin-bottom: 1.6rem; font-size: 0.95rem; line-height: 1.45;">
+            Möchtest du diesen Eintrag wirklich unwiderruflich löschen?
+        </p>
+
+        <div style="display: flex; gap: 0.8rem; justify-content: center;">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()" style="padding: 0.75rem 1.3rem; font-size: 0.95rem; font-weight: 700; border-radius: 12px; cursor: pointer; background: #f1f5f9; color: #475569; border: 1.5px solid #cbd5e1;">
+                Abbrechen ❌
+            </button>
+            <a href="#" id="deleteModalConfirmBtn" class="btn btn-danger" style="padding: 0.75rem 1.4rem; font-size: 0.95rem; font-weight: 700; text-decoration: none; border-radius: 12px; display: inline-flex; align-items: center; gap: 6px; background: #dc2626; color: white;">
+                Ja, Löschen 🗑️
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(deleteUrl, itemName, customMsg) {
+    const modal = document.getElementById("deleteConfirmModal");
+    const titleEl = document.getElementById("deleteModalTitle");
+    const msgEl = document.getElementById("deleteModalMessage");
+    const confirmBtn = document.getElementById("deleteModalConfirmBtn");
+
+    if (titleEl) {
+        titleEl.textContent = itemName ? `'${itemName}' löschen?` : "Eintrag löschen?";
+    }
+    if (msgEl) {
+        msgEl.textContent = customMsg || `Möchtest du '${itemName || 'diesen Eintrag'}' wirklich unwiderruflich löschen?`;
+    }
+    if (confirmBtn) {
+        confirmBtn.href = deleteUrl;
+        confirmBtn.onclick = null;
+    }
+    if (modal) {
+        modal.classList.remove("hidden");
+    }
+    return false;
+}
+
+function confirmAction(actionCallback, title, customMsg) {
+    const modal = document.getElementById("deleteConfirmModal");
+    const titleEl = document.getElementById("deleteModalTitle");
+    const msgEl = document.getElementById("deleteModalMessage");
+    const confirmBtn = document.getElementById("deleteModalConfirmBtn");
+
+    if (titleEl) titleEl.textContent = title || "Bestätigung erforderlich";
+    if (msgEl) msgEl.textContent = customMsg || "Möchtest du diese Aktion wirklich ausführen?";
+    if (confirmBtn) {
+        confirmBtn.href = "javascript:void(0)";
+        confirmBtn.onclick = () => {
+            closeDeleteModal();
+            actionCallback();
+        };
+    }
+    if (modal) modal.classList.remove("hidden");
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById("deleteConfirmModal");
+    if (modal) modal.classList.add("hidden");
+}
+</script>
 {% endblock %}

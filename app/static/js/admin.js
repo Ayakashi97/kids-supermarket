@@ -352,7 +352,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (btnResetLayout) {
         btnResetLayout.addEventListener("click", () => {
-            if (confirm("Möchtest du das Kassenbon-Layout wirklich auf den Standard zurücksetzen?")) {
+            if (typeof confirmAction === "function") {
+                confirmAction(() => {
+                    layoutBlocks = JSON.parse(JSON.stringify(DEFAULT_LAYOUT));
+                    saveAndRender();
+                }, "Layout zurücksetzen?", "Möchtest du das Kassenbon-Template wirklich auf die Werkseinstellungen zurücksetzen?");
+            } else if (confirm("Möchtest du das Kassenbon-Layout wirklich auf den Standard zurücksetzen?")) {
                 layoutBlocks = JSON.parse(JSON.stringify(DEFAULT_LAYOUT));
                 saveAndRender();
             }
