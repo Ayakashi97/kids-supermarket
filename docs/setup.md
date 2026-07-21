@@ -109,10 +109,21 @@ docker compose up -d
 
 ---
 
-## 🔐 Admin Panel & Shop Name Customization
+---
 
-1. Open `http://supermarket-server.local:5050/admin` in any browser.
-2. Use the touchscreen **PIN-Pad** to enter the admin PIN (default: `1234`).
-3. Under **Einstellungen** (`/admin/settings`):
-   - **Name des Supermarkts**: Enter your custom shop name (e.g. *Emmis Kaufladen*). This name updates live across Cashier, Terminal, Receipts, Admin, and page titles!
-   - **NFC-Lesegerät Modus**: Set to `web_nfc` (Smartphone Web NFC) or `touchscreen_simulation`.
+## 🔍 Hand-Scanner Modus & Produkt-NFC-Tags (Optional)
+
+Das Terminal-Smartphone kann im Leerlauf als physischer **Hand-Scanner** genutzt werden, um Waren einzuscannen:
+
+1. **Hand-Scanner aktivieren**:
+   - Gehe im Admin-Panel auf **Einstellungen** (`/admin/settings`).
+   - Stelle **Terminal Hand-Scanner Modus** auf `✅ Aktiviert`.
+2. **NFC-Tags den Produkten zuweisen**:
+   - Gehe zu **Produkte verwalten** (`/admin/products`).
+   - Klicke beim gewünschten Produkt auf **Bearbeiten** (oder `Scan 🏷️` im Modal).
+   - Klicke auf **`Scan 🏷️`** und halte einen beliebigen NFC-Sticker/Tag an das Terminal-Handy.
+   - Die UID wird automatisch im Formularfeld eingetragen. Speichern klicken — fertig!
+3. **Produkte im Spiel scannen**:
+   - Im Leerlauf zeigt das Smartphone den gelben Status **"Scanner bereit!"**.
+   - Halte ein Produkt mit NFC-Tag an das Handy — das Smartphone spielt den typischen Kassen-Scanner-Ton (1900 Hz), vibriert kurz und fügt den Artikel automatisch dem Einkaufskorb auf dem Kassen-Tablet hinzu!
+   - Sobald auf der Kasse `Bezahlen` angetippt wird, schaltet das Terminal automatisch in den **Bezahl-Modus** um.
