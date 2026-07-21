@@ -89,20 +89,29 @@ def dashboard():
         .all()
     )
 
-    # Revenue per day for the last 7 days
-    from datetime import datetime, timedelta, timezone
-    from sqlalchemy import cast, Date
-    daily_revenue = (
+    # Revenue per day for the last 7 days — use func.date() for SQLite compatibility
+    # (SQLite stores datetimes as strings; cast(..., Date) fails with fromisoformat error)
+    from datetime import datetime, timedelta, timezone, date as date_type
+    raw_daily = (
         db.session.query(
-            cast(Transaction.created_at, Date).label("day"),
+            func.date(Transaction.created_at).label("day_str"),
             func.sum(Transaction.total_cents).label("daily_total")
         )
-        .group_by(cast(Transaction.created_at, Date))
-        .order_by(cast(Transaction.created_at, Date).desc())
+        .filter(Transaction.created_at.isnot(None))
+        .group_by(func.date(Transaction.created_at))
+        .order_by(func.date(Transaction.created_at).desc())
         .limit(7)
         .all()
     )
-    daily_revenue = list(reversed(daily_revenue))  # chronological order
+    # Convert string dates to Python date objects and put in chronological order
+    daily_revenue = []
+    for row in reversed(raw_daily):
+        try:
+            day_obj = date_type.fromisoformat(row.day_str) if row.day_str else None
+        except Exception:
+            day_obj = None
+        daily_revenue.append({"day": day_obj, "daily_total": row.daily_total or 0})
+
 
     # Most active cards
     top_cards = (
