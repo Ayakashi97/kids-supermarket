@@ -15,7 +15,12 @@
 <form method="POST" enctype="multipart/form-data">
     <!-- Supermarkt Grund-Einstellungen -->
     <div class="admin-card">
-        <h3>Supermarkt-Einstellungen</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.4rem;">
+            <h3 style="margin: 0;">Supermarkt-Einstellungen</h3>
+            <button type="submit" class="btn btn-icon btn-success" title="Einstellungen speichern">
+                <svg width="20" height="20" viewBox="0 0 24 24" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </button>
+        </div>
         <div class="form-grid">
             <div class="form-group">
                 <label for="shop_name">Name des Supermarkts:</label>
@@ -93,7 +98,12 @@
 
     <!-- 🔐 HTTPS & SSL-Zertifikat Einstellungen -->
     <div class="admin-card">
-        <h3>🔐 HTTPS & SSL-Zertifikat</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0;">🔐 HTTPS & SSL-Zertifikat</h3>
+            <button type="submit" class="btn btn-icon btn-success" title="Einstellungen speichern">
+                <svg width="20" height="20" viewBox="0 0 24 24" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </button>
+        </div>
         <p style="color: var(--admin-muted); margin-bottom: 1.4rem;">
             Für Web NFC auf Android-Smartphones ist eine HTTPS-Verbindung zwingend erforderlich. Hier kannst du ein eigenes SSL-Zertifikat hochladen.
         </p>
@@ -173,10 +183,15 @@
     <!-- Hardware Bon-Drucker Einstellungen -->
     <div class="admin-card">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.4rem;">
-            <h3>🖨️ Bon-Drucker Hardware-Einstellungen</h3>
-            <a href="/receipt/preview" target="_blank" class="btn btn-primary btn-sm">
-                <svg width="18" height="18" viewBox="0 0 24 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg> PDF
-            </a>
+            <h3 style="margin: 0;">🖨️ Bon-Drucker Hardware-Einstellungen</h3>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <a href="/receipt/preview" target="_blank" class="btn btn-primary btn-sm">
+                    <svg width="18" height="18" viewBox="0 0 24 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg> PDF
+                </a>
+                <button type="submit" class="btn btn-icon btn-success" title="Einstellungen speichern">
+                    <svg width="20" height="20" viewBox="0 0 24 24" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </button>
+            </div>
         </div>
 
         <!-- Warning banner if printer enabled -->
@@ -245,7 +260,12 @@
 
     <!-- Visueller Drag & Drop Bon-Template Builder -->
     <div class="admin-card">
-        <h3>🧾 Visueller Kassenbon Template-Builder</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0;">🧾 Visueller Kassenbon Template-Builder</h3>
+            <button type="submit" class="btn btn-icon btn-success" title="Einstellungen speichern">
+                <svg width="20" height="20" viewBox="0 0 24 24" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </button>
+        </div>
         <p style="color: var(--admin-muted); margin-bottom: 1.4rem; font-weight: 600;">
             Stelle hier per Drag & Drop oder Pfeiltasten deinen Kassenbon zusammen. Alle Änderungen werden in Echtzeit simuliert!
         </p>
@@ -284,7 +304,12 @@
     </div>
     <!-- Entwickler-Einstellungen -->
     <div class="admin-card">
-        <h3>🧪 Entwickler-Einstellungen</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0;">🧪 Entwickler-Einstellungen</h3>
+            <button type="submit" class="btn btn-icon btn-success" title="Einstellungen speichern">
+                <svg width="20" height="20" viewBox="0 0 24 24" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </button>
+        </div>
         <p style="color: var(--admin-muted); margin-bottom: 1.4rem;">
             Hier kannst du Werkzeuge für die lokale Entwicklung und zum Testen aktivieren.
         </p>
@@ -298,12 +323,6 @@
                 <small>Blendet am unteren Bildschirmrand eine Leiste mit virtuellen NFC-Karten-Buttons und Links zur schnellen Simulation ein.</small>
             </div>
         </div>
-    </div>
-
-    <div style="display: flex; justify-content: flex-end; margin-top: 1.5rem;">
-        <button type="submit" class="btn btn-icon btn-success" style="width: 54px; height: 54px;" title="Einstellungen speichern">
-            <svg width="24" height="24" viewBox="0 0 24 24" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        </button>
     </div>
 </form>
 
