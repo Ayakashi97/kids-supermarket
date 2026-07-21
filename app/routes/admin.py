@@ -1,4 +1,5 @@
 import os
+import logging
 from datetime import datetime, timezone
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
@@ -7,6 +8,7 @@ from app.db import db
 from app.models import Product, Card, Transaction, Setting, Category
 from app.services.socket_events import server_state, socketio
 
+logger = logging.getLogger(__name__)
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 
@@ -14,9 +16,7 @@ def is_logged_in():
     return session.get("admin_logged_in") is True
 
 
-def get_setting(key: str, default_val: str) -> str:
-    setting = Setting.query.get(key)
-    return setting.value if setting and setting.value is not None else default_val
+from app.utils import get_setting
 
 
 def set_setting(key: str, val: str):
@@ -53,18 +53,82 @@ def dashboard():
     if not is_logged_in():
         return redirect(url_for("admin.login"))
 
+    from app.db import db
+    from sqlalchemy import func
+
     products_count = Product.query.count()
+    active_products_count = Product.query.filter_by(is_active=True).count()
     cards_count = Card.query.count()
-    transactions = Transaction.query.order_by(Transaction.created_at.desc()).limit(5).all()
-    total_revenue_cents = db.session.query(db.func.sum(Transaction.total_cents)).scalar() or 0
+    transactions_count = Transaction.query.count()
+    total_revenue_cents = db.session.query(func.sum(Transaction.total_cents)).scalar() or 0
+
+    # Recent transactions (last 5)
+    recent_transactions = Transaction.query.order_by(Transaction.created_at.desc()).limit(5).all()
+
+    # Top 5 products by quantity sold
+    from app.models import TransactionItem
+    top_products = (
+        db.session.query(
+            TransactionItem.product_name,
+            func.sum(TransactionItem.quantity).label("total_qty"),
+            func.sum(TransactionItem.price_cents * TransactionItem.quantity).label("total_revenue")
+        )
+        .group_by(TransactionItem.product_name)
+        .order_by(func.sum(TransactionItem.quantity).desc())
+        .limit(5)
+        .all()
+    )
+
+    # Revenue by category (from TransactionItems joined with product name)
+    category_stats = (
+        db.session.query(
+            TransactionItem.product_name,
+            func.sum(TransactionItem.price_cents * TransactionItem.quantity).label("cat_revenue")
+        )
+        .group_by(TransactionItem.product_name)
+        .all()
+    )
+
+    # Revenue per day for the last 7 days
+    from datetime import datetime, timedelta, timezone
+    from sqlalchemy import cast, Date
+    daily_revenue = (
+        db.session.query(
+            cast(Transaction.created_at, Date).label("day"),
+            func.sum(Transaction.total_cents).label("daily_total")
+        )
+        .group_by(cast(Transaction.created_at, Date))
+        .order_by(cast(Transaction.created_at, Date).desc())
+        .limit(7)
+        .all()
+    )
+    daily_revenue = list(reversed(daily_revenue))  # chronological order
+
+    # Most active cards
+    top_cards = (
+        db.session.query(
+            Card.name,
+            func.count(Transaction.id).label("tx_count"),
+            func.sum(Transaction.total_cents).label("card_revenue")
+        )
+        .join(Transaction, Transaction.card_id == Card.id)
+        .group_by(Card.id, Card.name)
+        .order_by(func.count(Transaction.id).desc())
+        .limit(5)
+        .all()
+    )
 
     return render_template(
         "admin/dashboard.html",
         products_count=products_count,
+        active_products_count=active_products_count,
         cards_count=cards_count,
-        transactions_count=Transaction.query.count(),
+        transactions_count=transactions_count,
         total_revenue_formatted=f"{total_revenue_cents / 100:.2f}".replace(".", ",") + " €",
-        recent_transactions=transactions,
+        recent_transactions=recent_transactions,
+        top_products=top_products,
+        daily_revenue=daily_revenue,
+        top_cards=top_cards,
     )
 
 
@@ -99,10 +163,13 @@ def products():
                 flash(f"NFC-Tag '{nfc_uid}' ist bereits dem Produkt '{existing_nfc.name}' zugewiesen!", "danger")
                 return redirect(url_for("admin.products"))
 
+        cat_obj = Category.query.filter_by(name=category).first()
+
         product = Product(
             name=name,
             price_cents=price_cents,
             category=category,
+            category_id=cat_obj.id if cat_obj else None,
             emoji=emoji,
             image_path=image_path,
             nfc_uid=nfc_uid,
@@ -112,6 +179,7 @@ def products():
         db.session.commit()
         flash(f"Produkt '{name}' erfolgreich hinzugefügt!", "success")
         return redirect(url_for("admin.products"))
+
 
     all_products = Product.query.order_by(Product.category, Product.name).all()
     categories = Category.query.filter_by(is_active=True).order_by(Category.sort_order).all()
@@ -246,11 +314,15 @@ def edit_product(product_id):
                 file.save(os.path.join(save_dir, filename))
                 product.image_path = f"images/products/{filename}"
 
+        cat_obj = Category.query.filter_by(name=category).first()
+
         product.name = name
         product.price_cents = price_cents
         product.category = category
+        product.category_id = cat_obj.id if cat_obj else None
         product.emoji = emoji
         product.nfc_uid = nfc_uid
+
         db.session.commit()
         flash(f"Produkt '{product.name}' erfolgreich aktualisiert! 🎉", "success")
         return redirect(url_for("admin.products"))
@@ -274,6 +346,14 @@ def delete_product(product_id):
     if not is_logged_in():
         return redirect(url_for("admin.login"))
     product = Product.query.get_or_404(product_id)
+    # Delete associated image file from disk
+    if product.image_path:
+        img_full_path = os.path.join(current_app.root_path, "static", product.image_path)
+        if os.path.isfile(img_full_path):
+            try:
+                os.remove(img_full_path)
+            except OSError as e:
+                logger.warning("Could not delete product image %s: %s", img_full_path, e)
     db.session.delete(product)
     db.session.commit()
     flash("Produkt gelöscht!", "info")
@@ -389,6 +469,14 @@ def delete_card(card_id):
     if not is_logged_in():
         return redirect(url_for("admin.login"))
     card = Card.query.get_or_404(card_id)
+    # Delete associated photo file from disk
+    if card.image_path:
+        img_full_path = os.path.join(current_app.root_path, "static", card.image_path)
+        if os.path.isfile(img_full_path):
+            try:
+                os.remove(img_full_path)
+            except OSError as e:
+                logger.warning("Could not delete card image %s: %s", img_full_path, e)
     db.session.delete(card)
     db.session.commit()
     flash("Kundenkarte gelöscht!", "info")

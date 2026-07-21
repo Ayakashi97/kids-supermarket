@@ -29,9 +29,12 @@ class Product(db.Model):
     price_cents = db.Column(db.Integer, nullable=False)  # Stored in cents (e.g. 150 = 1,50 €)
     emoji = db.Column(db.String(10), nullable=True)
     image_path = db.Column(db.String(255), nullable=True)
-    category = db.Column(db.String(50), nullable=False, default="Sonstiges")
+    category = db.Column(db.String(50), nullable=False, default="Sonstiges")  # Display name (kept in sync with category_id)
+    category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=True, index=True)  # FK to categories table
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     nfc_uid = db.Column(db.String(50), unique=True, nullable=True, index=True)  # Optional NFC tag UID for product scanner mode
+
+    category_obj = db.relationship("Category", foreign_keys=[category_id], backref="products")
 
     def to_dict(self):
         return {

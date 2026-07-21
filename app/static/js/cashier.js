@@ -407,23 +407,53 @@ document.addEventListener("DOMContentLoaded", () => {
         cart.forEach(item => {
             const itemEl = document.createElement("div");
             itemEl.className = "cart-item";
-            itemEl.innerHTML = `
-                <div class="cart-item-info">
-                    <span class="cart-item-emoji">${item.emoji || '🛒'}</span>
-                    <div class="cart-item-details">
-                        <span class="cart-item-name">${item.name}</span>
-                        <span class="cart-item-price">${formatCurrency(item.price_cents * item.quantity)}</span>
-                    </div>
-                </div>
-                <div class="qty-controls">
-                    <button class="qty-btn minus" data-id="${item.id}">-</button>
-                    <span class="qty-count">${item.quantity}</span>
-                    <button class="qty-btn plus" data-id="${item.id}">+</button>
-                </div>
-            `;
 
-            const minusBtn = itemEl.querySelector(".minus");
-            const plusBtn = itemEl.querySelector(".plus");
+            const infoDiv = document.createElement("div");
+            infoDiv.className = "cart-item-info";
+
+            const emojiSpan = document.createElement("span");
+            emojiSpan.className = "cart-item-emoji";
+            emojiSpan.textContent = item.emoji || '\uD83D\uDED2';
+
+            const detailsDiv = document.createElement("div");
+            detailsDiv.className = "cart-item-details";
+
+            const nameSpan = document.createElement("span");
+            nameSpan.className = "cart-item-name";
+            nameSpan.textContent = item.name;
+
+            const priceSpan = document.createElement("span");
+            priceSpan.className = "cart-item-price";
+            priceSpan.textContent = formatCurrency(item.price_cents * item.quantity);
+
+            detailsDiv.appendChild(nameSpan);
+            detailsDiv.appendChild(priceSpan);
+            infoDiv.appendChild(emojiSpan);
+            infoDiv.appendChild(detailsDiv);
+
+            const qtyDiv = document.createElement("div");
+            qtyDiv.className = "qty-controls";
+
+            const minusBtn = document.createElement("button");
+            minusBtn.className = "qty-btn minus";
+            minusBtn.dataset.id = item.id;
+            minusBtn.textContent = "-";
+
+            const qtySpan = document.createElement("span");
+            qtySpan.className = "qty-count";
+            qtySpan.textContent = item.quantity;
+
+            const plusBtn = document.createElement("button");
+            plusBtn.className = "qty-btn plus";
+            plusBtn.dataset.id = item.id;
+            plusBtn.textContent = "+";
+
+            qtyDiv.appendChild(minusBtn);
+            qtyDiv.appendChild(qtySpan);
+            qtyDiv.appendChild(plusBtn);
+
+            itemEl.appendChild(infoDiv);
+            itemEl.appendChild(qtyDiv);
 
             attachKidTouchHandler(minusBtn, () => changeQuantity(item.id, -1));
             attachKidTouchHandler(plusBtn, () => changeQuantity(item.id, 1));

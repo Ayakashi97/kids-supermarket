@@ -121,7 +121,11 @@
 
             <div class="form-group">
                 <label for="add_p_emoji">Emoji Symbol:</label>
-                <input type="text" id="add_p_emoji" name="emoji" placeholder="🥨" value="🥨">
+                <div style="display:flex; gap:0.5rem; align-items:center;">
+                    <input type="text" id="add_p_emoji" name="emoji" placeholder="🥨" value="🥨" style="width:80px; flex-shrink:0; text-align:center; font-size:1.5rem;">
+                    <button type="button" class="emoji-picker-toggle" onclick="toggleEmojiPicker('addEmojiGrid')">😀 Auswählen</button>
+                </div>
+                <div class="emoji-picker-grid" id="addEmojiGrid"></div>
             </div>
 
             <div class="form-group">
@@ -180,7 +184,11 @@
 
             <div class="form-group">
                 <label for="edit_p_emoji">Emoji Symbol:</label>
-                <input type="text" id="edit_p_emoji" name="emoji">
+                <div style="display:flex; gap:0.5rem; align-items:center;">
+                    <input type="text" id="edit_p_emoji" name="emoji" style="width:80px; flex-shrink:0; text-align:center; font-size:1.5rem;">
+                    <button type="button" class="emoji-picker-toggle" onclick="toggleEmojiPicker('editEmojiGrid')">😀 Auswählen</button>
+                </div>
+                <div class="emoji-picker-grid" id="editEmojiGrid"></div>
             </div>
 
             <div class="form-group">
@@ -319,6 +327,48 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     socket.on("card_tapped", (data) => {
         if (data && data.uid) handleTagCaptured(data.uid);
+    });
+
+    // Emoji Picker
+    const FOOD_EMOJIS = [
+        '🥗','🥥','🍎','🍌','🍍','🍊','🍓','🫐','🍇','🍉','🍋','🍏',
+        '🍐','🥝','🍅','🍆','🥕','🥦','🌽','🥄','🥠','🥜','🥡','🍞',
+        '🧂','🥐','🥨','🍱','🥾','🍲','🍳','🥚','🥑','🥮','🥖','🥧',
+        '🥞','🧀','🍫','🍭','🍮','🍯','🍰','🧁','🍩','🍪','🍼','🥛',
+        '🍵','🍺','🥤','🫖','🥃','🥂','🍷','🍸','🫗','🛒','📦','🎨'
+    ];
+
+    function buildEmojiPicker(gridId, inputId) {
+        const grid = document.getElementById(gridId);
+        const input = document.getElementById(inputId);
+        if (!grid || grid.children.length > 0) return;
+        FOOD_EMOJIS.forEach(emoji => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'emoji-pick-btn';
+            btn.textContent = emoji;
+            btn.title = emoji;
+            btn.addEventListener('click', () => {
+                if (input) input.value = emoji;
+                grid.classList.remove('open');
+            });
+            grid.appendChild(btn);
+        });
+    }
+
+    window.toggleEmojiPicker = function(gridId) {
+        const grid = document.getElementById(gridId);
+        if (!grid) return;
+        const inputId = gridId === 'addEmojiGrid' ? 'add_p_emoji' : 'edit_p_emoji';
+        buildEmojiPicker(gridId, inputId);
+        grid.classList.toggle('open');
+    };
+
+    // Close emoji picker when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.emoji-picker-toggle') && !e.target.closest('.emoji-picker-grid')) {
+            document.querySelectorAll('.emoji-picker-grid.open').forEach(g => g.classList.remove('open'));
+        }
     });
 });
 </script>

@@ -5,63 +5,156 @@
 
 {% block admin_content %}
 <div class="page-title-row">
-    <h2>Übersicht & Statistiken 📊</h2>
+    <h2>Statistiken &amp; Übersicht 📊</h2>
 </div>
 
+<!-- KPI Stat Boxes -->
 <div class="stats-grid">
     <div class="stat-box">
         <h3>Produkte im Shop</h3>
-        <div class="number">🍎 {{ products_count }}</div>
+        <div class="number">🍎 {{ active_products_count }} <span style="font-size:1rem; color: var(--admin-muted); font-weight:700;">/ {{ products_count }}</span></div>
     </div>
     <div class="stat-box">
-        <h3>Registrierte Karten</h3>
+        <h3>Kundenkarten</h3>
         <div class="number">💳 {{ cards_count }}</div>
     </div>
     <div class="stat-box">
         <h3>Gesamte Einkäufe</h3>
-        <div class="number">🛍️ {{ transactions_count }}</div>
+        <div class="number">🛒 {{ transactions_count }}</div>
     </div>
     <div class="stat-box">
         <h3>Spielgeld "Umsatz"</h3>
-        <div class="number" style="color: var(--admin-accent);">💶 {{ total_revenue_formatted }}</div>
+        <div class="number" style="color: var(--admin-accent);">{{ total_revenue_formatted }}</div>
     </div>
 </div>
 
-<div class="admin-card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
-        <h3 style="margin: 0;">Letzte Einkäufe</h3>
-        <a href="{{ url_for('admin.transactions') }}" style="color: var(--admin-primary); text-decoration: none; font-weight: 800; font-size: 0.9rem;">Alle ➔</a>
+<!-- Charts Row -->
+<div class="stats-charts-row" style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 1.5rem; margin-bottom: 1.8rem;">
+
+    <!-- Daily Revenue Bar Chart -->
+    <div class="admin-card" style="margin-bottom: 0;">
+        <h3 style="margin-bottom: 1.2rem;">Umsatz letzte 7 Tage 📈</h3>
+        {% if daily_revenue %}
+        {% set max_val = namespace(v=1) %}
+        {% for row in daily_revenue %}
+            {% if row.daily_total > max_val.v %}{% set max_val.v = row.daily_total %}{% endif %}
+        {% endfor %}
+        <div style="height: 160px; display: flex; align-items: flex-end; gap: 8px; border-bottom: 2px solid var(--admin-border); margin-bottom: 1.5rem; padding-bottom: 4px;">
+            {% for row in daily_revenue %}
+            {% set bar_pct = ((row.daily_total / max_val.v) * 100) | round(1) if max_val.v > 0 else 0 %}
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 4px;">
+                <div style="font-size: 0.65rem; font-weight: 800; color: var(--admin-muted); writing-mode: horizontal-tb;">
+                    {{ ((row.daily_total or 0) / 100) | round(2) | string | replace('.', ',') }}€
+                </div>
+                <div style="
+                    width: 100%;
+                    height: {{ bar_pct }}%;
+                    min-height: 4px;
+                    background: linear-gradient(180deg, #4f46e5 0%, #6366f1 100%);
+                    border-radius: 6px 6px 0 0;
+                    box-shadow: 0 4px 12px rgba(79,70,229,0.25);
+                "></div>
+            </div>
+            {% endfor %}
+        </div>
+        <div style="display: flex; gap: 8px;">
+            {% for row in daily_revenue %}
+            <div style="flex:1; text-align:center; font-size:0.7rem; font-weight:700; color: var(--admin-muted);">
+                {{ row.day.strftime('%d.%m') if row.day else '' }}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align:center; color: var(--admin-muted); padding: 3rem 0; font-size:1rem;">
+            📦 Noch keine Transaktionen.
+        </div>
+        {% endif %}
     </div>
 
-    <div class="table-responsive">
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Bon-Nr.</th>
-                    <th>Datum</th>
-                    <th>Kunde</th>
-                    <th>Betrag</th>
-                    <th>Aktion</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for tx in recent_transactions %}
-                <tr>
-                    <td data-label="Bon-Nr."><span class="badge badge-secondary">#{{ tx.id }}</span></td>
-                    <td data-label="Datum">{{ tx.created_at.strftime('%d.%m.%Y %H:%M') if tx.created_at else '-' }}</td>
-                    <td data-label="Kunde"><strong>{{ tx.card.name if tx.card else 'Gast' }}</strong></td>
-                    <td data-label="Betrag"><strong style="color: var(--admin-accent);">{{ "%.2f"|format(tx.total_cents / 100)|replace('.', ',') }} €</strong></td>
-                    <td data-label="Aktion">
-                        <a href="{{ url_for('cashier.view_receipt', tx_id=tx.id) }}" target="_blank" class="btn btn-icon btn-secondary" title="Bon / PDF anzeigen">📄</a>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="5" style="text-align: center; color: var(--admin-muted); padding: 2rem;">Noch keine Transaktionen vorhanden.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- Top Products -->
+    <div class="admin-card" style="margin-bottom: 0;">
+        <h3 style="margin-bottom: 1.2rem;">Beliebteste Produkte 🏆</h3>
+        {% if top_products %}
+        <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+            {% for prod in top_products %}
+            {% set max_qty = top_products[0].total_qty %}
+            {% set bar_pct = ((prod.total_qty / max_qty) * 100) | round(1) if max_qty > 0 else 0 %}
+            <div style="display: flex; flex-direction: column; gap: 3px;">
+                <div style="display:flex; justify-content:space-between; font-size:0.88rem; font-weight:800;">
+                    <span style="color:#0f172a;">{{ loop.index }}. {{ prod.product_name }}</span>
+                    <span style="color: var(--admin-muted);">{{ prod.total_qty }}x</span>
+                </div>
+                <div style="height:8px; background:#f1f5f9; border-radius:99px; overflow:hidden;">
+                    <div style="height:100%; width:{{ bar_pct }}%; background: linear-gradient(90deg, var(--admin-accent) 0%, #34d399 100%); border-radius:99px;"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align:center; color: var(--admin-muted); padding: 2rem 0;">📦 Noch keine Verkäufe.</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Bottom Row: Top Cards + Recent Transactions -->
+<div class="stats-bottom-row" style="display: grid; grid-template-columns: 1fr 1.8fr; gap: 1.5rem; margin-bottom: 1.8rem;">
+
+    <!-- Top Cards -->
+    <div class="admin-card" style="margin-bottom: 0;">
+        <h3 style="margin-bottom: 1.2rem;">Aktivste Kunden 💳</h3>
+        {% if top_cards %}
+        <div style="display: flex; flex-direction: column; gap: 0.7rem;">
+            {% for card in top_cards %}
+            <div style="display:flex; align-items:center; gap: 0.8rem; padding: 0.7rem; background:#f8fafc; border-radius: 12px; border: 1px solid var(--admin-border);">
+                <div style="width:38px; height:38px; border-radius:50%; background: linear-gradient(135deg, var(--admin-primary) 0%, #8b5cf6 100%); display:flex; align-items:center; justify-content:center; color:white; font-weight:900; font-size:1rem; flex-shrink:0;">
+                    {{ loop.index }}
+                </div>
+                <div style="flex:1; min-width:0;">
+                    <div style="font-weight:800; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ card.name }}</div>
+                    <div style="font-size:0.78rem; color:var(--admin-muted);">{{ card.tx_count }}x &middot; {{ ((card.card_revenue or 0) / 100) | round(2) | string | replace('.', ',') }} €</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align:center; color: var(--admin-muted); padding: 2rem 0;">📦 Noch keine Einkäufe.</div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="admin-card" style="margin-bottom: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
+            <h3 style="margin: 0;">Letzte Einkäufe</h3>
+            <a href="{{ url_for('admin.transactions') }}" style="color: var(--admin-primary); text-decoration: none; font-weight: 800; font-size: 0.9rem;">Alle ➔</a>
+        </div>
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Bon</th>
+                        <th>Datum</th>
+                        <th>Kunde</th>
+                        <th>Betrag</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in recent_transactions %}
+                    <tr>
+                        <td data-label="Bon"><span class="badge badge-secondary">#{{ tx.id }}</span></td>
+                        <td data-label="Datum" style="font-size:0.85rem;">{{ tx.created_at.strftime('%d.%m.%Y %H:%M') if tx.created_at else '-' }}</td>
+                        <td data-label="Kunde"><strong>{{ tx.card.name if tx.card else 'Gast' }}</strong></td>
+                        <td data-label="Betrag"><strong style="color: var(--admin-accent);">{{ "%.2f"|format(tx.total_cents / 100)|replace('.', ',') }} €</strong></td>
+                        <td><a href="{{ url_for('cashier.view_receipt', tx_id=tx.id) }}" target="_blank" class="btn btn-icon btn-secondary" title="Bon anzeigen">📄</a></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--admin-muted); padding: 2rem;">Noch keine Transaktionen vorhanden.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}

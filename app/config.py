@@ -24,5 +24,6 @@ class Config:
 
     UPLOAD_FOLDER = BASE_DIR / "static" / "images"
     ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB max upload size
 
     DEV_MODE = os.getenv("DEV_MODE", "true").lower() in ("true", "1", "yes")

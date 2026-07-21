@@ -72,6 +72,26 @@ def create_app(config_class=Config):
         except Exception:
             db.session.rollback()
 
+        try:
+            db.session.execute(db.text("ALTER TABLE products ADD COLUMN category_id INTEGER REFERENCES categories(id)"))
+            db.session.commit()
+            logger.info("Migrated SQLite schema: added products.category_id FK column.")
+        except Exception:
+            db.session.rollback()
+
+        # Populate category_id from existing category name strings (idempotent)
+        try:
+            db.session.execute(db.text("""
+                UPDATE products SET category_id = (
+                    SELECT id FROM categories WHERE categories.name = products.category
+                ) WHERE category_id IS NULL
+            """))
+            db.session.commit()
+            logger.info("Populated products.category_id from category names.")
+        except Exception:
+            db.session.rollback()
+
+
         seed_default_products()
 
     logger.info("Kinder-Supermarkt app initialized successfully.")

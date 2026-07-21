@@ -1,15 +1,11 @@
+import json
 from flask import Blueprint, render_template, redirect, url_for, request
 from app.models import Product, Category
 from app.seed import DEFAULT_RECEIPT_LAYOUT
 from app.services.qr_generator import generate_qr_code_base64
+from app.utils import get_setting
 
 cashier_bp = Blueprint("cashier", __name__)
-
-
-def get_setting(key: str, default_val: str) -> str:
-    from app.models import Setting
-    setting = Setting.query.get(key)
-    return setting.value if setting and setting.value is not None else default_val
 
 
 @cashier_bp.route("/")
@@ -180,6 +176,3 @@ def service_worker():
     import os
     static_dir = os.path.join(current_app.root_path, "static")
     return send_from_directory(static_dir, "sw.js", mimetype="application/javascript")
-
-
-

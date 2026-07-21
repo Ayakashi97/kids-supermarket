@@ -1,46 +1,62 @@
 import os
+import json
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from app.config import Config
-from app.models import Setting
+from app.utils import get_setting
 
 logger = logging.getLogger(__name__)
 
-# Sliding 1-hour print history rate limiter
-PRINT_HISTORY = []
 MAX_PRINTS_PER_HOUR = 20
 
 
-def get_setting(key: str, default_val: str) -> str:
-    """Helper to fetch a setting value from DB, with fallback to default."""
+def _load_print_history() -> list:
+    """Load print timestamps from the DB setting 'print_history_json'."""
     try:
+        raw = get_setting("print_history_json", "[]")
+        return json.loads(raw)
+    except Exception:
+        return []
+
+
+def _save_print_history(timestamps: list):
+    """Persist print timestamps to DB setting 'print_history_json'."""
+    try:
+        from app.db import db
+        from app.models import Setting
+        key = "print_history_json"
         setting = Setting.query.get(key)
-        if setting and setting.value is not None:
-            return setting.value
+        value = json.dumps(timestamps)
+        if not setting:
+            setting = Setting(key=key, value=value)
+            db.session.add(setting)
+        else:
+            setting.value = value
+        db.session.commit()
     except Exception as e:
-        logger.debug("Could not read setting %s from DB: %s", key, e)
-    return default_val
+        logger.warning("Could not save print history to DB: %s", e)
 
 
-def check_rate_limit() -> tuple[bool, str]:
+def check_rate_limit() -> tuple:
     """
     Ensures no more than configurable receipts are printed per 60 minutes.
     Returns (allowed: bool, reason: str).
     """
-    global PRINT_HISTORY
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     cutoff = now - timedelta(hours=1)
-    
+    cutoff_iso = cutoff.isoformat()
+
+    history = _load_print_history()
     # Keep only prints from the last 1 hour
-    PRINT_HISTORY = [t for t in PRINT_HISTORY if t > cutoff]
-    
+    history = [t for t in history if t > cutoff_iso]
+
     max_limit_str = get_setting("max_prints_per_hour", "20")
     try:
         max_limit = int(max_limit_str)
     except ValueError:
         max_limit = 20
 
-    if len(PRINT_HISTORY) >= max_limit:
+    if len(history) >= max_limit:
         msg = f"Limit erreicht: Maximal {max_limit} Bons pro Stunde erlaubt! (Schutz vor Papier-Spam) ⏳"
         logger.warning(msg)
         return False, msg
@@ -48,11 +64,10 @@ def check_rate_limit() -> tuple[bool, str]:
     return True, ""
 
 
-
-def print_receipt(transaction_data: dict, check_enabled: bool = True) -> tuple[bool, str]:
+def print_receipt(transaction_data: dict, check_enabled: bool = True) -> tuple:
     """
     Prints a thermal receipt via python-escpos USB/File device if enabled and connected.
-    Enforces a strict 20-receipts-per-hour rate limit.
+    Enforces a strict rate limit (configurable, default 20/hour).
     Returns (success: bool, message: str).
     """
     # Check rate limit first
@@ -100,7 +115,6 @@ def print_receipt(transaction_data: dict, check_enabled: bool = True) -> tuple[b
         return False, msg
 
     try:
-        import json
         from escpos.printer import File
         from app.seed import DEFAULT_RECEIPT_LAYOUT
 
@@ -170,10 +184,22 @@ def print_receipt(transaction_data: dict, check_enabled: bool = True) -> tuple[b
         printer.cut()
         printer.close()
 
-        # Track timestamp for rate limiting
-        PRINT_HISTORY.append(datetime.now())
+        # Track timestamp in DB for rate limiting (survives restarts)
+        now = datetime.now(timezone.utc)
+        cutoff = now - timedelta(hours=1)
+        cutoff_iso = cutoff.isoformat()
+        history = _load_print_history()
+        history = [t for t in history if t > cutoff_iso]
+        history.append(now.isoformat())
+        _save_print_history(history)
 
-        success_msg = f"Kassenbon #{tx_id} erfolgreich gedruckt! 🧾 ({len(PRINT_HISTORY)}/{MAX_PRINTS_PER_HOUR} in dieser Stunde)"
+        max_limit_str = get_setting("max_prints_per_hour", "20")
+        try:
+            max_limit = int(max_limit_str)
+        except ValueError:
+            max_limit = 20
+
+        success_msg = f"Kassenbon #{tx_id} erfolgreich gedruckt! 🧾 ({len(history)}/{max_limit} in dieser Stunde)"
         logger.info(success_msg)
         return True, success_msg
 

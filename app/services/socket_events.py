@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from flask import request
 from flask_socketio import SocketIO, emit
 from app.db import db
-from app.models import Card, Transaction, TransactionItem, Setting
+from app.models import Card, Transaction, TransactionItem
 from app.services.printer import print_receipt
 
 logger = logging.getLogger(__name__)
@@ -21,9 +21,7 @@ server_state = {
 }
 
 
-def get_setting(key: str, default_val: str) -> str:
-    setting = Setting.query.get(key)
-    return setting.value if setting and setting.value is not None else default_val
+from app.utils import get_setting
 
 
 def find_card_by_uid(uid: str) -> Card:
