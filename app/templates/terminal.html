@@ -536,6 +536,17 @@
             <div class="terminal-card-icon">😕</div>
             <div class="terminal-title">Hoppla!</div>
             <div class="terminal-subtitle" id="errorMessageDisplay">Unbekannte Karte</div>
+
+            <div style="margin-top: 0.8rem; font-size: 1rem; opacity: 0.85; font-weight: 700;">🔄 Neuer Versuch in 3 Sek...</div>
+
+            <!-- 3-Second Animated Countdown Bar -->
+            <div id="errorCountdownBarContainer" style="width: 100%; height: 10px; background: rgba(255,255,255,0.15); border-radius: 10px; overflow: hidden; margin: 0.8rem 0 1.2rem 0;">
+                <div id="errorCountdownBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #ff7675 0%, #d63031 100%); border-radius: 10px;"></div>
+            </div>
+
+            <button type="button" id="btnTerminalErrorCancel" onclick="resetTerminalToIdle(); if(window.termSocket) window.termSocket.emit('cancel_payment');" title="Abbrechen" style="width: 75px; height: 75px; background: linear-gradient(135deg, #ff7675 0%, #d63031 100%); color: white; border: none; border-radius: 50%; font-size: 2.5rem; cursor: pointer; box-shadow: 0 10px 25px rgba(214, 48, 49, 0.4); display: inline-flex; align-items: center; justify-content: center;">
+                ❌
+            </button>
         </div>
 
     </div>
@@ -1208,14 +1219,30 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 5000);
     });
 
+    let errorRetryTimer = null;
+
     socket.on("payment_error", (data) => {
         termPin = "";
         playSound('error');
         errorMessageDisplay.textContent = data.message || "Unbekannte Karte 😕";
+
+        const errorBar = document.getElementById("errorCountdownBar");
+        if (errorBar) {
+            errorBar.style.transition = "none";
+            errorBar.style.width = "0%";
+            void errorBar.offsetWidth;
+            errorBar.style.transition = "width 3s linear";
+            errorBar.style.width = "100%";
+        }
+
         showState(stateError);
-        setTimeout(() => {
-            resetTerminalToIdle();
-        }, 2500);
+
+        if (errorRetryTimer) clearTimeout(errorRetryTimer);
+        errorRetryTimer = setTimeout(() => {
+            if (activePayState === "waiting" || activePayState === "error") {
+                showState(stateWaiting);
+            }
+        }, 3000);
     });
 
     socket.on("payment_cancelled", () => {

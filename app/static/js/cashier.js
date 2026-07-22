@@ -345,12 +345,27 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 8000);
     });
 
+    let cashierErrorRetryTimer = null;
+
     socket.on("payment_error", (data) => {
         playErrorSound();
         showPaymentErrorOverlay(data.message || "Unbekannte Karte 😕");
-        setTimeout(() => {
-            hideOverlay();
-        }, 2500);
+
+        const barContainer = document.getElementById("errorCountdownBarContainer");
+        const bar = document.getElementById("errorCountdownBar");
+        if (barContainer && bar) {
+            barContainer.style.display = "block";
+            bar.style.transition = "none";
+            bar.style.width = "0%";
+            void bar.offsetWidth; // Force layout reflow
+            bar.style.transition = "width 3s linear";
+            bar.style.width = "100%";
+        }
+
+        if (cashierErrorRetryTimer) clearTimeout(cashierErrorRetryTimer);
+        cashierErrorRetryTimer = setTimeout(() => {
+            showPaymentWaitingOverlay();
+        }, 3000);
     });
 
     socket.on("product_scanned", (data) => {
@@ -946,15 +961,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function showPaymentErrorOverlay(msg) {
         overlayTitle.textContent = "Hoppla! 😕";
-        overlaySubtitle.textContent = msg;
+        overlaySubtitle.textContent = msg + " — Neuer Versuch in 3 Sek...";
         overlayIcon.textContent = "⚠️";
         overlayIcon.style.display = "block";
         photoContainer.style.display = "none";
         const signatureContainer = document.getElementById("signatureContainer");
         if (signatureContainer) signatureContainer.style.display = "none";
         if (receiptActions) receiptActions.style.display = "none";
-        cancelPayBtn.textContent = "Schließen ❌";
-        cancelPayBtn.style.display = "block";
+        cancelPayBtn.textContent = "❌";
+        cancelPayBtn.style.display = "inline-flex";
         paymentOverlay.classList.remove("hidden");
     }
 
@@ -963,14 +978,21 @@ document.addEventListener("DOMContentLoaded", () => {
             clearTimeout(cashierAutoCloseTimer);
             cashierAutoCloseTimer = null;
         }
+        if (cashierErrorRetryTimer) {
+            clearTimeout(cashierErrorRetryTimer);
+            cashierErrorRetryTimer = null;
+        }
         const barContainer = document.getElementById("successCountdownBarContainer");
         if (barContainer) barContainer.style.display = "none";
+
+        const errBarContainer = document.getElementById("errorCountdownBarContainer");
+        if (errBarContainer) errBarContainer.style.display = "none";
 
         const signatureContainer = document.getElementById("signatureContainer");
         if (signatureContainer) signatureContainer.style.display = "none";
 
         paymentOverlay.classList.add("hidden");
         if (receiptActions) receiptActions.style.display = "none";
-        cancelPayBtn.textContent = "Abbrechen ❌";
+        cancelPayBtn.textContent = "❌";
     }
 });
