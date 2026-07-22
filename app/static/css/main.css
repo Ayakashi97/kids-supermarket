@@ -324,7 +324,9 @@ body.cashier-page, body.terminal-page {
     gap: 1.2rem;
     align-content: start;
     flex: 1;
-    overflow: hidden; /* No scrollbar - Pagination system for kids! */
+    overflow: visible;
+    padding: 6px;
+    margin: -6px;
 }
 
 /* Pagination Bar */
@@ -424,12 +426,14 @@ body.cashier-page, body.terminal-page {
     align-items: center;
     justify-content: space-between;
     min-height: 195px;
+    position: relative;
 }
 
 .product-card:hover {
-    transform: translateY(-5px) scale(1.03);
+    transform: translateY(-4px);
     border-color: var(--primary-yellow);
-    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    z-index: 2;
 }
 
 .product-card:active, .product-card.pressed {
@@ -437,6 +441,7 @@ body.cashier-page, body.terminal-page {
     border-color: var(--primary-blue) !important;
     background-color: #e8f4f8 !important;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    z-index: 3;
 }
 
 .product-card.card-pop {

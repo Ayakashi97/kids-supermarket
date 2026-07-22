@@ -1,6 +1,6 @@
 // Service Worker for Kinder-Supermarkt PWA
 // Update SW_VERSION whenever static assets change to force cache refresh
-const SW_VERSION = '2.0.4';
+const SW_VERSION = '2.0.5';
 const CACHE_NAME = `kinder-supermarkt-${SW_VERSION}`;
 
 // Static assets to cache on install for faster repeat loads
