@@ -525,8 +525,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!productGrid) return 8;
         const gridWidth = productGrid.clientWidth || 600;
         const gridHeight = productGrid.clientHeight || 400;
-        const cols = Math.max(1, Math.floor(gridWidth / 175));
-        const rows = Math.max(1, Math.floor(gridHeight / 195));
+        const cols = Math.max(1, Math.floor((gridWidth - 16) / 175));
+        const rows = Math.max(1, Math.floor((gridHeight - 14) / 205));
         return Math.max(4, cols * rows);
     }
 

@@ -326,7 +326,7 @@ body.cashier-page, body.terminal-page {
     flex: 1;
     min-height: 0;
     overflow: hidden !important; /* Essential for kid pagination height calculation! */
-    padding: 6px;
+    padding: 8px 8px 14px 8px;
     box-sizing: border-box;
 }
 
