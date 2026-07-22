@@ -324,9 +324,10 @@ body.cashier-page, body.terminal-page {
     gap: 1.2rem;
     align-content: start;
     flex: 1;
-    overflow: visible;
+    min-height: 0;
+    overflow: hidden !important; /* Essential for kid pagination height calculation! */
     padding: 6px;
-    margin: -6px;
+    box-sizing: border-box;
 }
 
 /* Pagination Bar */
