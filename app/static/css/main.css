@@ -48,7 +48,7 @@ html {
 }
 
 body.cashier-page {
-    background: #1e3c72;
+    background: var(--bg-gradient);
 }
 
 body.terminal-page {
