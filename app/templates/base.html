@@ -26,37 +26,174 @@
     </script>
     {% block head %}{% endblock %}
     <style>
-        .dev-sim-bar {
+        /* DEV MODE GLASSMORPHIC FLOATING BUTTON & DRAWER */
+        .dev-sim-trigger {
             position: fixed;
-            bottom: 15px;
-            right: 15px;
-            background: #2c3e50;
+            top: max(14px, env(safe-area-inset-top));
+            right: 16px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 2px solid #38ef7d;
             color: white;
-            padding: 0.8rem 1.2rem;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            z-index: 9999;
-            font-size: 0.9rem;
+            font-size: 1.4rem;
             display: flex;
             align-items: center;
-            gap: 0.8rem;
-            border: 2px solid #3498db;
-        }
-        .dev-sim-bar button {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 0.4rem 0.8rem;
-            border-radius: 8px;
-            font-weight: bold;
+            justify-content: center;
             cursor: pointer;
+            z-index: 99990;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), 0 0 15px rgba(56, 239, 125, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            user-select: none;
+            -webkit-user-select: none;
         }
-        .dev-sim-bar button:hover { background: #2980b9; }
-        .dev-sim-bar input {
-            padding: 0.4rem;
-            border-radius: 6px;
+        .dev-sim-trigger:hover {
+            transform: scale(1.08);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 22px rgba(56, 239, 125, 0.5);
+            background: rgba(15, 23, 42, 0.95);
+        }
+        .dev-sim-trigger:active {
+            transform: scale(0.95);
+        }
+
+        /* Glass Backdrop */
+        .dev-sim-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 99991;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+        .dev-sim-backdrop.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Glass Drawer Panel */
+        .dev-sim-drawer {
+            position: fixed;
+            top: max(14px, env(safe-area-inset-top));
+            right: 16px;
+            width: min(380px, calc(100vw - 32px));
+            background: rgba(15, 23, 42, 0.94);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 28px;
+            padding: 1.4rem;
+            color: white;
+            z-index: 99992;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 20px rgba(56, 239, 125, 0.15);
+            opacity: 0;
+            transform: scale(0.9) translateY(-10px);
+            pointer-events: none;
+            transition: opacity 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .dev-sim-drawer.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+        }
+
+        .dev-drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .dev-drawer-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #38ef7d;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .dev-close-btn {
+            background: rgba(255, 255, 255, 0.12);
             border: none;
-            width: 120px;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease;
+        }
+        .dev-close-btn:hover {
+            background: rgba(239, 68, 68, 0.8);
+        }
+
+        .dev-section-title {
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #94a3b8;
+            margin-bottom: 0.6rem;
+        }
+
+        .dev-btn-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.2rem;
+        }
+        .dev-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.5rem 0.9rem;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            text-decoration: none;
+        }
+        .dev-btn:hover {
+            background: #38ef7d;
+            color: #0f172a;
+            border-color: #38ef7d;
+            transform: translateY(-2px);
+        }
+        .dev-btn:active {
+            transform: scale(0.96);
+        }
+
+        .dev-input-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.2rem;
+        }
+        .dev-input-row input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: white;
+            padding: 0.55rem 0.9rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .dev-input-row input:focus {
+            border-color: #38ef7d;
         }
     </style>
 </head>
@@ -66,20 +203,68 @@
     </main>
 
     {% if config.DEV_MODE %}
-    <!-- DEV MODE EMULATION TOOLBAR -->
-    <div class="dev-sim-bar" id="devSimBar">
-        <span>🧪 <strong>DEV SIMULATOR:</strong></span>
-        <button onclick="simTap('TEST_LENA_123')">👧 Lena</button>
-        <button onclick="simTap('TEST_PAPA_456')">👨 Papa</button>
-        <button onclick="simTap('UNKNOWN_999')">❓ Unbekannt</button>
-        <input type="text" id="devUidInput" placeholder="UID...">
-        <button onclick="simTap(document.getElementById('devUidInput').value)">Tap 💳</button>
-        <button onclick="simPin('1234')">PIN 1234 🔢</button>
-        <a href="/receipt/latest" target="_blank" style="color: #f1c40f; font-weight: bold; margin-left: 0.5rem; text-decoration: none;">📄 Bon (PDF)</a>
-        <a href="/terminal" target="_blank" style="color: #4cd137; font-weight: bold; margin-left: 0.5rem; text-decoration: none;">📺 Terminal</a>
+    <!-- DEV MODE FLOATING TRIGGER BUTTON -->
+    <button type="button" class="dev-sim-trigger" id="devSimTrigger" onclick="toggleDevDrawer()" title="Dev Simulator 🧪">
+        🧪
+    </button>
+
+    <!-- BACKDROP OVERLAY -->
+    <div class="dev-sim-backdrop" id="devSimBackdrop" onclick="closeDevDrawer()"></div>
+
+    <!-- GLASSMORPHIC DEV DRAWER PANEL -->
+    <div class="dev-sim-drawer" id="devSimDrawer">
+        <div class="dev-drawer-header">
+            <h3>🧪 Dev Simulator</h3>
+            <button type="button" class="dev-close-btn" onclick="closeDevDrawer()" title="Schließen">✕</button>
+        </div>
+
+        <div class="dev-section-title">💳 Schnell-Testkarten (Tap):</div>
+        <div class="dev-btn-group">
+            <button type="button" class="dev-btn" onclick="simTap('TEST_LENA_123'); closeDevDrawer();">👧 Lena</button>
+            <button type="button" class="dev-btn" onclick="simTap('TEST_PAPA_456'); closeDevDrawer();">👨 Papa</button>
+            <button type="button" class="dev-btn" onclick="simTap('UNKNOWN_999'); closeDevDrawer();">❓ Unbekannt</button>
+        </div>
+
+        <div class="dev-section-title">🔍 Custom NFC-UID:</div>
+        <div class="dev-input-row">
+            <input type="text" id="devUidInput" placeholder="NFC-UID eingeben...">
+            <button type="button" class="dev-btn" onclick="simTap(document.getElementById('devUidInput').value); closeDevDrawer();">Tap 💳</button>
+        </div>
+
+        <div class="dev-section-title">⚡ Actions & Links:</div>
+        <div class="dev-btn-group" style="margin-bottom: 0;">
+            <button type="button" class="dev-btn" onclick="simPin('1234'); closeDevDrawer();">🔢 PIN 1234</button>
+            <a href="/receipt/latest" target="_blank" class="dev-btn">📄 Bon (PDF)</a>
+            <a href="/terminal" target="_blank" class="dev-btn">📺 Terminal</a>
+            <a href="/admin" target="_blank" class="dev-btn">⚙️ Admin</a>
+        </div>
     </div>
 
     <script>
+    function toggleDevDrawer() {
+        const drawer = document.getElementById("devSimDrawer");
+        const backdrop = document.getElementById("devSimBackdrop");
+        if (!drawer || !backdrop) return;
+        const isActive = drawer.classList.contains("active");
+        if (isActive) {
+            closeDevDrawer();
+        } else {
+            drawer.classList.add("active");
+            backdrop.classList.add("active");
+        }
+    }
+
+    function closeDevDrawer() {
+        const drawer = document.getElementById("devSimDrawer");
+        const backdrop = document.getElementById("devSimBackdrop");
+        if (drawer) drawer.classList.remove("active");
+        if (backdrop) backdrop.classList.remove("active");
+    }
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeDevDrawer();
+    });
+
     function getDevSocket() {
         if (window.socket) return window.socket;
         if (typeof io !== 'undefined') {
