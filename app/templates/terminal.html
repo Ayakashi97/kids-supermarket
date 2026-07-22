@@ -950,6 +950,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function showState(el) {
         wakeUp();
+        if (el !== stateError) {
+            if (typeof errorRetryTimer !== 'undefined' && errorRetryTimer) {
+                clearTimeout(errorRetryTimer);
+                errorRetryTimer = null;
+            }
+            const errorBar = document.getElementById("errorCountdownBar");
+            if (errorBar) {
+                errorBar.style.transition = "none";
+                errorBar.style.width = "0%";
+            }
+        }
         const stateScannerIdle = document.getElementById("stateScannerIdle");
         [stateIdle, stateScannerIdle, stateWaiting, statePin, stateSignature, stateSuccess, stateError, stateSleep].forEach(s => {
             if (s) s.classList.add("hidden");

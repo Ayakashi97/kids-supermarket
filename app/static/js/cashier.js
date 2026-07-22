@@ -845,35 +845,52 @@ document.addEventListener("DOMContentLoaded", () => {
         hideOverlay();
     });
 
+    function clearErrorBarState() {
+        if (cashierErrorRetryTimer) {
+            clearTimeout(cashierErrorRetryTimer);
+            cashierErrorRetryTimer = null;
+        }
+        const errBarContainer = document.getElementById("errorCountdownBarContainer");
+        if (errBarContainer) errBarContainer.style.display = "none";
+        const errBar = document.getElementById("errorCountdownBar");
+        if (errBar) {
+            errBar.style.transition = "none";
+            errBar.style.width = "0%";
+        }
+    }
+
     // --- Overlay UI Functions ---
     function showPaymentWaitingOverlay() {
+        clearErrorBarState();
         overlayTitle.textContent = "Karte hinhalten! 💳";
         overlaySubtitle.textContent = "Halte deine Supermarkt-Karte an das Lesegerät...";
         overlayIcon.textContent = "💳";
         overlayIcon.style.display = "block";
         photoContainer.style.display = "none";
-        cancelPayBtn.style.display = "block";
+        cancelPayBtn.style.display = "inline-flex";
         paymentOverlay.classList.remove("hidden");
     }
 
     function showPaymentPinPromptOverlay(data) {
+        clearErrorBarState();
         overlayTitle.textContent = data.card_name ? `Hallo ${data.card_name}! 🔢` : "PIN eingeben 🔢";
         overlaySubtitle.textContent = "Warte auf PIN-Eingabe am Lesegerät...";
         overlayIcon.textContent = "🔢";
         overlayIcon.style.display = "block";
         photoContainer.style.display = "none";
-        cancelPayBtn.style.display = "block";
+        cancelPayBtn.style.display = "inline-flex";
         paymentOverlay.classList.remove("hidden");
     }
 
     function showPaymentPinErrorOverlay(msg) {
+        clearErrorBarState();
         playErrorSound();
         overlayTitle.textContent = "Falsche PIN ❌";
         overlaySubtitle.textContent = msg || "Bitte 4-stellige Geheimzahl erneut eingeben.";
         overlayIcon.textContent = "⚠️";
         overlayIcon.style.display = "block";
         photoContainer.style.display = "none";
-        cancelPayBtn.style.display = "block";
+        cancelPayBtn.style.display = "inline-flex";
         paymentOverlay.classList.remove("hidden");
     }
 
@@ -917,6 +934,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function showPaymentSuccessOverlay(data) {
+        clearErrorBarState();
         currentTransactionId = data.transaction_id || null;
         overlayTitle.textContent = data.card_name ? `Hallo ${data.card_name}! 🎉` : "Bezahlt! 🎉";
         overlaySubtitle.textContent = `Gesamtsumme: ${formatCurrency(data.total_cents || getTotalCents())}`;
