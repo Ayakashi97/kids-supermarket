@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Kinder-Supermarkt">
-    <meta name="theme-color" content="#1e3c72">
+    <meta name="theme-color" content="{% block theme_color %}#1e3c72{% endblock %}">
     <link rel="manifest" href="{% block manifest_url %}/manifest.json{% endblock %}">
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">

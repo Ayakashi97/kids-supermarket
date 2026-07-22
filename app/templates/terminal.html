@@ -4,6 +4,8 @@
 {% block body_class %}terminal-page{% endblock %}
 {% block manifest_url %}/manifest-terminal.json{% endblock %}
 
+{% block theme_color %}#080f14{% endblock %}
+
 {% block head %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,19 +15,34 @@
         box-sizing: border-box;
     }
 
+    html {
+        background: #080f14 !important;
+        height: 100%;
+        overflow: hidden;
+        overscroll-behavior: none;
+    }
+
     body {
         margin: 0;
         padding: 0;
         background: radial-gradient(circle at 50% 20%, #1e3c72 0%, #0f2027 80%, #080f14 100%);
         color: white;
         font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-        min-height: 100vh;
-        min-height: 100dvh;
+        height: 100vh;
+        height: 100dvh;
+        width: 100vw;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        overflow: hidden;
+        overflow: hidden !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        touch-action: none;
+        overscroll-behavior: none;
         user-select: none;
         -webkit-user-select: none;
         -webkit-tap-highlight-color: transparent;
@@ -59,18 +76,19 @@
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
     }
 
-    /* Outer Wrapper for 100% Mobile Center with breathable top & bottom spacing */
+    /* Outer Wrapper for 100% Mobile Center with zero-whitespace safe-area bounds */
     .terminal-viewport-wrapper {
         width: 100%;
         max-width: 480px;
-        padding: max(15px, env(safe-area-inset-top)) 1.2rem max(35px, env(safe-area-inset-bottom)) 1.2rem;
+        height: 100dvh;
+        max-height: 100dvh;
+        padding: max(15px, env(safe-area-inset-top)) 1.2rem max(15px, env(safe-area-inset-bottom)) 1.2rem;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         box-sizing: border-box;
-        margin-top: 55px;
-        margin-bottom: 30px;
+        margin: 0 auto;
     }
 
     /* Modern Glassmorphic Main Card */
@@ -540,6 +558,40 @@
 {% block scripts %}
 <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 <script>
+// Lock PWA screen: Prevent edge back-swipe gestures, history navigation, and pull-to-refresh
+(function lockPwaScreen() {
+    try {
+        history.pushState(null, null, location.href);
+        window.addEventListener('popstate', function() {
+            history.pushState(null, null, location.href);
+        });
+    } catch (e) {}
+
+    document.addEventListener('touchstart', function(e) {
+        if (e.touches && e.touches.length > 0) {
+            const x = e.touches[0].clientX;
+            if (x < 25 || x > (window.innerWidth - 25)) {
+                e.preventDefault();
+            }
+        }
+    }, { passive: false });
+
+    document.addEventListener('touchmove', function(e) {
+        let el = e.target;
+        let isScrollable = false;
+        while (el && el !== document.body) {
+            if (el.scrollHeight > el.clientHeight && (getComputedStyle(el).overflowY === 'auto' || getComputedStyle(el).overflowY === 'scroll')) {
+                isScrollable = true;
+                break;
+            }
+            el = el.parentElement;
+        }
+        if (!isScrollable) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+})();
+
 let termPin = "";
 const screenTimeoutSec = parseInt("{{ screen_timeout or 30 }}");
 const showNfcToastSetting = "{{ show_nfc_toast or 'true' }}" === "true";

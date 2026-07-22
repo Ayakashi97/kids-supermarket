@@ -1,7 +1,36 @@
-/**
- * Kinder-Supermarkt - Cashier UI & Cart System
- * Plain JavaScript (Vanilla JS) + Web Audio API + Socket.IO
- */
+// Lock PWA screen: Prevent edge back-swipe gestures, history navigation, and pull-to-refresh
+(function lockPwaScreen() {
+    try {
+        history.pushState(null, null, location.href);
+        window.addEventListener('popstate', function() {
+            history.pushState(null, null, location.href);
+        });
+    } catch (e) {}
+
+    document.addEventListener('touchstart', function(e) {
+        if (e.touches && e.touches.length > 0) {
+            const x = e.touches[0].clientX;
+            if (x < 25 || x > (window.innerWidth - 25)) {
+                e.preventDefault();
+            }
+        }
+    }, { passive: false });
+
+    document.addEventListener('touchmove', function(e) {
+        let el = e.target;
+        let isScrollable = false;
+        while (el && el !== document.body) {
+            if (el.scrollHeight > el.clientHeight && (getComputedStyle(el).overflowY === 'auto' || getComputedStyle(el).overflowY === 'scroll')) {
+                isScrollable = true;
+                break;
+            }
+            el = el.parentElement;
+        }
+        if (!isScrollable) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+})();
 
 window.toggleFullscreen = function() {
     if (!document.fullscreenElement) {

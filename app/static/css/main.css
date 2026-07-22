@@ -41,6 +41,20 @@ html, body {
 }
 
 /* Fixed fullscreen layout & gesture prevention ONLY for Cashier and Terminal screens */
+html {
+    overscroll-behavior: none !important;
+    overscroll-behavior-x: none !important;
+    overscroll-behavior-y: none !important;
+}
+
+body.cashier-page {
+    background: #1e3c72;
+}
+
+body.terminal-page {
+    background: #080f14;
+}
+
 body.cashier-page, body.terminal-page {
     height: 100vh;
     height: 100dvh;
@@ -55,8 +69,11 @@ body.cashier-page, body.terminal-page {
     bottom: 0;
     touch-action: none;
     overscroll-behavior: none;
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: none;
     user-select: none;
     -webkit-user-select: none;
+    -webkit-touch-callout: none;
     font-size: 20px; /* Minimum 18px kid rule */
 }
 

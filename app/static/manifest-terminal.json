@@ -3,10 +3,13 @@
   "short_name": "Terminal",
   "description": "Zahlungsterminal und NFC-Reader für den Kinder-Supermarkt",
   "start_url": "/terminal",
-  "display": "standalone",
+  "id": "/terminal",
+  "scope": "/terminal",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
   "orientation": "portrait",
-  "background_color": "#0f2027",
-  "theme_color": "#0f2027",
+  "background_color": "#080f14",
+  "theme_color": "#080f14",
   "icons": [
     {
       "src": "/static/images/icon-terminal-192.png",
