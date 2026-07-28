@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Test & dev artifacts
+.pytest_cache/
+nfc_reader/__pycache__/
+tests/__pycache__/
+
+# SQLite
+*.db
+*.sqlite3
+app/data/*.db
+
+# Environment variables
+.env
+
+# Docker / OS
+.DS_Store
+.idea/
+.vscode/
+
+# SSL certificates & private keys — never commit!
+*.pem
+*.key
+*.crt
+*.cer
+app/data/ssl/
+
+# Debug directory
+debug/
+
+# User-uploaded media (card photos & product images)
+app/static/images/cards/*
+app/static/images/products/*
+# Keep the directories themselves
+!app/static/images/cards/.gitkeep
+!app/static/images/products/.gitkeep

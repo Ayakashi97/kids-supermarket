@@ -1,0 +1,658 @@
+{% extends "admin/base_admin.html" %}
+{% set active_page = "settings" %}
+
+{% block admin_title %}Einstellungen — Admin Panel{% endblock %}
+
+{% block admin_head %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}
+
+{% block admin_content %}
+<div class="page-title-row">
+    <h2>System-Einstellungen & Bon-Layout ⚙️</h2>
+</div>
+
+    <!-- Supermarkt Grund-Einstellungen -->
+    <form method="POST" enctype="multipart/form-data">
+        <div class="admin-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.4rem;">
+                <h3 style="margin: 0;">Supermarkt-Einstellungen</h3>
+                <button type="submit" class="btn btn-icon btn-success" title="Einstellungen speichern">
+                    <svg width="20" height="20" viewBox="0 0 24 24" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </button>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="shop_name">Name des Supermarkts:</label>
+                    <input type="text" id="shop_name" name="shop_name" value="{{ settings.shop_name }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="admin_pin">Admin PIN (Zugangsschutz):</label>
+                    <input type="password" id="admin_pin" name="admin_pin" value="{{ settings.admin_pin }}" required>
+                </div>
+
+                <div class="form-group toggle-group">
+                    <label for="nfc_mode" class="has-tooltip" title="Wählt aus, wie Kundenkarten erfasst werden (Smartphone Web NFC vs Touchscreen-Kartenwahl vs PN532 Hardware)." data-tip="Wählt aus, wie Kundenkarten erfasst werden (Smartphone Web NFC vs Touchscreen-Kartenwahl vs PN532 Hardware).">
+                        NFC-Lesegerät Modus
+                    </label>
+                    <div class="seg-control" id="nfc_mode_seg">
+                        <button type="button" class="{% if settings.nfc_mode == 'web_nfc' or not settings.nfc_mode %}active on{% endif %}" onclick="segToggle('nfc_mode_seg','nfc_mode','web_nfc',null,this)">📱 Web NFC</button>
+                        <button type="button" class="{% if settings.nfc_mode == 'touchscreen_simulation' %}active on{% endif %}" onclick="segToggle('nfc_mode_seg','nfc_mode','touchscreen_simulation',null,this)">👆 Touchscreen</button>
+                        <button type="button" class="{% if settings.nfc_mode == 'hardware' %}active on{% endif %}" onclick="segToggle('nfc_mode_seg','nfc_mode','hardware',null,this)">🔌 Hardware</button>
+                    </div>
+                    <input type="hidden" id="nfc_mode" name="nfc_mode" value="{{ settings.nfc_mode or 'web_nfc' }}">
+                </div>
+
+                <div class="form-group toggle-group">
+                    <label for="scanner_mode" class="has-tooltip" title="Im Leerlauf scannt das Terminal-Smartphone NFC-Tags von Produkten und fügt sie automatisch dem Warenkorb auf der Kasse hinzu." data-tip="Im Leerlauf scannt das Terminal-Smartphone NFC-Tags von Produkten und fügt sie automatisch dem Warenkorb auf der Kasse hinzu.">
+                        🔍 Terminal Hand-Scanner
+                    </label>
+                    <div class="seg-control" id="scanner_mode_seg">
+                        <button type="button" class="off {% if settings.scanner_mode != 'enabled' %}active{% endif %}" onclick="segToggle('scanner_mode_seg','scanner_mode','disabled','enabled',this)">Aus</button>
+                        <button type="button" class="on {% if settings.scanner_mode == 'enabled' %}active{% endif %}" onclick="segToggle('scanner_mode_seg','scanner_mode','enabled','disabled',this)">An</button>
+                    </div>
+                    <input type="hidden" id="scanner_mode" name="scanner_mode" value="{{ settings.scanner_mode or 'disabled' }}">
+                </div>
+
+                <div class="form-group toggle-group">
+                    <label for="show_nfc_toast" class="has-tooltip" title="Zeigt beim Scannen einer Karte das Hinweisbanner „✅ NFC Karte erfasst!“ auf dem Terminal an." data-tip="Zeigt beim Scannen einer Karte das Hinweisbanner „✅ NFC Karte erfasst!“ auf dem Terminal an.">
+                        NFC Toast-Banner
+                    </label>
+                    <div class="seg-control" id="show_nfc_toast_seg">
+                        <button type="button" class="off {% if settings.show_nfc_toast == 'false' %}active{% endif %}" onclick="segToggle('show_nfc_toast_seg','show_nfc_toast','false','true',this)">Aus</button>
+                        <button type="button" class="on {% if settings.show_nfc_toast != 'false' %}active{% endif %}" onclick="segToggle('show_nfc_toast_seg','show_nfc_toast','true','false',this)">An</button>
+                    </div>
+                    <input type="hidden" id="show_nfc_toast" name="show_nfc_toast" value="{{ settings.show_nfc_toast or 'true' }}">
+                </div>
+
+                <div class="form-group toggle-group">
+                    <label for="pin_mode" class="has-tooltip" title="Bestimmt, ob das Touchscreen-Terminal nach dem Auflegen eine PIN abfragt oder ein Unterschriftenfeld zeigt." data-tip="Bestimmt, ob das Touchscreen-Terminal nach dem Auflegen eine PIN abfragt oder ein Unterschriftenfeld zeigt.">
+                        Terminal PIN-Abfrage
+                    </label>
+                    <div class="seg-control" id="pin_mode_seg">
+                        <button type="button" class="{% if settings.pin_mode == 'disabled' or not settings.pin_mode %}active off{% endif %}" onclick="segToggle('pin_mode_seg','pin_mode','disabled',null,this)">Aus</button>
+                        <button type="button" class="{% if settings.pin_mode == 'signature' %}active on{% endif %}" onclick="segToggle('pin_mode_seg','pin_mode','signature',null,this)">✍️ Unterschrift</button>
+                        <button type="button" class="{% if settings.pin_mode == 'any_4_digits' %}active on{% endif %}" onclick="segToggle('pin_mode_seg','pin_mode','any_4_digits',null,this)">🔢 4 Zahlen</button>
+                        <button type="button" class="{% if settings.pin_mode == 'exact_match' %}active on{% endif %}" onclick="segToggle('pin_mode_seg','pin_mode','exact_match',null,this)">🔐 Exakte PIN</button>
+                    </div>
+                    <input type="hidden" id="pin_mode" name="pin_mode" value="{{ settings.pin_mode or 'disabled' }}">
+                </div>
+
+                <div class="form-group toggle-group">
+                    <label class="has-tooltip" title="Schaltet das Terminal-Display im Leerlauf automatisch ab/dunkel. Bei Karte auflegen oder Tippen wird es sofort wieder wach." data-tip="Schaltet das Terminal-Display im Leerlauf automatisch ab/dunkel. Bei Karte auflegen oder Tippen wird es sofort wieder wach.">
+                        Terminal Standby
+                    </label>
+                    <div class="range-group" style="min-width: 200px; max-width: 260px;">
+                        <input type="range" id="screen_timeout_range"
+                            min="0" max="5"
+                            value="{% if settings.screen_timeout == '15' %}0{% elif settings.screen_timeout == '30' or not settings.screen_timeout %}1{% elif settings.screen_timeout == '60' %}2{% elif settings.screen_timeout == '120' %}3{% elif settings.screen_timeout == '300' %}4{% else %}5{% endif %}"
+                            oninput="updateTimeoutSlider(this)">
+                        <input type="hidden" id="screen_timeout" name="screen_timeout" value="{{ settings.screen_timeout or '30' }}">
+                        <div class="range-value" id="screen_timeout_label">
+                            {% if settings.screen_timeout == '15' %}15 Sek
+                            {% elif settings.screen_timeout == '60' %}1 Min
+                            {% elif settings.screen_timeout == '120' %}2 Min
+                            {% elif settings.screen_timeout == '300' %}5 Min
+                            {% elif settings.screen_timeout == '0' %}Nie
+                            {% else %}30 Sek
+                            {% endif %}
+                        </div>
+                        <div class="range-labels">
+                            <span>15s</span><span>30s</span><span>1m</span><span>2m</span><span>5m</span><span>Nie</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group toggle-group">
+                    <label for="dev_mode" class="has-tooltip" title="Blendet am unteren Bildschirmrand eine Leiste mit virtuellen NFC-Karten-Buttons und Schnelltests ein." data-tip="Blendet am unteren Bildschirmrand eine Leiste mit virtuellen NFC-Karten-Buttons und Schnelltests ein.">
+                        🧪 Debug- / Simulator-Leiste
+                    </label>
+                    <div class="seg-control" id="dev_mode_seg">
+                        <button type="button" class="off {% if settings.dev_mode != 'true' %}active{% endif %}" onclick="segToggle('dev_mode_seg','dev_mode','false','true',this)">Aus</button>
+                        <button type="button" class="on {% if settings.dev_mode == 'true' %}active{% endif %}" onclick="segToggle('dev_mode_seg','dev_mode','true','false',this)">An</button>
+                    </div>
+                    <input type="hidden" id="dev_mode" name="dev_mode" value="{{ settings.dev_mode or 'false' }}">
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- 🔐 HTTPS & SSL-Zertifikat Einstellungen -->
+    <form id="ssl_settings_form" method="POST" enctype="multipart/form-data" onsubmit="return validateSslForm(event);" data-cert-cn="{{ cert_info.common_name if cert_info else '' }}" data-cert-sans="{{ cert_info.sans | join(',') if cert_info and cert_info.sans else '' }}">
+        <div class="admin-card" id="ssl_card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.8rem;">
+                <h3 style="margin: 0; display: flex; align-items: center;" class="has-tooltip" title="Für Web NFC auf Android-Smartphones ist HTTPS zwingend erforderlich. Hier kannst du Zertifikate verwalten." data-tip="Für Web NFC auf Android-Smartphones ist HTTPS zwingend erforderlich. Hier kannst du Zertifikate verwalten.">
+                    🔐 Web-Protokoll & SSL
+                </h3>
+                <div style="display: flex; gap: 0.8rem; align-items: center;">
+                    <div class="seg-control" id="ssl_enabled_seg">
+                        <button type="button" class="http {% if settings.ssl_enabled != 'true' %}active{% endif %}" onclick="segToggleSsl('ssl_enabled_seg','ssl_enabled','false','true',this)">HTTP</button>
+                        <button type="button" class="https {% if settings.ssl_enabled == 'true' %}active{% endif %}" onclick="segToggleSsl('ssl_enabled_seg','ssl_enabled','true','false',this)">HTTPS</button>
+                    </div>
+                    <input type="hidden" id="ssl_enabled" name="ssl_enabled" value="{{ settings.ssl_enabled or 'false' }}">
+                    <button type="submit" class="btn btn-icon btn-success" title="Einstellungen speichern">
+                        <svg width="20" height="20" viewBox="0 0 24 24" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group span-full" style="grid-column: span 2;">
+                    <label for="base_url" class="has-tooltip" title="Wird in QR-Codes auf Kassenbons gedruckt und muss zum Hostnamen/SAN des SSL-Zertifikats passen." data-tip="Wird in QR-Codes auf Kassenbons gedruckt und muss zum Hostnamen/SAN des SSL-Zertifikats passen.">
+                        Server Base-URL / Domain / IP
+                    </label>
+                    <input type="text" id="base_url" name="base_url" value="{{ settings.base_url }}" placeholder="z.B. https://supermarket.local oder http://192.168.1.100 (leer für Auto-Erkennung)" oninput="checkBaseUrlMatch()">
+                    <div id="base_url_mismatch_badge" style="display: none; margin-top: 0.5rem; background: #fff1f2; border: 1.5px solid #fecdd3; color: #e11d48; padding: 0.5rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: bold; align-items: center; gap: 0.4rem;">
+                        ⚠️ Hostname weicht vom SSL-Zertifikat ab! (<span id="badge_cert_hosts"></span>)
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conditional SSL Cert Upload & Info Section -->
+            <div id="ssl_cert_fields" style="display: {% if settings.ssl_enabled == 'true' %}block{% else %}none{% endif %}; margin-top: 1rem; border-top: 1px dashed var(--admin-border); padding-top: 1.2rem;">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="ssl_cert_file" class="has-tooltip" title="Öffentliches SSL-Zertifikat (z.B. für supermarket.local)." data-tip="Öffentliches SSL-Zertifikat (z.B. für supermarket.local).">
+                            Zertifikatsdatei (.pem / .crt)
+                        </label>
+                        <input type="file" id="ssl_cert_file" name="ssl_cert_file" accept=".pem,.crt,.cer" onchange="if(this.files && this.files[0]) handleCertFileSelect(this.files[0]); else handleCertFileSelect(null);">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ssl_key_file" class="has-tooltip" title="Der unverschlüsselte private Schlüssel für das Zertifikat." data-tip="Der unverschlüsselte private Schlüssel für das Zertifikat.">
+                            Privater Schlüssel (.pem / .key)
+                        </label>
+                        <input type="file" id="ssl_key_file" name="ssl_key_file" accept=".pem,.key">
+                    </div>
+
+                    <div class="form-group span-full" style="grid-column: span 2;">
+                        <label for="ssl_ca_file" class="has-tooltip" title="Falls eine eigene Root-CA verwendet wird, hier die CA-Kette hochladen." data-tip="Falls eine eigene Root-CA verwendet wird, hier die CA-Kette hochladen.">
+                            CA-Zertifikatskette (optional, .pem / .crt)
+                        </label>
+                        <input type="file" id="ssl_ca_file" name="ssl_ca_file" accept=".pem,.crt">
+                    </div>
+
+                    {% if cert_info %}
+                    <div class="span-full" style="grid-column: span 2; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 1.2rem; border-radius: var(--radius-md); margin-top: 0.5rem;">
+                        <h4 style="color: #166534; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.4rem;">
+                            🛡️ Aktives Zertifikat:
+                        </h4>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; color: #14532d;">
+                            <tr style="border-bottom: 1px solid rgba(22, 101, 52, 0.1);">
+                                <td style="padding: 0.4rem 0; font-weight: bold; width: 200px;">Domain Name (CN):</td>
+                                <td style="padding: 0.4rem 0;"><code>{{ cert_info.common_name }}</code></td>
+                            </tr>
+                            {% if cert_info.sans %}
+                            <tr style="border-bottom: 1px solid rgba(22, 101, 52, 0.1);">
+                                <td style="padding: 0.4rem 0; font-weight: bold;">Alternative Namen (SAN):</td>
+                                <td style="padding: 0.4rem 0;"><code>{{ cert_info.sans | join(', ') }}</code></td>
+                            </tr>
+                            {% endif %}
+                            <tr style="border-bottom: 1px solid rgba(22, 101, 52, 0.1);">
+                                <td style="padding: 0.4rem 0; font-weight: bold;">Aussteller (Issuer):</td>
+                                <td style="padding: 0.4rem 0;"><code>{{ cert_info.issuer }}</code></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(22, 101, 52, 0.1);">
+                                <td style="padding: 0.4rem 0; font-weight: bold;">Gültig ab:</td>
+                                <td style="padding: 0.4rem 0;">{{ cert_info.valid_from }}</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(22, 101, 52, 0.1);">
+                                <td style="padding: 0.4rem 0; font-weight: bold;">Gültig bis:</td>
+                                <td style="padding: 0.4rem 0; {% if cert_info.is_expired %}color: var(--admin-danger); font-weight: bold;{% endif %}">
+                                    {{ cert_info.valid_to }} {% if cert_info.is_expired %}(ABGELAUFEN! ❌){% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                        <div style="margin-top: 1rem;">
+                            <button type="button" class="btn btn-danger btn-sm" onclick="confirmAction(() => clearCachesAndSubmitCertDelete(), 'SSL-Zertifikat löschen?', 'Möchtest du das SSL-Zertifikat wirklich löschen? Die HTTPS-Verbindung wird damit deaktiviert und das Kassen-System schaltet zurück auf HTTP (unverschlüsselt).', 'Ja, Löschen 🗑️', '🗑️', 'Abbrechen ❌');">
+                                🗑️ Zertifikat löschen
+                            </button>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="span-full" style="grid-column: span 2; background: #f8fafc; border: 1.5px dashed var(--admin-border); padding: 1rem; border-radius: var(--radius-md); text-align: center; color: var(--admin-muted); margin-top: 0.5rem; font-size: 0.9rem;">
+                        🔓 Kein eigenes SSL-Zertifikat hochgeladen.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Hardware Bon-Drucker Einstellungen -->
+    <form method="POST" enctype="multipart/form-data">
+        <div class="admin-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.4rem;">
+                <h3 style="margin: 0;">🖨️ Bon-Drucker Hardware-Einstellungen</h3>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <a href="/receipt/preview" target="_blank" class="btn btn-primary btn-sm">
+                        <svg width="18" height="18" viewBox="0 0 24 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg> PDF
+                    </a>
+                    <button type="submit" class="btn btn-icon btn-success" title="Einstellungen speichern">
+                        <svg width="20" height="20" viewBox="0 0 24 24" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Warning banner if printer enabled -->
+            <div id="printer_docker_warning" style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; display: {% if settings.printer_enabled == 'true' %}block{% else %}none{% endif %};">
+                <h4 style="color: #b45309; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 1.05rem;">
+                    ⚠️ Wichtig: Docker-Konfiguration erforderlich!
+                </h4>
+                <p style="font-size: 0.9rem; color: #78350f; margin-bottom: 0.8rem; line-height: 1.45;">
+                    Damit der Docker-Container auf den Drucker zugreifen kann, musst du das Gerät in deiner <code>docker-compose.yml</code> freigeben. Füge dazu den folgenden Block unter <code>web</code> ein:
+                </p>
+                <div style="position: relative; background: #1e293b; color: #f8fafc; padding: 0.75rem 1rem; border-radius: 6px; font-family: monospace; font-size: 0.85rem; margin-bottom: 0.8rem; overflow-x: auto;">    devices:
+          - "<span id="warning_device_path">/dev/usb/lp0</span>:<span id="warning_device_path_dest">/dev/usb/lp0</span>"</div>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="copyToClipboard('    devices:\n      - &quot;' + (document.getElementById('printer_device')?.value || '/dev/usb/lp0') + ':' + (document.getElementById('printer_device')?.value || '/dev/usb/lp0') + '&quot;')" style="padding: 0.35rem 0.7rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem;">
+                        📋 Zeilen kopieren
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="copyToClipboard('docker compose down && docker compose up -d')" style="padding: 0.35rem 0.7rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem;">
+                        📋 Restart-Befehl kopieren
+                    </button>
+                </div>
+                <p style="font-size: 0.85rem; color: #b45309; margin-top: 0.8rem; font-weight: bold; line-height: 1.45;">
+                    Führe anschließend <code>docker compose down && docker compose up -d</code> auf dem Host-System aus.
+                </p>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group toggle-group">
+                    <label for="printer_enabled" class="has-tooltip" title="Aktiviert den USB-Thermodrucker. Auch ohne Hardware-Drucker steht der Bon als PDF zur Verfügung." data-tip="Aktiviert den USB-Thermodrucker. Auch ohne Hardware-Drucker steht der Bon als PDF zur Verfügung.">
+                        Hardware Bon-Drucker
+                    </label>
+                    <div class="seg-control" id="printer_enabled_seg">
+                        <button type="button" class="off {% if settings.printer_enabled != 'true' %}active{% endif %}" onclick="segToggle('printer_enabled_seg','printer_enabled','false','true',this); updatePrinterWarning();">Aus</button>
+                        <button type="button" class="on {% if settings.printer_enabled == 'true' %}active{% endif %}" onclick="segToggle('printer_enabled_seg','printer_enabled','true','false',this); updatePrinterWarning();">An</button>
+                    </div>
+                    <input type="hidden" id="printer_enabled" name="printer_enabled" value="{{ settings.printer_enabled or 'false' }}">
+                </div>
+
+                <div class="form-group toggle-group">
+                    <label for="print_mode" class="has-tooltip" title="Bestimmt, ob nach der Zahlung automatisch gedruckt oder nach dem Kassierer gefragt wird." data-tip="Bestimmt, ob nach der Zahlung automatisch gedruckt oder nach dem Kassierer gefragt wird.">
+                        Bon-Druckverhalten
+                    </label>
+                    <div class="seg-control" id="print_mode_seg">
+                        <button type="button" class="{% if settings.print_mode == 'ask_cashier' or not settings.print_mode %}active on{% endif %}" onclick="segToggle('print_mode_seg','print_mode','ask_cashier',null,this)">❓ Fragen</button>
+                        <button type="button" class="{% if settings.print_mode == 'always' %}active on{% endif %}" onclick="segToggle('print_mode_seg','print_mode','always',null,this)">⚡ Immer</button>
+                        <button type="button" class="{% if settings.print_mode == 'never' %}active on{% endif %}" onclick="segToggle('print_mode_seg','print_mode','never',null,this)">📄 Nur PDF</button>
+                    </div>
+                    <input type="hidden" id="print_mode" name="print_mode" value="{{ settings.print_mode or 'ask_cashier' }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="max_prints_per_hour" class="has-tooltip" title="Schützt vor Papierverschwendung durch ein einstellbares Stunden-Limit (Standard: 20 Bons/Std)." data-tip="Schützt vor Papierverschwendung durch ein einstellbares Stunden-Limit (Standard: 20 Bons/Std).">
+                        Max. Bons / Std. (Spam-Schutz)
+                    </label>
+                    <input type="number" id="max_prints_per_hour" name="max_prints_per_hour" value="{{ settings.max_prints_per_hour }}" min="1" max="500" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="printer_device" class="has-tooltip" title="Standard für Raspberry Pi USB-Drucker: /dev/usb/lp0" data-tip="Standard für Raspberry Pi USB-Drucker: /dev/usb/lp0">
+                        Drucker-Gerätepfad
+                    </label>
+                    <input type="text" id="printer_device" name="printer_device" value="{{ settings.printer_device }}">
+                </div>
+
+                <div class="form-group toggle-group">
+                    <label class="has-tooltip" title="58mm ist Standard für gängige Thermo-Bon-Drucker. 80mm für breite Bon-Drucker." data-tip="58mm ist Standard für gängige Thermo-Bon-Drucker. 80mm für breite Bon-Drucker.">
+                        Papierbreite
+                    </label>
+                    <div class="seg-control" id="paper_width_seg">
+                        <button type="button" class="{% if settings.paper_width == '58mm' or not settings.paper_width %}active on{% endif %}" onclick="segToggle('paper_width_seg','paper_width','58mm',null,this)">58 mm</button>
+                        <button type="button" class="{% if settings.paper_width == '80mm' %}active on{% endif %}" onclick="segToggle('paper_width_seg','paper_width','80mm',null,this)">80 mm</button>
+                    </div>
+                    <input type="hidden" id="paper_width" name="paper_width" value="{{ settings.paper_width or '58mm' }}">
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Visueller Drag & Drop Bon-Template Builder -->
+    <form method="POST" enctype="multipart/form-data">
+        <div class="admin-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="margin: 0;">🧾 Visueller Kassenbon Template-Builder</h3>
+                <button type="submit" class="btn btn-icon btn-success" title="Einstellungen speichern">
+                    <svg width="20" height="20" viewBox="0 0 24 24" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </button>
+            </div>
+
+            <input type="hidden" id="receipt_layout_json_input" name="receipt_layout_json" value='{{ settings.receipt_layout_json }}'>
+
+            <div class="builder-side-by-side">
+                <!-- Left Column: Draggable Block Controls & Ordering -->
+                <div class="builder-controls-col">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h4 style="margin: 0; font-size: 1.1rem; color: #0f172a;">🧱 Bausteine & Reihenfolge</h4>
+                        <button type="button" class="btn btn-icon btn-primary" id="btnAddReceiptBlock" title="Baustein hinzufügen">
+                            <svg width="20" height="20" viewBox="0 0 24 24" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        </button>
+                    </div>
+
+                    <div id="receiptBlocksContainer" class="builder-blocks-list">
+                        <!-- Rendered via JS -->
+                    </div>
+
+                    <div style="margin-top: 1.4rem; display: flex; gap: 0.8rem;">
+                        <button type="button" class="btn btn-sm btn-secondary" id="btnResetReceiptLayout">
+                            🔄 Auf Standard zurücksetzen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Column: Realtime Thermal Receipt Live Preview -->
+                <div class="builder-preview-col">
+                    <h4 style="margin-bottom: 1rem; text-align: center; font-size: 1.1rem; color: #0f172a;">📄 Live-Bon Vorschau</h4>
+                    <div class="receipt-paper-preview" id="receiptLivePreview">
+                        <!-- Rendered via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Entwickler-Einstellungen removed - dev_mode moved to Supermarkt-Einstellungen above -->
+
+<!-- Separate delete form outside the main form -->
+<form id="delete_cert_form" action="{{ url_for('admin.delete_cert') }}" method="POST" style="display: none;"></form>
+
+<script>
+// Segmented control helper — On/Aus toggles
+function segToggle(segId, hiddenId, myVal, otherVal, btn) {
+    const seg = document.getElementById(segId);
+    if (!seg) return;
+    seg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const hidden = document.getElementById(hiddenId);
+    if (hidden) hidden.value = myVal;
+}
+
+// HTTP / HTTPS segmented toggle — also shows/hides SSL cert fields
+function segToggleSsl(segId, hiddenId, myVal, otherVal, btn) {
+    segToggle(segId, hiddenId, myVal, otherVal, btn);
+    toggleSslFields(myVal);
+}
+
+// Screen timeout range slider
+const _timeoutMap = ['15','30','60','120','300','0'];
+const _timeoutLabels = ['15 Sek','30 Sek (Standard)','1 Min','2 Min','5 Min','Nie'];
+function updateTimeoutSlider(el) {
+    const idx = parseInt(el.value);
+    document.getElementById('screen_timeout').value = _timeoutMap[idx];
+    document.getElementById('screen_timeout_label').textContent = _timeoutLabels[idx];
+    const pct = (idx / 5) * 100;
+    el.style.setProperty('--pct', pct + '%');
+}
+
+function toggleSslFields(val) {
+    const fields = document.getElementById("ssl_cert_fields");
+    if (fields) {
+        fields.style.display = (val === "true") ? "block" : "none";
+    }
+}
+
+function updatePrinterWarning() {
+    const hidden = document.getElementById('printer_enabled');
+    const printerDevice = document.getElementById("printer_device");
+    const warningDiv = document.getElementById("printer_docker_warning");
+    const warningPath = document.getElementById("warning_device_path");
+    const warningPathDest = document.getElementById("warning_device_path_dest");
+
+    if (!hidden || !warningDiv) return;
+    warningDiv.style.display = (hidden.value === 'true') ? "block" : "none";
+    const devPath = (printerDevice && printerDevice.value) ? printerDevice.value : "/dev/usb/lp0";
+    if (warningPath) warningPath.textContent = devPath;
+    if (warningPathDest) warningPathDest.textContent = devPath;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const printerDevice = document.getElementById("printer_device");
+    if (printerDevice) printerDevice.addEventListener("input", updatePrinterWarning);
+    updatePrinterWarning();
+    const r = document.getElementById('screen_timeout_range');
+    if (r) updateTimeoutSlider(r);
+});
+
+
+
+let _bypassSslCheck = false;
+let selectedFileHostnames = [];
+
+function clearCachesAndSubmitCertDelete() {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+            for (let reg of regs) reg.unregister();
+        });
+    }
+    if ('caches' in window) {
+        caches.keys().then(names => {
+            for (let name of names) caches.delete(name);
+        });
+    }
+    const form = document.getElementById('delete_cert_form');
+    if (form) form.submit();
+}
+
+function extractHostFromUrl(urlStr) {
+    if (!urlStr) return "";
+    urlStr = urlStr.trim();
+    if (!urlStr.startsWith("http://") && !urlStr.startsWith("https://")) {
+        urlStr = "https://" + urlStr;
+    }
+    try {
+        const u = new URL(urlStr);
+        return (u.hostname || "").toLowerCase();
+    } catch(e) {
+        return urlStr.toLowerCase();
+    }
+}
+
+function parseCertHostnamesFromPem(pemText) {
+    const hostnames = new Set();
+    if (!pemText) return [];
+
+    const cnMatches = pemText.match(/CN\s*=\s*([^\s,/]+)/gi);
+    if (cnMatches) {
+        cnMatches.forEach(m => {
+            const parts = m.split("=");
+            if (parts.length > 1) {
+                const val = parts[1].trim();
+                if (val && !val.includes(" ")) hostnames.add(val.toLowerCase());
+            }
+        });
+    }
+    const dnsMatches = pemText.match(/DNS:([^\s,/]+)/gi);
+    if (dnsMatches) {
+        dnsMatches.forEach(m => {
+            const parts = m.split(":");
+            if (parts.length > 1) {
+                const val = parts[1].trim();
+                if (val) hostnames.add(val.toLowerCase());
+            }
+        });
+    }
+
+    const b64 = pemText.replace(/-----[^-]+-----/g, "").replace(/\s+/g, "");
+    if (b64) {
+        try {
+            const binaryStr = atob(b64);
+            const domainRegex = /([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63}|\b(?:\d{1,3}\.){3}\d{1,3}\b/g;
+            let match;
+            while ((match = domainRegex.exec(binaryStr)) !== null) {
+                const str = match[0].toLowerCase();
+                if (!str.startsWith("2.5.") && !str.endsWith(".0") && str.length > 3) {
+                    hostnames.add(str);
+                }
+            }
+        } catch(e) {
+            console.warn("Base64 DER parse skip:", e);
+        }
+    }
+    return Array.from(hostnames);
+}
+
+function handleCertFileSelect(file) {
+    if (!file) {
+        selectedFileHostnames = [];
+        checkBaseUrlMatch();
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        selectedFileHostnames = parseCertHostnamesFromPem(e.target.result);
+        console.log("Extracted hostnames from selected cert file:", selectedFileHostnames);
+        checkBaseUrlMatch();
+    };
+    reader.readAsText(file);
+}
+
+function getValidCertHosts() {
+    if (selectedFileHostnames && selectedFileHostnames.length > 0) {
+        return selectedFileHostnames;
+    }
+    const form = document.getElementById("ssl_settings_form");
+    if (!form) return [];
+    const certCn = form.dataset.certCn || "";
+    const certSansStr = form.dataset.certSans || "";
+    const certSans = certSansStr ? certSansStr.split(",") : [];
+    return [certCn, ...certSans].map(h => h.trim().toLowerCase()).filter(Boolean);
+}
+
+function checkBaseUrlMatch() {
+    const form = document.getElementById("ssl_settings_form");
+    const baseUrlInput = document.getElementById("base_url");
+    const mismatchBadge = document.getElementById("base_url_mismatch_badge");
+    const badgeHostsSpan = document.getElementById("badge_cert_hosts");
+    if (!form || !baseUrlInput || !mismatchBadge) return;
+
+    const validHosts = getValidCertHosts();
+    if (validHosts.length === 0) {
+        mismatchBadge.style.display = "none";
+        baseUrlInput.style.borderColor = "";
+        baseUrlInput.style.boxShadow = "";
+        return;
+    }
+
+    const enteredUrl = baseUrlInput.value;
+    const enteredHost = extractHostFromUrl(enteredUrl);
+
+    if (enteredHost && !validHosts.includes(enteredHost)) {
+        mismatchBadge.style.display = "inline-flex";
+        badgeHostsSpan.textContent = validHosts.join(", ");
+        baseUrlInput.style.borderColor = "#e11d48";
+        baseUrlInput.style.boxShadow = "0 0 0 3px rgba(225, 29, 72, 0.15)";
+    } else {
+        mismatchBadge.style.display = "none";
+        baseUrlInput.style.borderColor = "";
+        baseUrlInput.style.boxShadow = "";
+    }
+}
+
+function validateSslForm(event) {
+    if (_bypassSslCheck) return true;
+
+    const form = document.getElementById("ssl_settings_form");
+    const baseUrlInput = document.getElementById("base_url");
+    const sslEnabledRadio = document.querySelector('input[name="ssl_enabled"]:checked');
+    const certFileInput = document.getElementById("ssl_cert_file");
+    if (!form || !baseUrlInput) return true;
+
+    const validHosts = getValidCertHosts();
+    const enteredUrl = baseUrlInput.value.trim();
+    const enteredHost = extractHostFromUrl(enteredUrl);
+    const hasNewFile = certFileInput && certFileInput.files && certFileInput.files.length > 0;
+    const sslActive = (sslEnabledRadio && sslEnabledRadio.value === "true") || hasNewFile;
+
+    if ((sslActive || validHosts.length > 0) && enteredHost && validHosts.length > 0 && !validHosts.includes(enteredHost)) {
+        if (event && event.preventDefault) event.preventDefault();
+        confirmAction(
+            () => {
+                _bypassSslCheck = true;
+                form.submit();
+            },
+            "⚠️ Base-URL weicht vom Zertifikat ab!",
+            `Die Server Base-URL ('${enteredUrl}') entspricht nicht den Hostnamen im SSL-Zertifikat ('${validHosts.join(", ")}'). Dies kann im Browser zu Zertifikatswarnungen oder Redirect-Schleifen führen.\n\nMöchtest du trotzdem speichern?`,
+            "Trotzdem fortfahren ⚠️",
+            "⚠️",
+            "Abbrechen & Anpassen ❌"
+        );
+        return false;
+    }
+    return true;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    checkBaseUrlMatch();
+});
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        const toast = document.createElement("div");
+        toast.textContent = "Kopiert! 📋";
+        toast.style.position = "fixed";
+        toast.style.bottom = "20px";
+        toast.style.right = "20px";
+        toast.style.background = "#10b981";
+        toast.style.color = "white";
+        toast.style.padding = "0.75rem 1.5rem";
+        toast.style.borderRadius = "8px";
+        toast.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+        toast.style.zIndex = "9999";
+        toast.style.fontWeight = "bold";
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+    }).catch(err => {
+        alert("Fehler beim Kopieren: " + err);
+    });
+}
+</script>
+
+<!-- Modal for Adding Receipt Blocks -->
+<div class="overlay hidden" id="addBlockModal">
+    <div class="admin-card overlay-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
+            <h3 style="margin: 0; font-size: 1.4rem;">Baustein hinzufügen</h3>
+            <button type="button" class="btn-icon btn-danger" id="closeAddBlockModalBtn" title="Schließen">
+                <svg width="20" height="20" viewBox="0 0 24 24" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <p style="color: var(--admin-muted); margin-bottom: 1.4rem; font-size: 0.95rem;">Wähle den Typ des neuen Kassenbon-Bausteins:</p>
+
+        <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.5rem;">
+            <button type="button" class="btn btn-secondary" onclick="addReceiptBlockType('text')" style="justify-content: flex-start; text-align: left; padding: 0.9rem 1.2rem; background: #f8fafc; color: #0f172a; border: 1.5px solid var(--admin-border);">
+                <span style="font-size: 1.5rem;">📝</span>
+                <div>
+                    <strong style="display: block; font-size: 1rem;">Freitext / Hinweis</strong>
+                    <span style="font-size: 0.85rem; color: var(--admin-muted);">Benutzerdefinierter Text mit Ausrichtung (z.B. Dankeschön)</span>
+                </div>
+            </button>
+
+            <button type="button" class="btn btn-secondary" onclick="addReceiptBlockType('separator')" style="justify-content: flex-start; text-align: left; padding: 0.9rem 1.2rem; background: #f8fafc; color: #0f172a; border: 1.5px solid var(--admin-border);">
+                <span style="font-size: 1.5rem;">➖</span>
+                <div>
+                    <strong style="display: block; font-size: 1rem;">Trennlinie / Leerzeile</strong>
+                    <span style="font-size: 0.85rem; color: var(--admin-muted);">Gestrichelte Linie, durchgezogene Linie oder Abstand</span>
+                </div>
+            </button>
+
+            <button type="button" class="btn btn-secondary" onclick="addReceiptBlockType('qrcode')" style="justify-content: flex-start; text-align: left; padding: 0.9rem 1.2rem; background: #f8fafc; color: #0f172a; border: 1.5px solid var(--admin-border);">
+                <span style="font-size: 1.5rem;">📱</span>
+                <div>
+                    <strong style="display: block; font-size: 1rem;">QR-Code / Barcode</strong>
+                    <span style="font-size: 0.85rem; color: var(--admin-muted);">Scannbarer QR-Code für den digitalen Bon</span>
+                </div>
+            </button>
+
+            <button type="button" class="btn btn-secondary" onclick="addReceiptBlockType('signature')" style="justify-content: flex-start; text-align: left; padding: 0.9rem 1.2rem; background: #f8fafc; color: #0f172a; border: 1.5px solid var(--admin-border);">
+                <span style="font-size: 1.5rem;">🖋️</span>
+                <div>
+                    <strong style="display: block; font-size: 1rem;">Unterschriftenfeld</strong>
+                    <span style="font-size: 0.85rem; color: var(--admin-muted);">Feld für die Kundenunterschrift</span>
+                </div>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

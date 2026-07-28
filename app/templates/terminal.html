@@ -1,0 +1,1267 @@
+{% extends "base.html" %}
+
+{% block title %}{{ shop_name }} — Terminal{% endblock %}
+{% block body_class %}terminal-page{% endblock %}
+{% block manifest_url %}/manifest-terminal.json{% endblock %}
+
+{% block theme_color %}#080f14{% endblock %}
+
+{% block head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    html {
+        background: #080f14 !important;
+        height: 100%;
+        overflow: hidden;
+        overscroll-behavior: none;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        background: radial-gradient(circle at 50% 20%, #1e3c72 0%, #0f2027 80%, #080f14 100%);
+        color: white;
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+        height: 100vh;
+        height: 100dvh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        touch-action: none;
+        overscroll-behavior: none;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Fixed Header Shifted Down Below Notch */
+    .terminal-header {
+        position: fixed;
+        top: max(24px, env(safe-area-inset-top));
+        left: 20px;
+        right: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        z-index: 1000;
+    }
+
+    .terminal-brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        padding: 0.5rem 1.3rem;
+        border-radius: 50px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        font-size: 1.15rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Outer Wrapper for 100% Mobile Center with zero-whitespace safe-area bounds */
+    .terminal-viewport-wrapper {
+        width: 100%;
+        max-width: 480px;
+        height: 100dvh;
+        max-height: 100dvh;
+        padding: max(15px, env(safe-area-inset-top)) 1.2rem max(15px, env(safe-area-inset-bottom)) 1.2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        margin: 0 auto;
+    }
+
+    /* Modern Glassmorphic Main Card */
+    .terminal-glass-card {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 36px;
+        padding: 2.2rem 1.8rem;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    /* Pulsing Glowing Aura around NFC Icon */
+    .card-icon-halo-wrapper {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .terminal-card-icon {
+        font-size: 7rem;
+        display: block;
+        position: relative;
+        z-index: 2;
+        filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.4));
+    }
+
+    .card-halo-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(56, 239, 125, 0.4) 0%, rgba(17, 153, 142, 0.1) 60%, transparent 100%);
+        z-index: 1;
+        animation: auraGlow 2s infinite ease-in-out;
+    }
+
+    @keyframes auraGlow {
+        0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.4; }
+        50% { transform: translate(-50%, -50%) scale(1.35); opacity: 0.95; filter: blur(8px); }
+        100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.4; }
+    }
+
+    .pulse-animation {
+        animation: cardPulse 1.4s infinite ease-in-out;
+    }
+
+    @keyframes cardPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.15); filter: drop-shadow(0 0 30px rgba(56,239,125,0.8)); }
+        100% { transform: scale(1); }
+    }
+
+    /* Headings */
+    .terminal-title {
+        font-size: 2.2rem;
+        font-weight: 900;
+        margin-bottom: 0.4rem;
+        line-height: 1.2;
+        background: linear-gradient(135deg, #ffffff 0%, #dcdde1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .terminal-subtitle {
+        font-size: 1.25rem;
+        opacity: 0.85;
+        margin-bottom: 1.2rem;
+        line-height: 1.4;
+    }
+
+    /* Neon Price Badge */
+    .amount-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: #080f14;
+        font-size: 2.8rem;
+        font-weight: 900;
+        padding: 0.5rem 2.2rem;
+        border-radius: 50px;
+        box-shadow: 0 12px 35px rgba(56, 239, 125, 0.45);
+        margin-top: 0.6rem;
+        letter-spacing: 1px;
+    }
+
+    /* Prominent 3D Glass NFC Activation Button */
+    .btn-nfc-activate {
+        background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+        color: #091a24;
+        border: none;
+        padding: 1.1rem 2.2rem;
+        font-size: 1.25rem;
+        font-weight: 900;
+        border-radius: 50px;
+        cursor: pointer;
+        box-shadow: 0 12px 35px rgba(0, 206, 201, 0.45);
+        margin-top: 1.5rem;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .btn-nfc-activate:active {
+        transform: scale(0.96);
+    }
+
+    /* Toast Notification Banner */
+    .nfc-feedback-toast {
+        background: linear-gradient(135deg, #2ecc71, #1abc9c);
+        color: #080f14;
+        font-weight: 900;
+        font-size: 1.15rem;
+        padding: 0.8rem 1.5rem;
+        border-radius: 50px;
+        margin-bottom: 1.2rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 10px 30px rgba(46, 204, 113, 0.5);
+        animation: toastPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes toastPop {
+        0% { transform: scale(0); opacity: 0; }
+        80% { transform: scale(1.06); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Customer Photo Display */
+    .customer-photo-box {
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 6px solid #38ef7d;
+        margin: 0 auto 1.2rem auto;
+        box-shadow: 0 15px 40px rgba(56, 239, 125, 0.4);
+        animation: photoPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes photoPop {
+        0% { transform: scale(0); }
+        80% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    .customer-photo-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* PIN-Pad Grid */
+    .terminal-pin-display {
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        border-radius: 20px;
+        padding: 0.6rem;
+        font-size: 2.6rem;
+        letter-spacing: 1.2rem;
+        margin: 0.8rem auto 1.2rem auto;
+        max-width: 260px;
+        text-align: center;
+        color: #f1c40f;
+    }
+
+    .terminal-pin-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    .t-pin-btn {
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 20px;
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: white;
+        padding: 0.8rem;
+        cursor: pointer;
+        transition: all 0.12s ease;
+    }
+
+    .t-pin-btn:active {
+        transform: scale(0.92);
+        background: #f1c40f;
+        color: #091a24;
+    }
+
+    .t-pin-btn.btn-clear { background: rgba(231, 76, 60, 0.5); }
+    .t-pin-btn.btn-submit { background: rgba(46, 204, 113, 0.8); }
+
+    /* Touchscreen Selector (Fallback) */
+    .touchscreen-card-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+        justify-content: center;
+        margin-top: 1rem;
+        max-height: 240px;
+        overflow-y: auto;
+    }
+
+    .t-card-select-btn {
+        background: rgba(255, 255, 255, 0.12);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        padding: 0.8rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        min-width: 120px;
+        color: white;
+    }
+
+    .t-card-select-btn:active {
+        transform: scale(0.93);
+        background: #00b894;
+    }
+
+    .t-card-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid white;
+        background: rgba(255,255,255,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+    }
+
+    .t-card-name {
+        font-size: 1.2rem;
+        font-weight: 800;
+    }
+
+    /* Screen Standby Overlay */
+    .sleep-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: #000;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #555;
+        cursor: pointer;
+    }
+
+    .sleep-overlay .sleep-icon {
+        font-size: 5.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.3;
+    }
+
+    .sleep-overlay p {
+        font-size: 1.4rem;
+        opacity: 0.3;
+    }
+
+    /* Orientation Warning for Terminal (Must be Portrait) */
+    .portrait-warning-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: #080f14;
+        z-index: 99999;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    @keyframes rotatePhone {
+        0%, 100% { transform: rotate(0deg); }
+        50% { transform: rotate(-90deg); }
+    }
+
+    @media screen and (orientation: landscape) and (max-height: 600px) {
+        .portrait-warning-overlay {
+            display: flex;
+        }
+    }
+
+    .hidden {
+        display: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Mobile-Centered Viewport Container -->
+<div class="terminal-viewport-wrapper">
+    <!-- Glassmorphic Main Card -->
+    <div class="terminal-glass-card">
+
+        <!-- Live Scan Toast Banner -->
+        <div id="liveNfcFeedback" class="nfc-feedback-toast hidden"></div>
+
+        <!-- State 1: IDLE (Standard) -->
+        <div id="stateIdle">
+            <div class="card-icon-halo-wrapper">
+                <div class="card-halo-ring"></div>
+                <div class="terminal-card-icon">🛒</div>
+            </div>
+            <div class="terminal-title">{{ shop_name }}</div>
+            <div class="terminal-subtitle">Bereit für die nächste Bestellung!</div>
+
+            <button type="button" id="btnNfcActivate" class="btn-nfc-activate" onclick="initWebNFC(true)">
+                <span>📱</span> <span>NFC-Leser auf Handy aktivieren</span>
+            </button>
+        </div>
+
+        <!-- State 1b: IDLE (Scanner-Modus aktiv) -->
+        <div id="stateScannerIdle" class="hidden">
+            <div class="card-icon-halo-wrapper">
+                <div class="card-halo-ring" style="background: radial-gradient(circle, rgba(251,191,36,0.45) 0%, rgba(245,158,11,0.12) 60%, transparent 100%);"></div>
+                <div class="terminal-card-icon" style="animation: cardPulse 1.8s infinite ease-in-out;">&#x1F3F7;&#xFE0F;</div>
+            </div>
+            <div class="terminal-title">Scanner bereit!</div>
+            <div class="terminal-subtitle">Halte ein Produkt mit NFC-Tag ans Handy</div>
+
+            <!-- Last scanned product feedback -->
+            <div id="lastScannedProduct" class="hidden" style="margin-top:1.2rem; background:rgba(251,191,36,0.18); border:1.5px solid rgba(251,191,36,0.5); border-radius:20px; padding:0.9rem 1.4rem; text-align:center; animation: toastPop 0.35s cubic-bezier(0.175,0.885,0.32,1.275);">
+                <div id="lastScannedEmoji" style="font-size:2.8rem; margin-bottom:0.2rem;"></div>
+                <div id="lastScannedName" style="font-size:1.25rem; font-weight:800;"></div>
+                <div id="lastScannedPrice" style="font-size:1.4rem; font-weight:900; color:#fbbf24; margin-top:0.2rem;"></div>
+                <div style="font-size:0.95rem; opacity:0.75; margin-top:0.3rem;">&#x2705; Hinzugefügt!</div>
+            </div>
+        </div>
+
+        <!-- State 2: WAITING FOR PAYMENT -->
+        <div id="stateWaiting" class="hidden">
+            <div id="hwWaitingView">
+                <div class="card-icon-halo-wrapper">
+                    <div class="card-halo-ring"></div>
+                    <div class="terminal-card-icon pulse-animation">💳</div>
+                </div>
+                <div class="terminal-title">Karte jetzt anhalten!</div>
+                <div class="terminal-subtitle" id="waitingSubtitle">Halte deine physische Supermarkt-Karte an die Rückseite des Handys</div>
+            </div>
+
+            <!-- Touchscreen Simulation Card Selector View (Fallback for iOS or when enabled) -->
+            <div id="simWaitingView" class="hidden">
+                <div class="terminal-title">Wähle deine Kundenkarte! 💳</div>
+                <div class="terminal-subtitle">Tippe auf deine Karte zum Bezahlen:</div>
+                <div class="touchscreen-card-grid" id="touchCardGrid">
+                    <!-- Dynamically rendered card buttons -->
+                </div>
+            </div>
+
+            <div class="amount-badge" id="payAmountDisplay">0,00 €</div>
+        </div>
+
+        <!-- State 3: PIN PROMPT -->
+        <div id="statePin" class="hidden">
+            <div class="terminal-title" id="pinCardGreeting">Hallo! 💳</div>
+            <div class="terminal-subtitle" id="pinSubtitle">Bitte PIN eingeben</div>
+
+            <div class="terminal-pin-display" id="tPinDisplay">••••</div>
+
+            <div class="terminal-pin-grid">
+                <button type="button" class="t-pin-btn" onclick="tPressNum('1')">1</button>
+                <button type="button" class="t-pin-btn" onclick="tPressNum('2')">2</button>
+                <button type="button" class="t-pin-btn" onclick="tPressNum('3')">3</button>
+
+                <button type="button" class="t-pin-btn" onclick="tPressNum('4')">4</button>
+                <button type="button" class="t-pin-btn" onclick="tPressNum('5')">5</button>
+                <button type="button" class="t-pin-btn" onclick="tPressNum('6')">6</button>
+
+                <button type="button" class="t-pin-btn" onclick="tPressNum('7')">7</button>
+                <button type="button" class="t-pin-btn" onclick="tPressNum('8')">8</button>
+                <button type="button" class="t-pin-btn" onclick="tPressNum('9')">9</button>
+
+                <button type="button" class="t-pin-btn btn-clear" onclick="tClearPin()">C</button>
+                <button type="button" class="t-pin-btn" onclick="tPressNum('0')">0</button>
+                <button type="button" class="t-pin-btn btn-submit" onclick="tSubmitPin()">✓</button>
+            </div>
+        </div>
+
+        <!-- State 3.5: SIGNATURE PAD -->
+        <div id="stateSignature" class="hidden">
+            <div class="terminal-title">Unterschrift 🖋️</div>
+            <div class="terminal-subtitle">Bitte unten mit dem Finger unterschreiben:</div>
+
+            <div class="signature-canvas-container" style="margin: 1rem 0; width: 100%; position: relative;">
+                <canvas id="signatureCanvas" width="320" height="220" style="background: white; border: 3px dashed #38ef7d; border-radius: 16px; width: 100%; height: 220px; touch-action: none; cursor: crosshair; box-shadow: 0 8px 20px rgba(0,0,0,0.15);"></canvas>
+                <div style="position: absolute; bottom: 8px; right: 12px; font-size: 0.85rem; color: #94a3b8; pointer-events: none;">❌ X Unterschrift</div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: center; width: 100%;">
+                <button type="button" class="btn" onclick="clearSignatureCanvas()" style="background: #e2e8f0; color: #475569; padding: 0.8rem 1.2rem; border-radius: 12px; font-weight: 800; border: none; font-size: 1.1rem; cursor: pointer;">
+                    Neu 🗑️
+                </button>
+                <button type="button" class="btn" onclick="submitSignature()" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 0.8rem 1.5rem; border-radius: 12px; font-weight: 800; border: none; font-size: 1.1rem; cursor: pointer; box-shadow: 0 6px 18px rgba(56, 239, 125, 0.4);">
+                    Fertig ✓
+                </button>
+            </div>
+        </div>
+
+        <!-- State 4: PAYMENT SUCCESS -->
+        <div id="stateSuccess" class="hidden" style="cursor: pointer;" onclick="resetTerminalToIdle()">
+            <div class="customer-photo-box" id="photoBox" style="display: none;">
+                <img id="terminalPhoto" src="" alt="Kundenfoto">
+            </div>
+            <div class="terminal-card-icon" id="successIcon" style="display: none;">🎉</div>
+            <div class="terminal-title" id="successGreeting">Hallo! 🎉</div>
+            <div class="terminal-subtitle">Zahlung erfolgreich!</div>
+            
+            <button type="button" id="btnTerminalSuccessClose" onclick="resetTerminalToIdle(); event.stopPropagation();" style="margin-top: 1rem; width: 75px; height: 75px; background: linear-gradient(135deg, #ff7675 0%, #d63031 100%); color: white; border: none; border-radius: 50%; font-size: 2.5rem; cursor: pointer; box-shadow: 0 10px 25px rgba(214, 48, 49, 0.4);">
+                ❌
+            </button>
+        </div>
+
+        <!-- State 5: PAYMENT ERROR -->
+        <div id="stateError" class="hidden">
+            <div class="terminal-card-icon">😕</div>
+            <div class="terminal-title">Hoppla!</div>
+            <div class="terminal-subtitle" id="errorMessageDisplay">Unbekannte Karte</div>
+
+            <div style="margin-top: 0.8rem; font-size: 1rem; opacity: 0.85; font-weight: 700;">🔄 Neuer Versuch in 3 Sek...</div>
+
+            <!-- 3-Second Animated Countdown Bar -->
+            <div id="errorCountdownBarContainer" style="width: 100%; height: 10px; background: rgba(255,255,255,0.15); border-radius: 10px; overflow: hidden; margin: 0.8rem 0 1.2rem 0;">
+                <div id="errorCountdownBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #ff7675 0%, #d63031 100%); border-radius: 10px;"></div>
+            </div>
+
+            <button type="button" id="btnTerminalErrorCancel" onclick="resetTerminalToIdle(); if(window.termSocket) window.termSocket.emit('cancel_payment');" title="Abbrechen" style="width: 75px; height: 75px; background: linear-gradient(135deg, #ff7675 0%, #d63031 100%); color: white; border: none; border-radius: 50%; font-size: 2.5rem; cursor: pointer; box-shadow: 0 10px 25px rgba(214, 48, 49, 0.4); display: inline-flex; align-items: center; justify-content: center;">
+                ❌
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- State 6: STANDBY OVERLAY -->
+<div id="stateSleep" class="sleep-overlay hidden">
+    <div class="sleep-icon">😴</div>
+    <p>Standby — Tippen zum Aufwecken</p>
+</div>
+
+<!-- Portrait Warning Overlay -->
+<div class="portrait-warning-overlay">
+    <div style="font-size: 5rem; animation: rotatePhone 2s infinite ease-in-out;">📱</div>
+    <h2 style="font-size: 2rem; margin-top: 1rem; color: #38ef7d;">Bitte Smartphone hochkant halten!</h2>
+    <p style="font-size: 1.2rem; opacity: 0.85; margin-top: 0.5rem;">Das Terminal ist für Hochformat optimiert.</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+<script>
+// Lock PWA screen: Prevent edge back-swipe gestures, history navigation, and pull-to-refresh
+(function lockPwaScreen() {
+    try {
+        history.pushState(null, null, location.href);
+        window.addEventListener('popstate', function() {
+            history.pushState(null, null, location.href);
+        });
+    } catch (e) {}
+
+    document.addEventListener('touchstart', function(e) {
+        if (e.touches && e.touches.length > 0) {
+            const x = e.touches[0].clientX;
+            if (x < 25 || x > (window.innerWidth - 25)) {
+                e.preventDefault();
+            }
+        }
+    }, { passive: false });
+
+    document.addEventListener('touchmove', function(e) {
+        let el = e.target;
+        let isScrollable = false;
+        while (el && el !== document.body) {
+            if (el.scrollHeight > el.clientHeight && (getComputedStyle(el).overflowY === 'auto' || getComputedStyle(el).overflowY === 'scroll')) {
+                isScrollable = true;
+                break;
+            }
+            el = el.parentElement;
+        }
+        if (!isScrollable) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+})();
+
+let termPin = "";
+const screenTimeoutSec = parseInt("{{ screen_timeout or 30 }}");
+const showNfcToastSetting = "{{ show_nfc_toast or 'true' }}" === "true";
+let idleTimer = null;
+let webNfcScanning = false;
+let ndefReaderInstance = null;
+let currentScannerMode = "disabled"; // updated from server status event
+
+let termAudioCtx = null;
+let lastSoundTime = 0;
+
+function unlockTermAudio() {
+    if (!termAudioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+            termAudioCtx = new AudioContextClass();
+        }
+    }
+    if (termAudioCtx) {
+        if (termAudioCtx.state === "suspended") {
+            termAudioCtx.resume().catch(err => console.warn("AudioContext resume error:", err));
+        }
+        try {
+            const buf = termAudioCtx.createBuffer(1, 1, 22050);
+            const src = termAudioCtx.createBufferSource();
+            src.buffer = buf;
+            src.connect(termAudioCtx.destination);
+            src.start(0);
+        } catch (e) {}
+    }
+    return termAudioCtx;
+}
+
+// Sound synthesis using Web Audio API
+function playSound(type, force = false) {
+    const now = Date.now();
+    if (!force && now - lastSoundTime < 180) {
+        return; // Prevent duplicate rapid overlapping sounds within 180ms
+    }
+    lastSoundTime = now;
+
+    try {
+        let ctx = unlockTermAudio();
+        if (!ctx || ctx.state === "closed") {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) return;
+            ctx = new AudioContextClass();
+            termAudioCtx = ctx;
+        }
+
+        const nowTime = ctx.currentTime;
+
+        if (type === 'beep') {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, nowTime);
+            gain.gain.setValueAtTime(0.25, nowTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, nowTime + 0.15);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(nowTime);
+            osc.stop(nowTime + 0.15);
+        } else if (type === 'scanner') {
+            // Classic supermarket barcode scanner beep: sharp, high, short (1900 Hz)
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(1900, nowTime);
+            gain.gain.setValueAtTime(0.25, nowTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, nowTime + 0.09);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(nowTime);
+            osc.stop(nowTime + 0.09);
+        } else if (type === 'success') {
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((freq, i) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, nowTime + (i * 0.1));
+                gain.gain.setValueAtTime(0.3, nowTime + (i * 0.1));
+                gain.gain.exponentialRampToValueAtTime(0.001, nowTime + (i * 0.1) + 0.3);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(nowTime + (i * 0.1));
+                osc.stop(nowTime + (i * 0.1) + 0.3);
+            });
+        } else if (type === 'error') {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(180, nowTime);
+            gain.gain.setValueAtTime(0.3, nowTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, nowTime + 0.35);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(nowTime);
+            osc.stop(nowTime + 0.35);
+        }
+    } catch (e) {
+        console.warn("Audio play error:", e);
+    }
+}
+
+function showNfcFeedbackToast(message) {
+    if (!showNfcToastSetting) return;
+    const toast = document.getElementById("liveNfcFeedback");
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.remove("hidden");
+    setTimeout(() => {
+        toast.classList.add("hidden");
+    }, 3000);
+}
+
+function updateTPinDisplay() {
+    const display = document.getElementById("tPinDisplay");
+    if (!display) return;
+    if (termPin.length === 0) {
+        display.textContent = "••••";
+    } else {
+        display.textContent = "•".repeat(termPin.length);
+    }
+}
+
+function tPressNum(num) {
+    resetIdleTimer();
+    playSound('beep');
+    if (termPin.length < 4) {
+        termPin += num;
+        updateTPinDisplay();
+    }
+}
+
+function tClearPin() {
+    resetIdleTimer();
+    playSound('beep');
+    termPin = "";
+    updateTPinDisplay();
+}
+
+function tSubmitPin() {
+    resetIdleTimer();
+    if (window.termSocket) {
+        console.log("Submitting PIN:", termPin);
+        window.termSocket.emit("submit_pin", { pin: termPin });
+    }
+}
+
+function tSimTapCard(uid) {
+    resetIdleTimer();
+    playSound('beep');
+    if (window.termSocket) {
+        console.log("Touchscreen card selected:", uid);
+        window.termSocket.emit("card_tapped", { uid: uid });
+    }
+}
+
+function resetIdleTimer() {
+    if (idleTimer) clearTimeout(idleTimer);
+    if (screenTimeoutSec > 0) {
+        idleTimer = setTimeout(() => {
+            enterSleepMode();
+        }, screenTimeoutSec * 1000);
+    }
+}
+
+function enterSleepMode() {
+    const stateSleep = document.getElementById("stateSleep");
+    if (stateSleep) {
+        stateSleep.classList.remove("hidden");
+    }
+}
+
+let screenWakeLock = null;
+let wakeLockTimeoutTimer = null;
+const TEN_MINUTES_MS = 10 * 60 * 1000;
+
+async function requestScreenWakeLock() {
+    if ('wakeLock' in navigator) {
+        try {
+            if (!screenWakeLock) {
+                screenWakeLock = await navigator.wakeLock.request('screen');
+                console.log("10-Minute Screen Wake Lock active!");
+            }
+            if (wakeLockTimeoutTimer) clearTimeout(wakeLockTimeoutTimer);
+            wakeLockTimeoutTimer = setTimeout(() => {
+                releaseScreenWakeLock();
+            }, TEN_MINUTES_MS);
+        } catch (err) {
+            console.warn("Screen Wake Lock request error:", err);
+        }
+    }
+}
+
+function releaseScreenWakeLock() {
+    if (screenWakeLock) {
+        screenWakeLock.release().then(() => {
+            screenWakeLock = null;
+            console.log("Screen Wake Lock released after 10 minutes.");
+        }).catch(err => console.warn(err));
+    }
+    if (wakeLockTimeoutTimer) {
+        clearTimeout(wakeLockTimeoutTimer);
+        wakeLockTimeoutTimer = null;
+    }
+}
+
+function wakeUp() {
+    const stateSleep = document.getElementById("stateSleep");
+    if (stateSleep) {
+        stateSleep.classList.add("hidden");
+    }
+    resetIdleTimer();
+    requestScreenWakeLock();
+}
+
+// Check if NFC permission was previously granted and hide button right away
+function syncNfcButtonState() {
+    const btnActivate = document.getElementById("btnNfcActivate");
+    if (localStorage.getItem("nfc_permission_granted") === "true" || webNfcScanning) {
+        if (btnActivate) btnActivate.style.display = "none";
+    }
+}
+
+// Smartphone Web NFC API scanner with User-Gesture Activation Support & Persistence
+async function initWebNFC(isUserClick = false) {
+    const btnActivate = document.getElementById("btnNfcActivate");
+
+    // Immediately hide button if previously granted
+    if (localStorage.getItem("nfc_permission_granted") === "true") {
+        if (btnActivate) btnActivate.style.display = "none";
+    }
+
+    if ('NDEFReader' in window) {
+        try {
+            if (!ndefReaderInstance) {
+                ndefReaderInstance = new NDEFReader();
+            }
+            await ndefReaderInstance.scan();
+            webNfcScanning = true;
+            localStorage.setItem("nfc_permission_granted", "true");
+            console.log("Web NFC reader scanner active!");
+
+            if (btnActivate) {
+                btnActivate.style.display = "none";
+            }
+
+            const waitingSubtitle = document.getElementById("waitingSubtitle");
+            if (waitingSubtitle) {
+                waitingSubtitle.textContent = "Halte deine physische Supermarkt-Karte an die Rückseite des Handys";
+            }
+
+            ndefReaderInstance.onreadingerror = (err) => {
+                console.warn("Web NFC reading error:", err);
+            };
+
+            ndefReaderInstance.onreading = (event) => {
+                console.log("NFC Tag detected! Serial number:", event.serialNumber);
+                resetIdleTimer();
+                playSound(currentScannerMode === "enabled" ? 'scanner' : 'beep');
+
+                let rawUid = event.serialNumber || "";
+
+                if (event.message && event.message.records && event.message.records.length > 0) {
+                    const decoder = new TextDecoder();
+                    for (const record of event.message.records) {
+                        if (record.data) {
+                            try {
+                                const textContent = decoder.decode(record.data).trim();
+                                if (textContent) {
+                                    if (!rawUid) rawUid = textContent;
+                                    console.log("Decoded NDEF Record Content:", textContent);
+                                }
+                            } catch (e) {
+                                console.warn("Failed decoding record data:", e);
+                            }
+                        }
+                    }
+                }
+
+                if (rawUid) {
+                    showNfcFeedbackToast(`✅ NFC Karte erfasst! (ID: ${rawUid})`);
+                    if (window.termSocket) {
+                        window.termSocket.emit("card_tapped", { uid: rawUid });
+                    }
+                }
+            };
+        } catch (error) {
+            console.warn("Web NFC activation failed/denied:", error);
+            webNfcScanning = false;
+
+            // Only show button if user has NEVER granted permission before
+            if (localStorage.getItem("nfc_permission_granted") !== "true" && btnActivate) {
+                btnActivate.style.display = "inline-flex";
+            } else if (btnActivate) {
+                btnActivate.style.display = "none";
+            }
+        }
+    } else {
+        console.log("Web NFC not supported in this browser.");
+        webNfcScanning = false;
+        if (btnActivate) {
+            btnActivate.style.display = "none";
+        }
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    window.termSocket = io();
+    const socket = window.termSocket;
+
+    syncNfcButtonState();
+
+    const stateIdle = document.getElementById("stateIdle");
+    const stateWaiting = document.getElementById("stateWaiting");
+    const hwWaitingView = document.getElementById("hwWaitingView");
+    const simWaitingView = document.getElementById("simWaitingView");
+    const touchCardGrid = document.getElementById("touchCardGrid");
+
+    const statePin = document.getElementById("statePin");
+    const stateSignature = document.getElementById("stateSignature");
+    const stateSuccess = document.getElementById("stateSuccess");
+    const stateError = document.getElementById("stateError");
+    const stateSleep = document.getElementById("stateSleep");
+
+    const payAmountDisplay = document.getElementById("payAmountDisplay");
+    const pinCardGreeting = document.getElementById("pinCardGreeting");
+    const pinSubtitle = document.getElementById("pinSubtitle");
+    const photoBox = document.getElementById("photoBox");
+    const terminalPhoto = document.getElementById("terminalPhoto");
+    const successIcon = document.getElementById("successIcon");
+    const successGreeting = document.getElementById("successGreeting");
+    const errorMessageDisplay = document.getElementById("errorMessageDisplay");
+
+    function lockTerminalOrientation() {
+        if ('orientation' in screen && screen.orientation.lock) {
+            screen.orientation.lock('portrait-primary')
+                .catch(() => screen.orientation.lock('portrait'))
+                .catch(err => console.warn("Terminal orientation lock:", err));
+        }
+    }
+
+    function showState(el) {
+        wakeUp();
+        if (el !== stateError) {
+            if (typeof errorRetryTimer !== 'undefined' && errorRetryTimer) {
+                clearTimeout(errorRetryTimer);
+                errorRetryTimer = null;
+            }
+            const errorBar = document.getElementById("errorCountdownBar");
+            if (errorBar) {
+                errorBar.style.transition = "none";
+                errorBar.style.width = "0%";
+            }
+        }
+        const stateScannerIdle = document.getElementById("stateScannerIdle");
+        [stateIdle, stateScannerIdle, stateWaiting, statePin, stateSignature, stateSuccess, stateError, stateSleep].forEach(s => {
+            if (s) s.classList.add("hidden");
+        });
+        if (el) el.classList.remove("hidden");
+        lockTerminalOrientation();
+        resetIdleTimer();
+    }
+
+    // --- Signature Canvas Drawing Engine ---
+    let sigCanvas = null;
+    let sigCtx = null;
+    let isDrawingSig = false;
+
+    window.resizeSignatureCanvas = function() {
+        sigCanvas = document.getElementById("signatureCanvas");
+        if (!sigCanvas) return;
+        sigCtx = sigCanvas.getContext("2d");
+
+        const r = sigCanvas.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) {
+            sigCanvas.width = Math.round(r.width);
+            sigCanvas.height = Math.round(r.height);
+        } else {
+            sigCanvas.width = 320;
+            sigCanvas.height = 210;
+        }
+
+        sigCtx.lineWidth = 4;
+        sigCtx.lineCap = "round";
+        sigCtx.strokeStyle = "#1e293b";
+    };
+
+    window.initSignatureCanvas = function() {
+        sigCanvas = document.getElementById("signatureCanvas");
+        if (!sigCanvas) return;
+        sigCtx = sigCanvas.getContext("2d");
+
+        window.resizeSignatureCanvas();
+
+        function getPos(e) {
+            const r = sigCanvas.getBoundingClientRect();
+            let clientX = e.clientX;
+            let clientY = e.clientY;
+
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else if (e.changedTouches && e.changedTouches.length > 0) {
+                clientX = e.changedTouches[0].clientX;
+                clientY = e.changedTouches[0].clientY;
+            }
+
+            const scaleX = r.width > 0 ? (sigCanvas.width / r.width) : 1;
+            const scaleY = r.height > 0 ? (sigCanvas.height / r.height) : 1;
+
+            return {
+                x: (clientX - r.left) * scaleX,
+                y: (clientY - r.top) * scaleY
+            };
+        }
+
+        function startDraw(e) {
+            resetIdleTimer();
+            isDrawingSig = true;
+            const p = getPos(e);
+            sigCtx.beginPath();
+            sigCtx.moveTo(p.x, p.y);
+        }
+
+        function draw(e) {
+            if (!isDrawingSig) return;
+            e.preventDefault();
+            resetIdleTimer();
+            const p = getPos(e);
+            sigCtx.lineTo(p.x, p.y);
+            sigCtx.stroke();
+        }
+
+        function stopDraw() {
+            isDrawingSig = false;
+        }
+
+        sigCanvas.onmousedown = startDraw;
+        sigCanvas.onmousemove = draw;
+        window.onmouseup = stopDraw;
+
+        sigCanvas.ontouchstart = startDraw;
+        sigCanvas.ontouchmove = draw;
+        sigCanvas.ontouchend = stopDraw;
+    };
+
+    window.clearSignatureCanvas = function() {
+        if (!sigCanvas || !sigCtx) return;
+        sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+        playSound('beep');
+        resetIdleTimer();
+    };
+
+    window.submitSignature = function() {
+        resetIdleTimer();
+        playSound('beep');
+        if (!sigCanvas) return;
+        const base64Sig = sigCanvas.toDataURL("image/png");
+        if (window.termSocket) {
+            window.termSocket.emit("submit_signature", { signature: base64Sig });
+        }
+    };
+
+    window.resetTerminalToIdle = function() {
+        const stateScannerIdle = document.getElementById("stateScannerIdle");
+        if (currentScannerMode === "enabled" && stateScannerIdle) {
+            showState(stateScannerIdle);
+        } else if (stateIdle) {
+            showState(stateIdle);
+        }
+    };
+
+    document.addEventListener("pointerdown", () => {
+        unlockTermAudio();
+        wakeUp();
+        requestScreenWakeLock();
+        lockTerminalOrientation();
+        if (!webNfcScanning && 'NDEFReader' in window) {
+            initWebNFC(true);
+        }
+    });
+
+    document.addEventListener("click", () => {
+        unlockTermAudio();
+    });
+
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+            requestScreenWakeLock();
+            lockTerminalOrientation();
+        }
+    });
+
+    socket.on("connect", () => {
+        console.log("Terminal connected to server!");
+        resetIdleTimer();
+        requestScreenWakeLock();
+        lockTerminalOrientation();
+        initWebNFC();
+    });
+
+    socket.on("status", (data) => {
+        currentScannerMode = data.scanner_mode || "disabled";
+        const stateScannerIdle = document.getElementById("stateScannerIdle");
+        if (currentScannerMode === "enabled") {
+            // Auto-activate NFC in scanner mode without requiring a button click
+            initWebNFC(false);
+            if (data.mode === "idle" && stateScannerIdle) {
+                showState(stateScannerIdle);
+            }
+        }
+    });
+
+    socket.on("product_scanned", (data) => {
+        resetIdleTimer();
+        playSound('scanner');
+        if ('vibrate' in navigator) navigator.vibrate([50, 30, 50]);
+        showNfcFeedbackToast(`🏷️ ${data.emoji || ''} ${data.name} — ${data.price_formatted}`);
+
+        // Show last-scanned product card in scanner idle state
+        const lastEl = document.getElementById('lastScannedProduct');
+        const emojiEl = document.getElementById('lastScannedEmoji');
+        const nameEl = document.getElementById('lastScannedName');
+        const priceEl = document.getElementById('lastScannedPrice');
+        if (emojiEl) emojiEl.textContent = data.emoji || '🛒';
+        if (nameEl) nameEl.textContent = data.name;
+        if (priceEl) priceEl.textContent = data.price_formatted;
+        if (lastEl) {
+            lastEl.classList.remove('hidden');
+            // Force restart animation
+            lastEl.style.animation = 'none';
+            void lastEl.offsetWidth;
+            lastEl.style.animation = '';
+            clearTimeout(window._lastScannedTimer);
+            window._lastScannedTimer = setTimeout(() => lastEl.classList.add('hidden'), 3500);
+        }
+    });
+
+    socket.on("waiting_for_payment", (data) => {
+        if (data && data.total_formatted) {
+            payAmountDisplay.textContent = data.total_formatted;
+        }
+
+        initWebNFC();
+
+        touchCardGrid.innerHTML = "";
+        const cards = data.cards || [];
+
+        cards.forEach(card => {
+            const btn = document.createElement("button");
+            btn.className = "t-card-select-btn";
+            btn.type = "button";
+            btn.onclick = () => tSimTapCard(card.uid);
+
+            let avatarHtml = "";
+            if (card.image_url) {
+                avatarHtml = `<img src="${card.image_url}" class="t-card-avatar" alt="${card.name}">`;
+            } else {
+                avatarHtml = `<div class="t-card-avatar">💳</div>`;
+            }
+
+            btn.innerHTML = `
+                ${avatarHtml}
+                <div class="t-card-name">${card.name}</div>
+            `;
+            touchCardGrid.appendChild(btn);
+        });
+
+        if (data && data.nfc_mode === "touchscreen_simulation") {
+            hwWaitingView.classList.add("hidden");
+            simWaitingView.classList.remove("hidden");
+        } else {
+            hwWaitingView.classList.remove("hidden");
+            simWaitingView.classList.add("hidden");
+        }
+
+        showState(stateWaiting);
+    });
+
+    socket.on("prompt_pin", (data) => {
+        termPin = "";
+        updateTPinDisplay();
+        pinCardGreeting.textContent = data.card_name ? `Hallo ${data.card_name}! 💳` : "PIN eingeben 🔢";
+        pinSubtitle.textContent = `Bitte 4-stellige Geheimzahl eingeben (${data.total_formatted || ''})`;
+        showState(statePin);
+    });
+
+    socket.on("prompt_signature", (data) => {
+        showState(stateSignature);
+        setTimeout(() => {
+            initSignatureCanvas();
+            resizeSignatureCanvas();
+            clearSignatureCanvas();
+        }, 150);
+    });
+
+    socket.on("pin_error", (data) => {
+        wakeUp();
+        playSound('error');
+        pinSubtitle.textContent = data.message || "Falsche PIN! Versuche es nochmal.";
+        tClearPin();
+    });
+
+    socket.on("payment_success", (data) => {
+        termPin = "";
+        playSound('success');
+        if (data.card_image_url) {
+            terminalPhoto.src = data.card_image_url;
+            photoBox.style.display = "block";
+            successIcon.style.display = "none";
+        } else {
+            photoBox.style.display = "none";
+            successIcon.style.display = "block";
+        }
+
+        successGreeting.textContent = data.card_name ? `Hallo ${data.card_name}! 🎉` : "Bezahlt! 🎉";
+        showState(stateSuccess);
+
+        setTimeout(() => {
+            resetTerminalToIdle();
+        }, 5000);
+    });
+
+    let errorRetryTimer = null;
+
+    socket.on("payment_error", (data) => {
+        termPin = "";
+        playSound('error');
+        errorMessageDisplay.textContent = data.message || "Unbekannte Karte 😕";
+
+        const errorBar = document.getElementById("errorCountdownBar");
+        if (errorBar) {
+            errorBar.style.transition = "none";
+            errorBar.style.width = "0%";
+            void errorBar.offsetWidth;
+            errorBar.style.transition = "width 3s linear";
+            errorBar.style.width = "100%";
+        }
+
+        showState(stateError);
+
+        if (errorRetryTimer) clearTimeout(errorRetryTimer);
+        errorRetryTimer = setTimeout(() => {
+            if (activePayState === "waiting" || activePayState === "error") {
+                showState(stateWaiting);
+            }
+        }, 3000);
+    });
+
+    socket.on("payment_cancelled", () => {
+        termPin = "";
+        resetTerminalToIdle();
+    });
+
+    resetIdleTimer();
+});
+</script>
+{% endblock %}

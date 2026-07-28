@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}{% block admin_title %}Admin Panel — Kinder-Supermarkt{% endblock %}{% endblock %}
+{% block manifest_url %}/manifest-admin.json{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}?v=5">
+{% block admin_head %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<nav class="admin-nav">
+    <div class="admin-nav-container">
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-brand">🛒 Supermarkt Admin</a>
+        <button type="button" class="admin-nav-toggle" onclick="document.querySelector('.admin-menu').classList.toggle('open')">☰</button>
+        <div class="admin-menu">
+            <a href="{{ url_for('admin.dashboard') }}" class="{% if active_page == 'dashboard' %}active{% endif %}">📊 Dashboard</a>
+            <a href="{{ url_for('admin.categories') }}" class="{% if active_page == 'categories' %}active{% endif %}">🏷️ Kategorien</a>
+            <a href="{{ url_for('admin.products') }}" class="{% if active_page == 'products' %}active{% endif %}">🍎 Produkte</a>
+            <a href="{{ url_for('admin.cards') }}" class="{% if active_page == 'cards' %}active{% endif %}">💳 Kundenkarten</a>
+            <a href="{{ url_for('admin.transactions') }}" class="{% if active_page == 'transactions' %}active{% endif %}">🛍️ Einkäufe</a>
+            <a href="{{ url_for('admin.settings') }}" class="{% if active_page == 'settings' %}active{% endif %}">⚙️ Einstellungen</a>
+            <a href="{{ url_for('admin.logout') }}" class="logout-link">🚪 Abmelden</a>
+        </div>
+    </div>
+</nav>
+
+<div class="admin-container" {% block container_style %}{% endblock %}>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                {% if category == 'popup' %}
+                    <div class="overlay" id="infoPopupModal" style="z-index: 10000;">
+                        <div class="admin-card overlay-card" style="max-width: 440px; text-align: center; padding: 2rem 1.8rem; border-radius: 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
+                            <div style="width: 76px; height: 76px; background: #fffbeb; border: 3px solid #fde68a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.4rem; margin: 0 auto 1.2rem auto; color: #b45309;">
+                                🔄
+                            </div>
+                            <h3 style="margin-bottom: 0.5rem; font-size: 1.35rem; color: #0f172a; font-weight: 800;">Neustart erforderlich!</h3>
+                            <p style="color: var(--admin-muted); margin-bottom: 1.6rem; font-size: 0.95rem; line-height: 1.45;">
+                                {{ message }}
+                            </p>
+                            <div style="display: flex; flex-direction: column; gap: 0.8rem; align-items: center;">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="copyToClipboard('docker compose down && docker compose up -d')" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
+                                    📋 Restart-Befehl kopieren (docker compose)
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="document.getElementById('infoPopupModal').remove()" style="padding: 0.75rem 1.8rem; font-size: 0.95rem; font-weight: 700; border-radius: 12px; cursor: pointer; background: #2563eb; color: white;">
+                                    Verstanden 👍
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="badge badge-{{ category }}" style="font-size: 1rem; margin-bottom: 1.4rem; width: 100%; display: flex; justify-content: center; padding: 0.8rem 1.2rem;">{{ message }}</div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% block admin_content %}{% endblock %}
+</div>
+
+<!-- Reusable Admin Delete Confirmation Modal -->
+<div class="overlay hidden" id="deleteConfirmModal" style="z-index: 10000;">
+    <div class="admin-card overlay-card" style="max-width: 440px; text-align: center; padding: 2rem 1.8rem; border-radius: 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
+        <div id="deleteModalIcon" style="width: 76px; height: 76px; background: #fee2e2; border: 3px solid #fca5a5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.4rem; margin: 0 auto 1.2rem auto; color: #dc2626;">
+            🗑️
+        </div>
+        <h3 id="deleteModalTitle" style="margin-bottom: 0.5rem; font-size: 1.4rem; color: #0f172a; font-weight: 800;">Eintrag löschen?</h3>
+        <p id="deleteModalMessage" style="color: var(--admin-muted); margin-bottom: 1.6rem; font-size: 0.95rem; line-height: 1.45;">
+            Möchtest du diesen Eintrag wirklich unwiderruflich löschen?
+        </p>
+
+        <div style="display: flex; gap: 0.8rem; justify-content: center;">
+            <button type="button" id="deleteModalCancelBtn" class="btn btn-secondary" onclick="closeDeleteModal()" style="padding: 0.75rem 1.3rem; font-size: 0.95rem; font-weight: 700; border-radius: 12px; cursor: pointer; background: #f1f5f9; color: #475569; border: 1.5px solid #cbd5e1;">
+                Abbrechen ❌
+            </button>
+            <a href="#" id="deleteModalConfirmBtn" class="btn btn-danger" style="padding: 0.75rem 1.4rem; font-size: 0.95rem; font-weight: 700; text-decoration: none; border-radius: 12px; display: inline-flex; align-items: center; gap: 6px; background: #dc2626; color: white;">
+                Ja, Löschen 🗑️
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(deleteUrl, itemName, customMsg) {
+    const modal = document.getElementById("deleteConfirmModal");
+    const iconEl = document.getElementById("deleteModalIcon");
+    const titleEl = document.getElementById("deleteModalTitle");
+    const msgEl = document.getElementById("deleteModalMessage");
+    const confirmBtn = document.getElementById("deleteModalConfirmBtn");
+    const cancelBtn = document.getElementById("deleteModalCancelBtn");
+
+    if (iconEl) iconEl.textContent = "🗑️";
+    if (titleEl) {
+        titleEl.textContent = itemName ? `'${itemName}' löschen?` : "Eintrag löschen?";
+    }
+    if (msgEl) {
+        msgEl.textContent = customMsg || `Möchtest du '${itemName || 'diesen Eintrag'}' wirklich unwiderruflich löschen?`;
+    }
+    if (confirmBtn) {
+        confirmBtn.innerHTML = "Ja, Löschen 🗑️";
+        confirmBtn.href = deleteUrl;
+        confirmBtn.onclick = null;
+    }
+    if (cancelBtn) {
+        cancelBtn.innerHTML = "Abbrechen ❌";
+    }
+    if (modal) {
+        modal.classList.remove("hidden");
+    }
+    return false;
+}
+
+function confirmAction(actionCallback, title, customMsg, confirmBtnText, iconSymbol, cancelBtnText) {
+    const modal = document.getElementById("deleteConfirmModal");
+    const iconEl = document.getElementById("deleteModalIcon");
+    const titleEl = document.getElementById("deleteModalTitle");
+    const msgEl = document.getElementById("deleteModalMessage");
+    const confirmBtn = document.getElementById("deleteModalConfirmBtn");
+    const cancelBtn = document.getElementById("deleteModalCancelBtn");
+
+    if (iconEl) iconEl.textContent = iconSymbol || "⚠️";
+    if (titleEl) titleEl.textContent = title || "Bestätigung erforderlich";
+    if (msgEl) msgEl.textContent = customMsg || "Möchtest du diese Aktion wirklich ausführen?";
+    if (confirmBtn) {
+        confirmBtn.innerHTML = confirmBtnText || "Trotzdem fortfahren ⚠️";
+        confirmBtn.href = "javascript:void(0)";
+        confirmBtn.onclick = () => {
+            closeDeleteModal();
+            actionCallback();
+        };
+    }
+    if (cancelBtn) {
+        cancelBtn.innerHTML = cancelBtnText || "Abbrechen & Anpassen ❌";
+    }
+    if (modal) modal.classList.remove("hidden");
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById("deleteConfirmModal");
+    if (modal) modal.classList.add("hidden");
+}
+</script>
+{% endblock %}

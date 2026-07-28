@@ -1,0 +1,41 @@
+{% extends "admin/base_admin.html" %}
+{% set active_page = "categories" %}
+
+{% block admin_title %}Kategorie bearbeiten — Admin{% endblock %}
+{% block container_style %}style="max-width: 700px;"{% endblock %}
+
+{% block admin_content %}
+<div class="page-title-row">
+    <h2>Kategorie bearbeiten 🏷️</h2>
+</div>
+
+<div class="admin-card">
+    <h3>Kategorie "{{ category.name }}"</h3>
+
+    <form method="POST">
+        <div class="form-group">
+            <label for="name">Kategorie-Name:</label>
+            <input type="text" id="name" name="name" value="{{ category.name }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="emoji">Emoji Symbol:</label>
+            <input type="text" id="emoji" name="emoji" value="{{ category.emoji or '📦' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="sort_order">Sortier-Reihenfolge (Zahl):</label>
+            <input type="number" id="sort_order" name="sort_order" value="{{ category.sort_order }}">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.8rem; margin-top: 1.5rem;">
+            <a href="{{ url_for('admin.categories') }}" class="btn btn-icon btn-danger" title="Abbrechen">
+                <svg width="20" height="20" viewBox="0 0 24 24" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </a>
+            <button type="submit" class="btn btn-icon btn-success" title="Speichern">
+                <svg width="20" height="20" viewBox="0 0 24 24" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
