@@ -185,6 +185,9 @@ function openModal(id) {
 }
 function closeModal(id) {
     document.getElementById(id).classList.add("hidden");
+    if (window.adminSocket) {
+        window.adminSocket.emit("cancel_registration");
+    }
 }
 function editCard(id, uid, name, pin) {
     document.getElementById("editCardForm").action = "/admin/cards/edit/" + id;
@@ -195,7 +198,8 @@ function editCard(id, uid, name, pin) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    const socket = io();
+    window.adminSocket = io();
+    const socket = window.adminSocket;
     const scanBtn = document.getElementById("scanBtn");
     const uidInput = document.getElementById("nfc_uid");
 
@@ -204,7 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
             scanBtn.disabled = true;
             scanBtn.textContent = "Warte... 📱";
             
-            socket.emit("start_registration");
+            socket.emit("start_registration", { target: "card" });
 
             if ('NDEFReader' in window) {
                 try {
@@ -257,14 +261,19 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    socket.on("card_tapped", (data) => {
+    function handleCapturedCard(data) {
         if (data && data.uid && uidInput) {
             uidInput.value = data.uid;
-            scanBtn.disabled = false;
-            scanBtn.textContent = "Erfasst! ✅";
-            setTimeout(() => { scanBtn.textContent = "Scan 💳"; }, 3000);
+            if (scanBtn) {
+                scanBtn.disabled = false;
+                scanBtn.textContent = "Erfasst! ✅";
+                setTimeout(() => { scanBtn.textContent = "Scan 💳"; }, 3000);
+            }
         }
-    });
+    }
+
+    socket.on("card_captured", handleCapturedCard);
+    socket.on("card_tapped", handleCapturedCard);
 });
 </script>
 {% endblock %}

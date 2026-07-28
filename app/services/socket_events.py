@@ -369,8 +369,20 @@ def register_socket_events(socket_io: SocketIO):
         process_completed_payment(card, server_state["pending_cart"], socket_io, signature_data=signature)
 
     @socket_io.on("start_registration")
-    def handle_start_registration():
+    def handle_start_registration(data=None):
+        target = (data or {}).get("target", "general")
         server_state["mode"] = "waiting_for_registration"
         server_state["captured_uid"] = None
-        logger.info("Server entered registration mode")
-        socket_io.emit("waiting_for_registration", {"message": "Bitte Karte jetzt an das Lesegerät halten..."})
+        logger.info("Server entered registration mode (target: %s)", target)
+        socket_io.emit("waiting_for_registration", {
+            "message": "Bitte Karte oder NFC-Tag jetzt an das Lesegerät halten...",
+            "target": target,
+        })
+
+    @socket_io.on("cancel_registration")
+    def handle_cancel_registration():
+        if server_state["mode"] == "waiting_for_registration":
+            server_state["mode"] = "idle"
+            logger.info("Server exited registration mode")
+            socket_io.emit("registration_cancelled", {"message": "Registrierung abgebrochen"})
+

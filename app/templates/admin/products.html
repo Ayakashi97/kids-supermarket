@@ -225,6 +225,9 @@ function openModal(id) {
 }
 function closeModal(id) {
     document.getElementById(id).classList.add("hidden");
+    if (window.adminSocket) {
+        window.adminSocket.emit("cancel_registration");
+    }
 }
 function editProduct(id, name, price, category, emoji, nfcUid) {
     document.getElementById("editProductForm").action = "/admin/products/edit/" + id;
@@ -237,7 +240,8 @@ function editProduct(id, name, price, category, emoji, nfcUid) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    const socket = io();
+    window.adminSocket = io();
+    const socket = window.adminSocket;
     let activeTargetInput = null;
 
     function setupScanBtn(btnId, inputId) {
@@ -250,7 +254,7 @@ document.addEventListener("DOMContentLoaded", () => {
             btn.disabled = true;
             btn.textContent = "Warte... 📱";
 
-            socket.emit("start_registration");
+            socket.emit("start_registration", { target: "product" });
 
             if ('NDEFReader' in window) {
                 try {

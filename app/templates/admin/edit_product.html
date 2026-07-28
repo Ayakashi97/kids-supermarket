@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
             scanBtn.disabled = true;
             scanBtn.textContent = "Warte... 📱";
 
-            socket.emit("start_registration");
+            socket.emit("start_registration", { target: "product" });
 
             if ('NDEFReader' in window) {
                 try {
