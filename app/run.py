@@ -1,6 +1,10 @@
 import os
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning, module=".*eventlet.*")
+warnings.filterwarnings("ignore", message=".*Eventlet is deprecated.*")
+
 from app import create_app
 from app.services.socket_events import socketio
 from app.config import Config
@@ -86,24 +90,26 @@ if __name__ == "__main__":
         http_port = Config.HTTP_PORT
         start_http_redirect_server(port=http_port)
 
+        is_dev = app.config.get("DEV_MODE", False)
         run_kwargs = {
             "host": "0.0.0.0",
             "port": https_port,
-            "debug": True,
-            "allow_unsafe_werkzeug": True,
+            "debug": is_dev,
+            "allow_unsafe_werkzeug": is_dev,
             "certfile": certfile,
             "keyfile": keyfile
         }
-        app.logger.info("Starting server in HTTPS mode on port %d (HTTP redirect on port %d)", https_port, http_port)
+        app.logger.info("Starting server in HTTPS mode on port %d (HTTP redirect on port %d, dev_mode=%s)", https_port, http_port, is_dev)
     else:
         # HTTP mode: SocketIO on port 80 (or HTTP_PORT)
         http_port = Config.HTTP_PORT
+        is_dev = app.config.get("DEV_MODE", False)
         run_kwargs = {
             "host": "0.0.0.0",
             "port": http_port,
-            "debug": True,
-            "allow_unsafe_werkzeug": True
+            "debug": is_dev,
+            "allow_unsafe_werkzeug": is_dev
         }
-        app.logger.info("Starting server in HTTP mode on port %d", http_port)
+        app.logger.info("Starting server in HTTP mode on port %d (dev_mode=%s)", http_port, is_dev)
 
     socketio.run(app, **run_kwargs)
