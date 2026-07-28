@@ -5,6 +5,17 @@ Alle wesentlichen Änderungen an **Kinder-Supermarkt** werden hier dokumentiert.
 Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 Versionierung nach [Semantic Versioning](https://semver.org/).
 
+## [1.0.1] — 2026-07-28
+
+### 🐛 Behoben
+
+#### Terminal-Smartphone & NFC-Anlernen
+- **Modus-Wechsel im Scan-Modus**: Das Terminal wechselt beim Starten einer Tag- oder Kundenkarten-Erfassung im Admin-Bereich jetzt automatisch in den visuellen **Scan-Modus** (mit dynamischem Titel, Untertitel und animiertem Halo-Ring 💳 / 🏷️).
+- **Vollbild-Verschachtelung korrigiert**: Das `<div id="stateRegistration">` lag fälschlicherweise innerhalb von `stateScannerIdle`, wodurch der Bildschirm beim Anlernen schwarz blieb. Das Element wurde entverschachtelt.
+- **Kundenkarten-Erfassung im Admin**: `cards.html` hörte bisher nur auf das Event `card_tapped` anstelle von `card_captured`. Das Event wurde hinzugefügt, sodass gescannte UIDs sofort im Kundenkarten-Formular eingefügt werden.
+- **Abbrechen-Handler**: Das Schließen der Admin-Modals sendet jetzt ein `cancel_registration`-Event, damit das Terminal direkt zum Leerlauf-Bildschirm zurückkehrt.
+- **Hilfetext im Admin**: Hilfetext unter dem NFC-UID-Feld in der Kundenkarten-Registrierung hinzugefügt.
+
 ---
 
 ## [1.0.0] — 2026-07-28
@@ -70,4 +81,5 @@ Versionierung nach [Semantic Versioning](https://semver.org/).
 
 ---
 
+[1.0.1]: https://github.com/Ayakashi97/kids-supermarket/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/Ayakashi97/kids-supermarket/releases/tag/v1.0.0
